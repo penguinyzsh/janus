@@ -47,6 +47,27 @@ jobs:
           generate_release_notes: true
           files: app/build/outputs/apk/release/Janus-*.apk
 
+      - name: Sync Xposed Modules Repo (README + metadata)
+        env:
+          XPOSED_TOKEN: ${{ secrets.XPOSED_REPO_TOKEN }}
+        run: |
+          # Sync README
+          git clone --depth 1 "https://x-access-token:${XPOSED_TOKEN}@github.com/Xposed-Modules-Repo/org.pysh.janus.git" xposed-repo
+          cp README.md xposed-repo/README.md
+          cd xposed-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git diff --cached --quiet || git commit -m "Sync README from main repo ${{ github.ref_name }}"
+          git push
+          cd ..
+          # Set homepage for modules.lsposed.org website field
+          curl -s -X PATCH \
+            -H "Authorization: token ${XPOSED_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/Xposed-Modules-Repo/org.pysh.janus \
+            -d '{"homepage":"https://github.com/penguinyzsh/janus"}'
+
       - name: Publish to Xposed Modules Repo
         uses: softprops/action-gh-release@v2
         with:
