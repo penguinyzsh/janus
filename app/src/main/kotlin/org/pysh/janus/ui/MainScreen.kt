@@ -225,7 +225,9 @@ fun MainScreen(isModuleActive: Boolean) {
                                     showUpdateDialog = showUpdateDialog,
                                     onDismissUpdateDialog = {
                                         showUpdateDialog = false
-                                        whitelistManager.setLastSeenVersion(BuildConfig.VERSION_CODE)
+                                        if (!BuildConfig.DEBUG) {
+                                            whitelistManager.setLastSeenVersion(BuildConfig.VERSION_CODE)
+                                        }
                                     },
                                 )
                                 1 -> AppsPage(
