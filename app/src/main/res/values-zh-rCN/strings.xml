@@ -123,7 +123,7 @@
 
     <!-- 更新通告 -->
     <string name="update_title">v%s 更新内容</string>
-    <string name="update_changelog">添加自定义背屏的视频壁纸功能\n（替换最新生成的 AI 视频壁纸）\n添加背屏视频壁纸循环播放开关</string>
+    <string name="update_changelog">无需预设 AI 壁纸，直接创建视频壁纸\n通过 Hook 重定向壁纸路径实现无缝播放\n新增锁定壁纸切换，防止误触切换壁纸\n恢复按钮安全回退到系统壁纸</string>
     <string name="update_join_group">加入 QQ 群</string>
     <string name="update_dismiss">知道了</string>
 </resources>

@@ -128,7 +128,7 @@
 
     <!-- Update Dialog -->
     <string name="update_title">What\'s New in v%s</string>
-    <string name="update_changelog">Custom rear screen video wallpaper\n(replaces the latest generated AI video wallpaper)\nRear screen video wallpaper loop playback toggle</string>
+    <string name="update_changelog">Create AI video wallpaper without pre-generating in Theme Manager\nXposed hook redirects wallpaper path for seamless video playback\nLock wallpaper switching to prevent accidental changes\nRestore button safely returns to system wallpaper</string>
     <string name="update_join_group">Join QQ Group</string>
     <string name="update_dismiss">Got it</string>
 </resources>
