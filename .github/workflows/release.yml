@@ -53,11 +53,11 @@ jobs:
         run: |
           # Sync README
           git clone --depth 1 "https://x-access-token:${XPOSED_TOKEN}@github.com/Xposed-Modules-Repo/org.pysh.janus.git" xposed-repo
-          cp README.md xposed-repo/README.md
+          cp README.md README_CN.md xposed-repo/
           cd xposed-repo
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md
+          git add README.md README_CN.md
           git diff --cached --quiet || git commit -m "Sync README from main repo ${{ github.ref_name }}"
           git push
           cd ..
