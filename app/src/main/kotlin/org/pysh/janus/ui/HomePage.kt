@@ -96,6 +96,7 @@ fun HomePage(
         summary = stringResource(R.string.update_changelog),
         onDismissRequest = onDismissUpdateDialog,
     ) {
+        val qqGroupCopiedText = stringResource(R.string.qq_group_copied)
         Card(modifier = Modifier.padding(bottom = 12.dp)) {
             @OptIn(ExperimentalFoundationApi::class)
             Box(
@@ -108,7 +109,7 @@ fun HomePage(
                     onLongClick = {
                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", "119655862"))
-                        Toast.makeText(context, context.getString(R.string.qq_group_copied), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, qqGroupCopiedText, Toast.LENGTH_SHORT).show()
                     },
                 ),
             ) {
