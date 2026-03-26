@@ -16,6 +16,10 @@
         <activity
             android:name=".MainActivity"
             android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="de.robv.android.xposed.category.MODULE_SETTINGS" />
+            </intent-filter>
         </activity>
 
         <!-- Launcher alias — toggled by "Hide icon" setting -->
