@@ -80,17 +80,26 @@ class HookEntry : IXposedHookLoadPackage {
                 }
             )
 
-            // Hook b() -> HashSet<String> : full whitelist retrieval
+            // Hook b() -> Set<String> : full whitelist retrieval
             XposedHelpers.findAndHookMethod(
                 targetClass, "b",
                 object : XC_MethodHook() {
                     @Suppress("UNCHECKED_CAST")
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        val result = (param.result as? HashSet<String>)
-                            ?: HashSet<String>().also { param.result = it }
                         val customWhitelist = getCustomWhitelist()
-                        result.addAll(customWhitelist)
-                        param.result = result
+                        if (customWhitelist.isEmpty()) return
+                        val original = param.result
+                        try {
+                            (original as MutableCollection<String>).addAll(customWhitelist)
+                        } catch (_: Throwable) {
+                            val merged = HashSet<String>()
+                            if (original is Collection<*>) {
+                                @Suppress("UNCHECKED_CAST")
+                                merged.addAll(original as Collection<String>)
+                            }
+                            merged.addAll(customWhitelist)
+                            param.result = merged
+                        }
                     }
                 }
             )

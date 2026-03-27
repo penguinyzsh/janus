@@ -27,8 +27,6 @@ class WhitelistManager(private val context: Context) {
         const val TRACKING_FLAG_PATH = "$CONFIG_DIR/janus_tracking_disabled"
         const val WALLPAPER_KEEP_ALIVE_FLAG_PATH = "$CONFIG_DIR/janus_wallpaper_keep_alive"
         const val WALLPAPER_LOCK_FLAG_PATH = "$CONFIG_DIR/janus_wallpaper_lock"
-        const val NOTIFICATION_WIDGET_JSON =
-            "/data/system/theme_magic/users/0/subscreencenter/notification/notification_widget.json"
     }
 
     private val prefs: SharedPreferences = try {
@@ -137,39 +135,9 @@ class WhitelistManager(private val context: Context) {
     fun setWeatherCardEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WEATHER_CARD_ENABLED, enabled).commit()
         makePrefsWorldReadable()
-        // File flag readable by subscreencenter (bypasses SELinux XSharedPreferences issue)
-        val flag = WEATHER_FLAG_PATH
-        if (enabled) {
-            org.pysh.janus.util.RootUtils.exec("touch $flag && chmod 644 $flag")
-        } else {
-            org.pysh.janus.util.RootUtils.exec("rm -f $flag")
-            removePersistedWeatherWidget()
-        }
+        syncBooleanFlag(WEATHER_FLAG_PATH, enabled)
     }
 
-    /**
-     * Remove Janus weather entry from notification_widget.json so no stale
-     * black card remains after disabling the feature.
-     */
-    private fun removePersistedWeatherWidget() {
-        try {
-            val raw = org.pysh.janus.util.RootUtils.execWithOutput("cat $NOTIFICATION_WIDGET_JSON") ?: return
-            val arr = org.json.JSONArray(raw)
-            val filtered = org.json.JSONArray()
-            for (i in 0 until arr.length()) {
-                val obj = arr.getJSONObject(i)
-                val pkg = obj.optJSONObject("extra")?.optString("package_name")
-                if (pkg != "org.pysh.janus") filtered.put(obj)
-            }
-            if (filtered.length() < arr.length()) {
-                // Write to app-private tmp then root-move to target (avoids shell escaping)
-                val tmp = File(context.cacheDir, "nw_tmp.json")
-                tmp.writeText(filtered.toString())
-                org.pysh.janus.util.RootUtils.exec("cp ${tmp.absolutePath} $NOTIFICATION_WIDGET_JSON && chmod 666 $NOTIFICATION_WIDGET_JSON")
-                tmp.delete()
-            }
-        } catch (_: Exception) { /* best-effort */ }
-    }
 
     fun getLastSeenVersion(): Int {
         return prefs.getInt(KEY_LAST_SEEN_VERSION, 0)
@@ -195,7 +163,7 @@ class WhitelistManager(private val context: Context) {
             val tmp = File(context.cacheDir, "wl_tmp.txt")
             tmp.writeText(packages.joinToString(","))
             org.pysh.janus.util.RootUtils.exec(
-                "cp ${tmp.absolutePath} $WHITELIST_FLAG_PATH && chmod 644 $WHITELIST_FLAG_PATH"
+                "cp ${tmp.absolutePath} $WHITELIST_FLAG_PATH && chmod 644 $WHITELIST_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $WHITELIST_FLAG_PATH"
             )
             tmp.delete()
         }
@@ -212,7 +180,7 @@ class WhitelistManager(private val context: Context) {
 
     private fun syncBooleanFlag(path: String, enabled: Boolean) {
         if (enabled) {
-            org.pysh.janus.util.RootUtils.exec("touch $path && chmod 644 $path")
+            org.pysh.janus.util.RootUtils.exec("touch $path && chmod 644 $path && chcon u:object_r:theme_data_file:s0 $path")
         } else {
             org.pysh.janus.util.RootUtils.exec("rm -f $path")
         }

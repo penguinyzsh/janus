@@ -236,11 +236,6 @@ object WeatherCardHook {
     <VariableCommand name="aqi_lbl" expression="ifelse(#aqi_n{1,'',#aqi_n{51,'优',#aqi_n{101,'良',#aqi_n{151,'轻度',#aqi_n{201,'中度','重度')))" type="string"/>
   </Function>
 
-  <!-- ── Background ── -->
-  <Rectangle w="#view_width" h="#view_height" fillColor="#ff101020"/>
-  <!-- Subtle gradient overlay -->
-  <Rectangle x="0" y="0" w="#view_width" h="(#view_height*0.6)" fillColor="#18334488"/>
-
   <!-- ── City ── -->
   <Text textExp="@city"
         x="#cx" y="(24*#s)" w="(110*#s)" h="(16*#s)"
