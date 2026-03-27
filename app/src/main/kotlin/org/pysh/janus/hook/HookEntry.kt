@@ -17,6 +17,7 @@ class HookEntry : IXposedHookLoadPackage {
         private const val TARGET_CLASS = "p2.a"
         private const val SELF_PACKAGE = "org.pysh.janus"
         private const val PREFS_NAME = "janus_config"
+        private const val APPLE_MUSIC_PACKAGE = "com.apple.android.music"
         private const val WALLPAPER_LONG_PRESS_GESTURE = "Z1.t" // MainPanel long-press-to-edit handler
         private const val SUB_SCREEN_LAUNCHER = "$TARGET_PACKAGE.SubScreenLauncher"
         private const val JANUS_MRC = "/data/system/theme/rearScreenWhite/janus_custom.mrc"
@@ -41,6 +42,11 @@ class HookEntry : IXposedHookLoadPackage {
                 hookWallpaperLock(lpparam)
                 hookWallpaperPathRedirect(lpparam)
                 WeatherCardHook.hook(lpparam, prefs)
+            }
+            APPLE_MUSIC_PACKAGE -> {
+                if (isAppleMusicInWhitelist()) {
+                    AppleMusicLyricHook.hook(lpparam)
+                }
             }
         }
     }
@@ -104,9 +110,40 @@ class HookEntry : IXposedHookLoadPackage {
                 }
             )
 
+            // Hook MusicController.addMusicPackageList to inject whitelist into
+            // MediaSession monitoring. Without this, <MusicControl> MAML element
+            // won't track third-party sessions (no lyrics, no progress bar).
+            hookMusicControllerPackageList(lpparam)
+
             XposedBridge.log("[$TAG] Hooks installed successfully")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookMusicWhitelist failed: ${e.message}")
+        }
+    }
+
+    private fun hookMusicControllerPackageList(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            XposedHelpers.findAndHookMethod(
+                "com.miui.maml.elements.MusicController",
+                lpparam.classLoader,
+                "addMusicPackageList",
+                java.util.List::class.java,
+                object : XC_MethodHook() {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val list = param.args[0] as? MutableList<String> ?: return
+                        val whitelist = getCustomWhitelist()
+                        for (pkg in whitelist) {
+                            if (pkg !in list) list.add(pkg)
+                        }
+                        if (whitelist.isNotEmpty()) {
+                            XposedBridge.log("[$TAG] Injected ${whitelist.size} packages into MusicController")
+                        }
+                    }
+                }
+            )
+        } catch (e: Throwable) {
+            XposedBridge.log("[$TAG] hookMusicControllerPackageList failed: ${e.message}")
         }
     }
 
@@ -236,6 +273,10 @@ class HookEntry : IXposedHookLoadPackage {
 
     private fun isTrackingDisabled(): Boolean {
         return java.io.File(TRACKING_FLAG).exists()
+    }
+
+    private fun isAppleMusicInWhitelist(): Boolean {
+        return APPLE_MUSIC_PACKAGE in getCustomWhitelist()
     }
 
     private fun getCustomWhitelist(): Set<String> {

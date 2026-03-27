@@ -1,6 +1,7 @@
 # Xposed hook entry — must not be obfuscated
 -keep class org.pysh.janus.hook.HookEntry
 -keep class org.pysh.janus.hook.WeatherCardHook { *; }
+-keep class org.pysh.janus.hook.AppleMusicLyricHook { *; }
 
 # WhitelistManager — accessed via XSharedPreferences reflection
 -keep class org.pysh.janus.data.WhitelistManager { *; }
