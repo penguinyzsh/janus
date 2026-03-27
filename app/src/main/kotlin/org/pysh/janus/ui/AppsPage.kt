@@ -143,6 +143,7 @@ fun AppsPage(
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
                 topAppBarScrollBehavior = scrollBehavior,
+                refreshTexts = emptyList(),
             ) {
                 LazyColumn(
                     contentPadding = PaddingValues(bottom = bottomPadding),
