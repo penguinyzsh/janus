@@ -35,9 +35,14 @@
     <string name="activation">激活</string>
 
     <!-- 功能页 -->
+    <string name="section_wallpaper">壁纸相关</string>
     <string name="disable_tracking">禁止使用统计上报小米</string>
     <string name="disable_tracking_on">已拦截使用数据上报</string>
     <string name="disable_tracking_off">正常上报使用数据</string>
+
+    <string name="weather_card">背屏天气卡片</string>
+    <string name="weather_card_on">服务助手中显示天气卡片</string>
+    <string name="weather_card_off">不显示天气卡片</string>
 
     <string name="wallpaper_keep_alive">动态壁纸防打断</string>
     <string name="wallpaper_keep_alive_on">遮盖时动态壁纸继续播放</string>

@@ -18,7 +18,12 @@ class WhitelistManager(private val context: Context) {
         const val KEY_WALLPAPER_KEEP_ALIVE = "wallpaper_keep_alive"
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
+        const val KEY_WEATHER_CARD_ENABLED = "weather_card_enabled"
         const val KEY_LAST_SEEN_VERSION = "last_seen_version"
+        const val WEATHER_FLAG_PATH =
+            "/data/system/theme_magic/users/0/subscreencenter/config/janus_weather"
+        const val NOTIFICATION_WIDGET_JSON =
+            "/data/system/theme_magic/users/0/subscreencenter/notification/notification_widget.json"
     }
 
     private val prefs: SharedPreferences = try {
@@ -115,6 +120,47 @@ class WhitelistManager(private val context: Context) {
 
     fun setWallpaperLoop(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOOP, enabled).commit()
+    }
+
+    fun isWeatherCardEnabled(): Boolean {
+        return prefs.getBoolean(KEY_WEATHER_CARD_ENABLED, false)
+    }
+
+    fun setWeatherCardEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_WEATHER_CARD_ENABLED, enabled).commit()
+        makePrefsWorldReadable()
+        // File flag readable by subscreencenter (bypasses SELinux XSharedPreferences issue)
+        val flag = WEATHER_FLAG_PATH
+        if (enabled) {
+            org.pysh.janus.util.RootUtils.exec("touch $flag && chmod 644 $flag")
+        } else {
+            org.pysh.janus.util.RootUtils.exec("rm -f $flag")
+            removePersistedWeatherWidget()
+        }
+    }
+
+    /**
+     * Remove Janus weather entry from notification_widget.json so no stale
+     * black card remains after disabling the feature.
+     */
+    private fun removePersistedWeatherWidget() {
+        try {
+            val raw = org.pysh.janus.util.RootUtils.execWithOutput("cat $NOTIFICATION_WIDGET_JSON") ?: return
+            val arr = org.json.JSONArray(raw)
+            val filtered = org.json.JSONArray()
+            for (i in 0 until arr.length()) {
+                val obj = arr.getJSONObject(i)
+                val pkg = obj.optJSONObject("extra")?.optString("package_name")
+                if (pkg != "org.pysh.janus") filtered.put(obj)
+            }
+            if (filtered.length() < arr.length()) {
+                // Write to app-private tmp then root-move to target (avoids shell escaping)
+                val tmp = File(context.cacheDir, "nw_tmp.json")
+                tmp.writeText(filtered.toString())
+                org.pysh.janus.util.RootUtils.exec("cp ${tmp.absolutePath} $NOTIFICATION_WIDGET_JSON && chmod 666 $NOTIFICATION_WIDGET_JSON")
+                tmp.delete()
+            }
+        } catch (_: Exception) { /* best-effort */ }
     }
 
     fun getLastSeenVersion(): Int {

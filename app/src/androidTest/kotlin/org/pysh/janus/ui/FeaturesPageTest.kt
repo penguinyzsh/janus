@@ -32,16 +32,34 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsTrackingSwitch() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.disable_tracking)).assertIsDisplayed()
+    }
+
+    // TC-FEAT-WC1/WC2: 天气卡片开关展示
+    @Test
+    fun featuresPage_showsWeatherCardSwitch() {
+        rule.setContent {
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
+        }
+        rule.onNodeWithText(s(R.string.weather_card)).assertIsDisplayed()
+    }
+
+    // TC-FEAT-WC1: 默认天气卡片摘要
+    @Test
+    fun featuresPage_defaultWeatherCardSummary() {
+        rule.setContent {
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
+        }
+        rule.onNodeWithText(s(R.string.weather_card_off)).assertIsDisplayed()
     }
 
     // TC-FEAT-003/004: 背屏常亮开关展示
     @Test
     fun featuresPage_showsKeepAliveSwitch() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.keep_alive)).assertIsDisplayed()
     }
@@ -50,7 +68,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsKeepAliveInterval() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.keep_alive_interval)).assertIsDisplayed()
     }
@@ -59,7 +77,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsCurrentDpi() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.rear_dpi)).assertIsDisplayed()
         rule.onNodeWithText(s(R.string.rear_dpi_current, 320)).assertIsDisplayed()
@@ -69,7 +87,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_dpiLoading_showsLoadingText() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = null, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = null, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.loading)).assertIsDisplayed()
     }
@@ -78,7 +96,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsCastRotation() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.cast_rotation)).assertIsDisplayed()
     }
@@ -87,7 +105,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsCastKeepAlive() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.cast_keep_alive)).assertIsDisplayed()
     }
@@ -98,7 +116,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_clickInterval_opensDialog() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         // 对话框提示文字在打开前不存在
         rule.onNodeWithText(s(R.string.keep_alive_interval_dialog_summary)).assertDoesNotExist()
@@ -115,7 +133,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_intervalDialog_cancel_closes() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.keep_alive_interval)).performClick()
         rule.onNodeWithText(s(R.string.keep_alive_interval_dialog_summary)).assertIsDisplayed()
@@ -129,7 +147,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsResetDefaultButton() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.reset_default)).assertIsDisplayed()
     }
@@ -138,7 +156,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_clickDpi_opensDialog() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.dpi_dialog_summary)).assertDoesNotExist()
         rule.onNodeWithText(s(R.string.rear_dpi)).performClick()
@@ -150,7 +168,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_dpiDialog_cancel_closes() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.rear_dpi)).performClick()
         rule.onNodeWithText(s(R.string.dpi_dialog_summary)).assertIsDisplayed()
@@ -162,7 +180,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_showsDpiButtons() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.set_dpi)).assertIsDisplayed()
         rule.onNodeWithText(s(R.string.reset)).assertIsDisplayed()
@@ -172,7 +190,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_clickRotation_opensDialogWithOptions() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.cast_rotation)).performClick()
         // 三个旋转选项都应显示
@@ -185,7 +203,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_selectRotation_updatesAndCloses() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         // 打开旋转弹窗
         rule.onNodeWithText(s(R.string.cast_rotation)).performClick()
@@ -201,7 +219,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_defaultRotationSummary() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.cast_rotation_none)).assertIsDisplayed()
     }
@@ -210,7 +228,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_defaultTrackingSummary() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.disable_tracking_off)).assertIsDisplayed()
     }
@@ -219,7 +237,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_defaultKeepAliveSummary() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.keep_alive_off)).assertIsDisplayed()
     }
@@ -228,7 +246,7 @@ class FeaturesPageTest {
     @Test
     fun featuresPage_defaultCastKeepAliveSummary() {
         rule.setContent {
-            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}) }
+            MiuixTheme { FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {}) }
         }
         rule.onNodeWithText(s(R.string.cast_keep_alive_off)).assertIsDisplayed()
     }

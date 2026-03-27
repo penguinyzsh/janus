@@ -1,9 +1,6 @@
 package org.pysh.janus.ui
 
-import android.net.Uri
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +29,6 @@ import org.pysh.janus.data.WhitelistManager
 import org.pysh.janus.service.ScreenKeepAliveService
 import org.pysh.janus.util.DisplayUtils
 import org.pysh.janus.util.RootUtils
-import org.pysh.janus.util.WallpaperUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,7 +51,7 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 @Composable
 private fun FeaturesPagePreview() {
     MiuixTheme {
-        FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {})
+        FeaturesPage(bottomPadding = 0.dp, currentDpi = 320, onDpiChanged = {}, onWallpaperClick = {})
     }
 }
 
@@ -65,6 +60,7 @@ fun FeaturesPage(
     bottomPadding: Dp,
     currentDpi: Int?,
     onDpiChanged: (Int?) -> Unit,
+    onWallpaperClick: () -> Unit,
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -73,52 +69,12 @@ fun FeaturesPage(
     var keepAlive by remember { mutableStateOf(if (!isInPreview) (whitelistManager?.isKeepAliveEnabled() ?: false) else false) }
     var intervalValue by remember { mutableFloatStateOf(whitelistManager?.getKeepAliveInterval()?.toFloat() ?: 10f) }
     var disableTracking by remember { mutableStateOf(whitelistManager?.isTrackingDisabled() ?: false) }
-    var wallpaperKeepAlive by remember { mutableStateOf(whitelistManager?.isWallpaperKeepAlive() ?: false) }
+
+    var weatherCard by remember { mutableStateOf(whitelistManager?.isWeatherCardEnabled() ?: false) }
 
     var dpiSliderValue by remember { mutableFloatStateOf(currentDpi?.toFloat() ?: 320f) }
     var castRotation by remember { mutableStateOf(whitelistManager?.getCastRotation() ?: 0) }
     var castKeepAlive by remember { mutableStateOf(whitelistManager?.isCastKeepAlive() ?: false) }
-    var wallpaperLock by remember { mutableStateOf(whitelistManager?.isWallpaperLocked() ?: false) }
-    var wallpaperLoop by remember { mutableStateOf(whitelistManager?.isWallpaperLoop() ?: false) }
-    var hasWallpaper by remember { mutableStateOf(false) }
-    var hasWpBackup by remember { mutableStateOf(false) }
-    var isWpProcessing by remember { mutableStateOf(false) }
-
-    if (!isInPreview) {
-        LaunchedEffect(Unit) {
-            withContext(Dispatchers.IO) {
-                val wp = WallpaperUtils.detectWallpaper()
-                hasWallpaper = wp != null
-                hasWpBackup = WallpaperUtils.hasBackup()
-                if (wp != null) {
-                    val loopState = WallpaperUtils.isLoopEnabled(context)
-                    if (loopState != null) wallpaperLoop = loopState
-                }
-            }
-        }
-    }
-
-    val videoPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri: Uri? ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        isWpProcessing = true
-        scope.launch {
-            val success = withContext(Dispatchers.IO) {
-                // 先尝试替换，失败则自动创建（AI 条目可能被主题商店删除）
-                WallpaperUtils.replaceVideo(context, uri, wallpaperLoop)
-                    || WallpaperUtils.createAiWallpaper(context, uri, wallpaperLoop)
-            }
-            isWpProcessing = false
-            if (success && !hasWallpaper) hasWallpaper = true
-            hasWpBackup = withContext(Dispatchers.IO) { WallpaperUtils.hasBackup() }
-            Toast.makeText(
-                context,
-                context.getString(if (success) R.string.wp_replace_success else R.string.wp_replace_failed),
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
-    }
 
     var showIntervalDialog by remember { mutableStateOf(false) }
     var showDpiDialog by remember { mutableStateOf(false) }
@@ -168,26 +124,18 @@ fun FeaturesPage(
             item {
                 Card(modifier = Modifier.padding(bottom = 12.dp)) {
                     SuperSwitch(
-                        title = stringResource(R.string.wallpaper_keep_alive),
-                        summary = stringResource(if (wallpaperKeepAlive) R.string.wallpaper_keep_alive_on else R.string.wallpaper_keep_alive_off),
-                        checked = wallpaperKeepAlive,
+                        title = stringResource(R.string.weather_card),
+                        summary = stringResource(if (weatherCard) R.string.weather_card_on else R.string.weather_card_off),
+                        checked = weatherCard,
                         onCheckedChange = {
-                            wallpaperKeepAlive = it
-                            whitelistManager?.setWallpaperKeepAlive(it)
+                            weatherCard = it
                             scope.launch {
-                                withContext(Dispatchers.IO) { RootUtils.restartBackScreen() }
+                                withContext(Dispatchers.IO) {
+                                    whitelistManager?.setWeatherCardEnabled(it)
+                                    RootUtils.restartBackScreen()
+                                }
+                                Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
                             }
-                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
-                        },
-                    )
-                    SuperSwitch(
-                        title = stringResource(R.string.wallpaper_lock),
-                        summary = stringResource(if (wallpaperLock) R.string.wallpaper_lock_on else R.string.wallpaper_lock_off),
-                        checked = wallpaperLock,
-                        onCheckedChange = {
-                            wallpaperLock = it
-                            whitelistManager?.setWallpaperLocked(it)
-                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
                         },
                     )
                 }
@@ -196,71 +144,9 @@ fun FeaturesPage(
             item {
                 Card(modifier = Modifier.padding(bottom = 12.dp)) {
                     SuperArrow(
-                        title = stringResource(R.string.wp_custom_title),
-                        summary = stringResource(
-                            when {
-                                isWpProcessing -> R.string.wp_processing
-                                !hasWallpaper -> R.string.wp_create_hint
-                                else -> R.string.wp_ready
-                            }
-                        ),
-                        onClick = {
-                            if (isWpProcessing) return@SuperArrow
-                            videoPicker.launch(arrayOf("video/*"))
-                        },
-                        enabled = !isWpProcessing,
+                        title = stringResource(R.string.section_wallpaper),
+                        onClick = onWallpaperClick,
                     )
-                    SuperSwitch(
-                        title = stringResource(R.string.wp_loop),
-                        summary = stringResource(if (wallpaperLoop) R.string.wp_loop_on else R.string.wp_loop_off),
-                        checked = wallpaperLoop,
-                        onCheckedChange = {
-                            wallpaperLoop = it
-                            whitelistManager?.setWallpaperLoop(it)
-                            if (hasWallpaper) {
-                                isWpProcessing = true
-                                scope.launch {
-                                    val success = withContext(Dispatchers.IO) {
-                                        WallpaperUtils.setLoop(context, it)
-                                    }
-                                    isWpProcessing = false
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(if (success) R.string.wp_loop_applied else R.string.set_failed),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                }
-                            }
-                        },
-                        enabled = hasWallpaper && !isWpProcessing,
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 12.dp),
-                    ) {
-                        TextButton(
-                            text = stringResource(R.string.wp_restore),
-                            onClick = {
-                                isWpProcessing = true
-                                scope.launch {
-                                    withContext(Dispatchers.IO) {
-                                        WallpaperUtils.disableCustomWallpaper()
-                                        RootUtils.restartBackScreen()
-                                    }
-                                    isWpProcessing = false
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.wp_restore_success),
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            enabled = !isWpProcessing,
-                        )
-                    }
                 }
             }
 

@@ -37,6 +37,7 @@ class HookEntry : IXposedHookLoadPackage {
                 hookWallpaperKeepAlive(lpparam)
                 hookWallpaperLock(lpparam)
                 hookWallpaperPathRedirect(lpparam)
+                WeatherCardHook.hook(lpparam, prefs)
             }
         }
     }

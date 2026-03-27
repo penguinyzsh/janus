@@ -36,9 +36,14 @@
     <string name="activation">Activation</string>
 
     <!-- Features -->
+    <string name="section_wallpaper">Wallpaper</string>
     <string name="disable_tracking">Block Usage Tracking to Xiaomi</string>
     <string name="disable_tracking_on">Usage data reporting blocked</string>
     <string name="disable_tracking_off">Usage data reported normally</string>
+
+    <string name="weather_card">Weather Card on Rear Screen</string>
+    <string name="weather_card_on">Weather card shown in Smart Assistant</string>
+    <string name="weather_card_off">Weather card hidden</string>
 
     <string name="wallpaper_keep_alive">Live Wallpaper Anti-Interrupt</string>
     <string name="wallpaper_keep_alive_on">Live wallpaper keeps playing through cover overlay</string>
