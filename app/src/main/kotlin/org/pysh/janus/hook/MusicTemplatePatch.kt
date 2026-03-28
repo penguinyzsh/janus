@@ -105,11 +105,11 @@ object MusicTemplatePatch {
                 """name="album_name_text" fontFamily"""
             )
 
-            // Remove textAlign from AOD-mode title (same marquee fix).
-            manifest = manifest.replace(
-                """name="album_name_text_aod" textAlign="'center'" alignV""",
-                """name="album_name_text_aod" alignV"""
-            )
+            // AOD-mode title (album_name_text_aod) is NOT patched:
+            // hookTextElementInit only captures the normal-mode element, so the AOD
+            // element never receives runtime marquee control.  Removing its
+            // textAlign="'center'" would unconditionally left-align the song title
+            // on the AOD screen for all songs (including those without lyrics).
 
             entries["manifest.xml"] = manifest.toByteArray(Charsets.UTF_8)
 
