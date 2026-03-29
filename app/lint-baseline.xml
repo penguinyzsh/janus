@@ -1,5 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<issues format="6" by="lint 9.0.1" type="baseline" client="gradle" dependencies="false" name="AGP (9.0.1)" variant="all" version="9.0.1">
+<issues format="6" by="lint 9.1.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.0)" variant="all" version="9.1.0">
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putBoolean(KEY_MASTER_ENABLED, enabled).commit()"
+        errorLine2="                                                             ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="135"
+            column="62"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="            prefs.edit().putString(KEY_MUSIC_OVERRIDE, displayName).commit()"
+        errorLine2="                                                                    ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="239"
+            column="69"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().remove(KEY_MUSIC_OVERRIDE).commit()"
+        errorLine2="                                                ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="253"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putBoolean(KEY_MUSIC_LYRIC_PATCH, enabled).commit()"
+        errorLine2="                                                                ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="262"
+            column="65"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putString(KEY_CARDS, CardInfo.listToJson(cards)).commit()"
+        errorLine2="                                                                      ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="293"
+            column="71"/>
+    </issue>
 
     <issue
         id="ApplySharedPref"
@@ -8,7 +63,7 @@
         errorLine2="                                                     ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="44"
+            line="55"
             column="54"/>
     </issue>
 
@@ -19,7 +74,7 @@
         errorLine2="                                                                ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="52"
+            line="63"
             column="65"/>
     </issue>
 
@@ -30,7 +85,7 @@
         errorLine2="                                                                 ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="61"
+            line="73"
             column="66"/>
     </issue>
 
@@ -41,7 +96,7 @@
         errorLine2="                                                              ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="70"
+            line="82"
             column="63"/>
     </issue>
 
@@ -52,7 +107,7 @@
         errorLine2="                                                         ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="79"
+            line="91"
             column="58"/>
     </issue>
 
@@ -63,7 +118,7 @@
         errorLine2="                                                              ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="88"
+            line="100"
             column="63"/>
     </issue>
 
@@ -74,8 +129,19 @@
         errorLine2="                                                                   ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="97"
+            line="109"
             column="68"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putBoolean(KEY_WALLPAPER_LOCK, locked).commit()"
+        errorLine2="                                                            ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="119"
+            column="61"/>
     </issue>
 
     <issue
@@ -85,8 +151,41 @@
         errorLine2="                                                             ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="106"
+            line="129"
             column="62"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putInt(KEY_LYRIC_FADE_DURATION, ms).commit()"
+        errorLine2="                                                         ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="137"
+            column="58"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putInt(KEY_LYRIC_MODE_THRESHOLD, ms).commit()"
+        errorLine2="                                                          ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="147"
+            column="59"/>
+    </issue>
+
+    <issue
+        id="ApplySharedPref"
+        message="Consider using `apply()` instead; `commit` writes its data to persistent storage immediately, whereas `apply` will handle it in the background"
+        errorLine1="        prefs.edit().putInt(KEY_LAST_SEEN_VERSION, versionCode).commit()"
+        errorLine2="                                                                ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="157"
+            column="65"/>
     </issue>
 
     <issue
@@ -96,7 +195,7 @@
         errorLine2="             ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="112"
+            line="163"
             column="14"/>
     </issue>
 
@@ -107,96 +206,96 @@
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/hook/HookEntry.kt"
-            line="141"
+            line="210"
             column="48"/>
     </issue>
 
     <issue
         id="NewApi"
         message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                subtitle = if (hasRearTask) getString(R.string.cast_tile_active) else null"
-        errorLine2="                ~~~~~~~~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="32"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                subtitle = if (hasRearTask) getString(R.string.cast_tile_active) else null"
-        errorLine2="                         ~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="32"
-            column="26"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                    subtitle = if (success) null else getString(R.string.cast_tile_failed)"
+        errorLine1="                    subtitle = if (hasRearTask) getString(R.string.cast_tile_active) else null"
         errorLine2="                    ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="51"
+            line="34"
             column="21"/>
     </issue>
 
     <issue
         id="NewApi"
         message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                    subtitle = if (success) null else getString(R.string.cast_tile_failed)"
+        errorLine1="                    subtitle = if (hasRearTask) getString(R.string.cast_tile_active) else null"
         errorLine2="                             ~">
         <location
             file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="51"
+            line="34"
             column="30"/>
     </issue>
 
     <issue
         id="NewApi"
         message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                    subtitle = if (success) getString(R.string.cast_tile_active) else getString(R.string.cast_tile_failed)"
-        errorLine2="                    ~~~~~~~~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="70"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                    subtitle = if (success) getString(R.string.cast_tile_active) else getString(R.string.cast_tile_failed)"
-        errorLine2="                             ~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="70"
-            column="30"/>
-    </issue>
-
-    <issue
-        id="NewApi"
-        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                        subtitle = null"
+        errorLine1="                        subtitle = if (success) null else getString(R.string.cast_tile_failed)"
         errorLine2="                        ~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="88"
+            line="55"
             column="25"/>
     </issue>
 
     <issue
         id="NewApi"
         message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
-        errorLine1="                        subtitle = null"
+        errorLine1="                        subtitle = if (success) null else getString(R.string.cast_tile_failed)"
         errorLine2="                                 ~">
         <location
             file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
-            line="88"
+            line="55"
             column="34"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
+        errorLine1="                        subtitle = if (success) getString(R.string.cast_tile_active) else getString(R.string.cast_tile_failed)"
+        errorLine2="                        ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
+            line="76"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
+        errorLine1="                        subtitle = if (success) getString(R.string.cast_tile_active) else getString(R.string.cast_tile_failed)"
+        errorLine2="                                 ~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
+            line="76"
+            column="34"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
+        errorLine1="                            subtitle = null"
+        errorLine2="                            ~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
+            line="96"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 29 (current min is 26): `android.service.quicksettings.Tile#setSubtitle`"
+        errorLine1="                            subtitle = null"
+        errorLine2="                                     ~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/service/SwitchToRearTileService.kt"
+            line="96"
+            column="38"/>
     </issue>
 
     <issue
@@ -223,8 +322,8 @@
 
     <issue
         id="AndroidGradlePluginVersion"
-        message="A newer version of Gradle than 9.1.0 is available: 9.4.1"
-        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-9.1.0-bin.zip"
+        message="A newer version of Gradle than 9.3.1 is available: 9.4.1"
+        errorLine1="distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-bin.zip"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="$HOME/Documents/MyFile/Project/janus/gradle/wrapper/gradle-wrapper.properties"
@@ -239,7 +338,7 @@
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="85"
+            line="88"
             column="29"/>
     </issue>
 
@@ -250,7 +349,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="93"
+            line="97"
             column="20"/>
     </issue>
 
@@ -261,7 +360,7 @@
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="100"
+            line="104"
             column="20"/>
     </issue>
 
@@ -272,7 +371,7 @@
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="108"
+            line="112"
             column="24"/>
     </issue>
 
@@ -283,7 +382,7 @@
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="109"
+            line="113"
             column="24"/>
     </issue>
 
@@ -294,7 +393,7 @@
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="112"
+            line="116"
             column="40"/>
     </issue>
 
@@ -305,7 +404,7 @@
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="115"
+            line="119"
             column="31"/>
     </issue>
 
@@ -316,8 +415,19 @@
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="116"
+            line="120"
             column="31"/>
+    </issue>
+
+    <issue
+        id="NewerVersionAvailable"
+        message="A newer version of sh.calvin.reorderable:reorderable than 2.4.3 is available: 3.0.0"
+        errorLine1="    implementation(&quot;sh.calvin.reorderable:reorderable:2.4.3&quot;)"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle.kts"
+            line="85"
+            column="20"/>
     </issue>
 
     <issue
@@ -327,7 +437,7 @@
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="build.gradle.kts"
-            line="107"
+            line="111"
             column="24"/>
     </issue>
 
@@ -340,17 +450,6 @@
             file="src/main/kotlin/org/pysh/janus/ui/ActivationPage.kt"
             line="36"
             column="24"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                            Toast.makeText(context, context.getString(R.string.qq_group_copied), Toast.LENGTH_SHORT).show()"
-        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/ui/AboutPage.kt"
-            line="157"
-            column="53"/>
     </issue>
 
     <issue
@@ -378,67 +477,89 @@
     <issue
         id="LocalContextGetResourceValueCall"
         message="Querying resource values using LocalContext.current"
-        errorLine1="                context.getString(if (success) R.string.wp_replace_success else R.string.wp_replace_failed),"
-        errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                            Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="113"
-            column="17"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()"
-        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="158"
+            file="src/main/kotlin/org/pysh/janus/ui/CardDetailPage.kt"
+            line="160"
             column="53"/>
     </issue>
 
     <issue
         id="LocalContextGetResourceValueCall"
         message="Querying resource values using LocalContext.current"
-        errorLine1="                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()"
-        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="176"
-            column="53"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                                Toast.makeText(context, context.getString(R.string.wp_not_found_hint), Toast.LENGTH_LONG).show()"
-        errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="195"
-            column="57"/>
-    </issue>
-
-    <issue
-        id="LocalContextGetResourceValueCall"
-        message="Querying resource values using LocalContext.current"
-        errorLine1="                                        context.getString(if (success) R.string.wp_loop_applied else R.string.set_failed),"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="219"
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="107"
             column="41"/>
     </issue>
 
     <issue
         id="LocalContextGetResourceValueCall"
         message="Querying resource values using LocalContext.current"
-        errorLine1="                                            context.getString(if (success) R.string.wp_restore_success else R.string.set_failed),"
-        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="245"
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="109"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                Toast.makeText(context, context.getString(R.string.cards_import_success, result.name), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="128"
+            column="41"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                    Toast.makeText(context, context.getString(R.string.cards_no_slot), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="131"
             column="45"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                    Toast.makeText(context, context.getString(R.string.cards_import_failed), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="133"
+            column="45"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                                Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="193"
+            column="57"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                        Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/CardsPage.kt"
+            line="387"
+            column="49"/>
     </issue>
 
     <issue
@@ -447,8 +568,19 @@
         errorLine1="                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()"
         errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="272"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="125"
+            column="53"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="141"
             column="53"/>
     </issue>
 
@@ -458,8 +590,8 @@
         errorLine1="                                Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()"
         errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="311"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="180"
             column="57"/>
     </issue>
 
@@ -469,8 +601,8 @@
         errorLine1="                                        if (success) context.getString(R.string.dpi_set_success, dpi) else context.getString(R.string.set_failed),"
         errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="360"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="225"
             column="54"/>
     </issue>
 
@@ -480,8 +612,8 @@
         errorLine1="                                        if (success) context.getString(R.string.dpi_set_success, dpi) else context.getString(R.string.set_failed),"
         errorLine2="                                                                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="360"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="225"
             column="108"/>
     </issue>
 
@@ -491,8 +623,8 @@
         errorLine1="                                        if (success) context.getString(R.string.dpi_reset_success) else context.getString(R.string.reset_failed),"
         errorLine2="                                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="381"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="246"
             column="54"/>
     </issue>
 
@@ -502,8 +634,8 @@
         errorLine1="                                        if (success) context.getString(R.string.dpi_reset_success) else context.getString(R.string.reset_failed),"
         errorLine2="                                                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="381"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="246"
             column="105"/>
     </issue>
 
@@ -514,8 +646,52 @@
         errorLine2="                                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="413"
+            line="113"
             column="53"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                                    Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
+            line="167"
+            column="61"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                                Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
+            line="178"
+            column="57"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                        Toast.makeText(context, context.getString(R.string.qq_group_copied), Toast.LENGTH_SHORT).show()"
+        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/HomePage.kt"
+            line="149"
+            column="49"/>
+    </issue>
+
+    <issue
+        id="LocalContextGetResourceValueCall"
+        message="Querying resource values using LocalContext.current"
+        errorLine1="                    val resyncMsg = context.getString(R.string.resync_done)"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/OtherPage.kt"
+            line="81"
+            column="37"/>
     </issue>
 
     <issue
@@ -525,7 +701,7 @@
         errorLine2="                          ~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/ui/AboutPage.kt"
-            line="64"
+            line="56"
             column="27"/>
     </issue>
 
@@ -547,7 +723,7 @@
         errorLine2="                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/ui/AppsPage.kt"
-            line="216"
+            line="231"
             column="19"/>
     </issue>
 
@@ -569,7 +745,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="112"
+            line="216"
             column="13"/>
     </issue>
 
@@ -580,7 +756,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="115"
+            line="219"
             column="13"/>
     </issue>
 
@@ -591,7 +767,7 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="116"
+            line="220"
             column="13"/>
     </issue>
 
@@ -602,8 +778,30 @@
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="117"
+            line="223"
             column="13"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;minutes&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;weather_refresh_interval_summary&quot;>Enter %1$d–%2$d minutes&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="100"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;seconds&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;lyric_mode_threshold_summary&quot;>Enter %1$d–%2$d seconds&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="112"
+            column="5"/>
     </issue>
 
     <issue
@@ -613,7 +811,7 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="63"
+            line="117"
             column="5"/>
     </issue>
 
@@ -624,7 +822,18 @@
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="67"
+            line="121"
+            column="5"/>
+    </issue>
+
+    <issue
+        id="PluralsCandidate"
+        message="Formatting %d followed by words (&quot;minutes&quot;): This should probably be a plural rather than a string"
+        errorLine1="    &lt;string name=&quot;card_refresh_interval_summary&quot;>Enter %1$d–%2$d minutes&lt;/string>"
+        errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="161"
             column="5"/>
     </issue>
 
@@ -642,11 +851,110 @@
     <issue
         id="SetWorldReadable"
         message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            destFile.setReadable(true, false)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/hook/CardHook.kt"
+            line="327"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            destFile.parentFile?.setReadable(true, false)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/hook/CardHook.kt"
+            line="328"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            dir.setReadable(true, false)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="44"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            context.filesDir.setReadable(true, false)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="46"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            destFile.setReadable(true, false) // World-readable for Hook-side access"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="79"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            localFile.setReadable(true, false)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="227"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="            prefsFile.setReadable(true, false)"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="318"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="        deployFile.setReadable(true, false)"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/hook/MusicTemplatePatch.kt"
+            line="165"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
+        errorLine1="        deployFile.parentFile?.let { it.setReadable(true, false); it.setExecutable(true, false) }"
+        errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/hook/MusicTemplatePatch.kt"
+            line="166"
+            column="38"/>
+    </issue>
+
+    <issue
+        id="SetWorldReadable"
+        message="Setting file permissions to world-readable can be risky, review carefully"
         errorLine1="            prefsFile.setReadable(true, false)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="124"
+            line="219"
             column="13"/>
     </issue>
 
@@ -656,8 +964,19 @@
         errorLine1="        context.getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)"
         errorLine2="                                                         ~~~~~~~~~~~~~~~~~~~">
         <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="34"
+            column="58"/>
+    </issue>
+
+    <issue
+        id="WorldReadableFiles"
+        message="Using `MODE_WORLD_READABLE` when creating files can be risky, review carefully"
+        errorLine1="        context.getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)"
+        errorLine2="                                                         ~~~~~~~~~~~~~~~~~~~">
+        <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="24"
+            line="35"
             column="58"/>
     </issue>
 
@@ -696,8 +1015,8 @@
         errorLine1="    var castRotation by remember { mutableStateOf(whitelistManager?.getCastRotation() ?: 0) }"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/FeaturesPage.kt"
-            line="79"
+            file="src/main/kotlin/org/pysh/janus/ui/CastingPage.kt"
+            line="77"
             column="36"/>
     </issue>
 
@@ -710,12 +1029,353 @@
 
     <issue
         id="UnusedResources"
+        message="The resource `R.string.module_activated` appears to be unused"
+        errorLine1="    &lt;string name=&quot;module_activated&quot;>Module Activated&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="26"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.module_not_activated` appears to be unused"
+        errorLine1="    &lt;string name=&quot;module_not_activated&quot;>Module Not Activated&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="27"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.module_activated_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;module_activated_summary&quot;>Xposed Hook is working&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="28"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.module_not_activated_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;module_not_activated_summary&quot;>Enable the module in LSPosed and select Rear Screen Center&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="29"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.root_ok` appears to be unused"
+        errorLine1="    &lt;string name=&quot;root_ok&quot;>Root Available&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="30"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.root_missing` appears to be unused"
+        errorLine1="    &lt;string name=&quot;root_missing&quot;>No Root Access&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="31"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.root_checking` appears to be unused"
+        errorLine1="    &lt;string name=&quot;root_checking&quot;>Checking Root…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="32"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.root_ok_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;root_ok_summary&quot;>Auto-restart rear screen after saving&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="33"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.root_missing_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;root_missing_summary&quot;>Please grant Root access&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="34"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.hook_status_title` appears to be unused"
+        errorLine1="    &lt;string name=&quot;hook_status_title&quot;>Hook Status&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="42"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.hook_status_refresh` appears to be unused"
+        errorLine1="    &lt;string name=&quot;hook_status_refresh&quot;>Refresh&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="43"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.hook_status_querying` appears to be unused"
+        errorLine1="    &lt;string name=&quot;hook_status_querying&quot;>Querying…&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="44"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.hook_status_ok` appears to be unused"
+        errorLine1="    &lt;string name=&quot;hook_status_ok&quot;>OK&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="45"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.hook_status_error` appears to be unused"
+        errorLine1="    &lt;string name=&quot;hook_status_error&quot;>Error&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="46"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_card_on` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_card_on&quot;>Weather card shown in Smart Assistant&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="71"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wp_not_found` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wp_not_found&quot;>No AI wallpaper found&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="83"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.wp_not_found_hint` appears to be unused"
+        errorLine1="    &lt;string name=&quot;wp_not_found_hint&quot;>Generate an AI wallpaper in Theme Manager first&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="84"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.section_weather` appears to be unused"
+        errorLine1="    &lt;string name=&quot;section_weather&quot;>Weather&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="97"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_refresh_interval` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_refresh_interval&quot;>Refresh Interval&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="98"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_refresh_interval_value` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_refresh_interval_value&quot;>%d min&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="99"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_refresh_interval_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_refresh_interval_summary&quot;>Enter %1$d–%2$d minutes&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="100"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_card_priority` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_card_priority&quot;>Card Priority&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="101"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_card_priority_value` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_card_priority_value&quot;>%d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="102"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_card_priority_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_card_priority_summary&quot;>Enter %1$d–%2$d&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="103"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.weather_save` appears to be unused"
+        errorLine1="    &lt;string name=&quot;weather_save&quot;>Save &amp;amp; Restart Rear Screen&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="104"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
         message="The resource `R.string.dpi_input_error` appears to be unused"
         errorLine1="    &lt;string name=&quot;dpi_input_error&quot;>Please enter a DPI value between 100 and 800&lt;/string>"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values/strings.xml"
-            line="76"
+            line="130"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.cards_save_restart` appears to be unused"
+        errorLine1="    &lt;string name=&quot;cards_save_restart&quot;>Save &amp;amp; Restart Rear Screen&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="158"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.card_summary` appears to be unused"
+        errorLine1="    &lt;string name=&quot;card_summary&quot;>Priority %1$d | %2$d min&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="165"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.card_builtin_weather` appears to be unused"
+        errorLine1="    &lt;string name=&quot;card_builtin_weather&quot;>Weather (Built-in)&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="166"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.card_enabled` appears to be unused"
+        errorLine1="    &lt;string name=&quot;card_enabled&quot;>Enabled&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="167"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.card_enabled_on` appears to be unused"
+        errorLine1="    &lt;string name=&quot;card_enabled_on&quot;>Card shown in Smart Assistant&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="168"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UnusedResources"
+        message="The resource `R.string.card_enabled_off` appears to be unused"
+        errorLine1="    &lt;string name=&quot;card_enabled_off&quot;>Card hidden&lt;/string>"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/res/values/strings.xml"
+            line="169"
             column="13"/>
     </issue>
 
@@ -726,7 +1386,7 @@
         errorLine2="                                                      ~~~~~~~~~~">
         <location
             file="src/main/res/values-zh-rCN/strings.xml"
-            line="67"
+            line="121"
             column="55"/>
     </issue>
 
@@ -737,7 +1397,7 @@
         errorLine2="                                      ~~~~~~~~~~">
         <location
             file="src/main/res/values-zh-rCN/strings.xml"
-            line="72"
+            line="126"
             column="39"/>
     </issue>
 
@@ -748,7 +1408,7 @@
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/res/values-zh-rCN/strings.xml"
-            line="75"
+            line="129"
             column="36"/>
     </issue>
 
@@ -766,21 +1426,76 @@
     <issue
         id="UseKtx"
         message="Use the KTX extension function `String.toUri` instead?"
-        errorLine1="                            Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://github.com/penguinyzsh/janus&quot;))"
-        errorLine2="                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                            Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://github.com/penguinyzsh&quot;))"
+        errorLine2="                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/ui/AboutPage.kt"
-            line="129"
+            line="121"
             column="56"/>
     </issue>
 
     <issue
         id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_MASTER_ENABLED, enabled).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="135"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="            prefs.edit().putString(KEY_MUSIC_OVERRIDE, displayName).commit()"
+        errorLine2="            ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="239"
+            column="13"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().remove(KEY_MUSIC_OVERRIDE).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="253"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_MUSIC_LYRIC_PATCH, enabled).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="262"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putString(KEY_CARDS, CardInfo.listToJson(cards)).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/CardManager.kt"
+            line="293"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
         message="Use the KTX extension function `String.toUri` instead?"
-        errorLine1="                            Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://github.com/penguinyzsh&quot;))"
+        errorLine1="                            Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://qm.qq.com/q/UJBp9bNnIQ&quot;))"
         errorLine2="                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/AboutPage.kt"
+            file="src/main/kotlin/org/pysh/janus/ui/HomePage.kt"
             line="143"
             column="56"/>
     </issue>
@@ -788,12 +1503,45 @@
     <issue
         id="UseKtx"
         message="Use the KTX extension function `String.toUri` instead?"
-        errorLine1="                                Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://qm.qq.com/q/UJBp9bNnIQ&quot;))"
-        errorLine2="                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="                                Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://ifdian.net/a/janus&quot;))"
+        errorLine2="                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/kotlin/org/pysh/janus/ui/AboutPage.kt"
-            line="151"
+            file="src/main/kotlin/org/pysh/janus/ui/HomePage.kt"
+            line="170"
             column="60"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                                Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://github.com/penguinyzsh/janus&quot;))"
+        errorLine2="                                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/HomePage.kt"
+            line="188"
+            column="60"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                            Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://qm.qq.com/q/UJBp9bNnIQ&quot;))"
+        errorLine2="                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/HomePage.kt"
+            line="210"
+            column="56"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `String.toUri` instead?"
+        errorLine1="                        Intent(Intent.ACTION_VIEW, Uri.parse(&quot;https://ifdian.net/a/janus&quot;))"
+        errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/ui/HomePage.kt"
+            line="242"
+            column="52"/>
     </issue>
 
     <issue
@@ -803,7 +1551,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="44"
+            line="55"
             column="9"/>
     </issue>
 
@@ -814,7 +1562,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="52"
+            line="63"
             column="9"/>
     </issue>
 
@@ -825,7 +1573,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="61"
+            line="73"
             column="9"/>
     </issue>
 
@@ -836,7 +1584,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="70"
+            line="82"
             column="9"/>
     </issue>
 
@@ -847,7 +1595,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="79"
+            line="91"
             column="9"/>
     </issue>
 
@@ -858,7 +1606,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="88"
+            line="100"
             column="9"/>
     </issue>
 
@@ -869,7 +1617,18 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="97"
+            line="109"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putBoolean(KEY_WALLPAPER_LOCK, locked).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="119"
             column="9"/>
     </issue>
 
@@ -880,7 +1639,40 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="106"
+            line="129"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putInt(KEY_LYRIC_FADE_DURATION, ms).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="137"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putInt(KEY_LYRIC_MODE_THRESHOLD, ms).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="147"
+            column="9"/>
+    </issue>
+
+    <issue
+        id="UseKtx"
+        message="Use the KTX extension function `SharedPreferences.edit` instead?"
+        errorLine1="        prefs.edit().putInt(KEY_LAST_SEEN_VERSION, versionCode).commit()"
+        errorLine2="        ~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
+            line="157"
             column="9"/>
     </issue>
 
@@ -891,7 +1683,7 @@
         errorLine2="        ~~~~~~~~~~~~">
         <location
             file="src/main/kotlin/org/pysh/janus/data/WhitelistManager.kt"
-            line="110"
+            line="161"
             column="9"/>
     </issue>
 
