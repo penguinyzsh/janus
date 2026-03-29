@@ -52,10 +52,6 @@ private const val KEEP_ALIVE_MIN_SECONDS = 1
 private const val KEEP_ALIVE_MAX_SECONDS = 300
 private const val DPI_MIN = 100
 private const val DPI_MAX = 800
-private const val WEATHER_REFRESH_MIN = 10
-private const val WEATHER_REFRESH_MAX = 120
-private const val WEATHER_PRIORITY_MIN = 1
-private const val WEATHER_PRIORITY_MAX = 999
 private const val LYRIC_FADE_MIN = 100
 private const val LYRIC_FADE_MAX = 2000
 private const val LYRIC_THRESHOLD_MIN_SEC = 1
@@ -84,10 +80,6 @@ fun FeaturesPage(
     var intervalValue by remember { mutableFloatStateOf(whitelistManager?.getKeepAliveInterval()?.toFloat() ?: 10f) }
     var disableTracking by remember { mutableStateOf(whitelistManager?.isTrackingDisabled() ?: false) }
 
-    var weatherCard by remember { mutableStateOf(whitelistManager?.isWeatherCardEnabled() ?: false) }
-    var weatherRefreshInterval by remember { mutableFloatStateOf(whitelistManager?.getWeatherRefreshInterval()?.toFloat() ?: 30f) }
-    var weatherPriority by remember { mutableFloatStateOf(whitelistManager?.getWeatherCardPriority()?.toFloat() ?: 100f) }
-
     var lyricFadeDuration by remember { mutableFloatStateOf(whitelistManager?.getLyricFadeDuration()?.toFloat() ?: 700f) }
     var lyricThreshold by remember { mutableFloatStateOf((whitelistManager?.getLyricModeThreshold()?.toFloat() ?: 15000f) / 1000f) }
 
@@ -98,8 +90,6 @@ fun FeaturesPage(
     var showIntervalDialog by remember { mutableStateOf(false) }
     var showDpiDialog by remember { mutableStateOf(false) }
     var showRotationDialog by remember { mutableStateOf(false) }
-    var showWeatherRefreshDialog by remember { mutableStateOf(false) }
-    var showWeatherPriorityDialog by remember { mutableStateOf(false) }
     var showLyricFadeDialog by remember { mutableStateOf(false) }
     var showLyricThresholdDialog by remember { mutableStateOf(false) }
     var dialogInput by remember { mutableStateOf("") }
@@ -141,91 +131,6 @@ fun FeaturesPage(
                             Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
                         },
                     )
-                }
-            }
-
-            item { SmallTitle(text = stringResource(R.string.section_weather)) }
-            item {
-                Card(modifier = Modifier.padding(bottom = 12.dp)) {
-                    SuperSwitch(
-                        title = stringResource(R.string.weather_card),
-                        summary = stringResource(if (weatherCard) R.string.weather_card_on else R.string.weather_card_off),
-                        checked = weatherCard,
-                        onCheckedChange = {
-                            weatherCard = it
-                            scope.launch {
-                                withContext(Dispatchers.IO) {
-                                    whitelistManager?.setWeatherCardEnabled(it)
-                                    RootUtils.restartBackScreen()
-                                }
-                                Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                    )
-                    if (weatherCard) {
-                        SuperArrow(
-                            title = stringResource(R.string.weather_refresh_interval),
-                            summary = stringResource(R.string.weather_refresh_interval_value, weatherRefreshInterval.toInt()),
-                            onClick = {
-                                dialogInput = weatherRefreshInterval.toInt().toString()
-                                showWeatherRefreshDialog = true
-                            },
-                            bottomAction = {
-                                Slider(
-                                    value = weatherRefreshInterval,
-                                    onValueChange = { weatherRefreshInterval = it },
-                                    valueRange = WEATHER_REFRESH_MIN.toFloat()..WEATHER_REFRESH_MAX.toFloat(),
-                                )
-                            },
-                        )
-                        SuperArrow(
-                            title = stringResource(R.string.weather_card_priority),
-                            summary = stringResource(R.string.weather_card_priority_value, weatherPriority.toInt()),
-                            onClick = {
-                                dialogInput = weatherPriority.toInt().toString()
-                                showWeatherPriorityDialog = true
-                            },
-                            bottomAction = {
-                                Slider(
-                                    value = weatherPriority,
-                                    onValueChange = { weatherPriority = it },
-                                    valueRange = WEATHER_PRIORITY_MIN.toFloat()..WEATHER_PRIORITY_MAX.toFloat(),
-                                )
-                            },
-                        )
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp)
-                                .padding(bottom = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            TextButton(
-                                text = stringResource(R.string.weather_save),
-                                onClick = {
-                                    scope.launch {
-                                        withContext(Dispatchers.IO) {
-                                            whitelistManager?.setWeatherRefreshInterval(weatherRefreshInterval.toInt())
-                                            whitelistManager?.setWeatherCardPriority(weatherPriority.toInt())
-                                            RootUtils.restartBackScreen()
-                                        }
-                                        Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.textButtonColorsPrimary(),
-                            )
-                            TextButton(
-                                text = stringResource(R.string.reset_default),
-                                onClick = {
-                                    weatherRefreshInterval = 30f
-                                    weatherPriority = 100f
-                                    Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
                 }
             }
 
@@ -539,78 +444,6 @@ fun FeaturesPage(
                         dpiSliderValue = dpi.toFloat()
                     }
                     showDpiDialog = false
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
-        }
-    }
-
-    // 天气刷新间隔输入弹窗
-    SuperDialog(
-        show = showWeatherRefreshDialog,
-        title = stringResource(R.string.weather_refresh_interval),
-        summary = stringResource(R.string.weather_refresh_interval_summary, WEATHER_REFRESH_MIN, WEATHER_REFRESH_MAX),
-        onDismissRequest = { showWeatherRefreshDialog = false },
-    ) {
-        TextField(
-            value = dialogInput,
-            onValueChange = { dialogInput = it.filter { c -> c.isDigit() } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showWeatherRefreshDialog = false },
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = {
-                    val minutes = dialogInput.toIntOrNull()?.coerceIn(WEATHER_REFRESH_MIN, WEATHER_REFRESH_MAX)
-                    if (minutes != null) weatherRefreshInterval = minutes.toFloat()
-                    showWeatherRefreshDialog = false
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
-        }
-    }
-
-    // 天气优先级输入弹窗
-    SuperDialog(
-        show = showWeatherPriorityDialog,
-        title = stringResource(R.string.weather_card_priority),
-        summary = stringResource(R.string.weather_card_priority_summary, WEATHER_PRIORITY_MIN, WEATHER_PRIORITY_MAX),
-        onDismissRequest = { showWeatherPriorityDialog = false },
-    ) {
-        TextField(
-            value = dialogInput,
-            onValueChange = { dialogInput = it.filter { c -> c.isDigit() } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showWeatherPriorityDialog = false },
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = {
-                    val priority = dialogInput.toIntOrNull()?.coerceIn(WEATHER_PRIORITY_MIN, WEATHER_PRIORITY_MAX)
-                    if (priority != null) weatherPriority = priority.toFloat()
-                    showWeatherPriorityDialog = false
                 },
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.textButtonColorsPrimary(),

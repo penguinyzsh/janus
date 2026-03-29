@@ -11,8 +11,8 @@ android {
         applicationId = "org.pysh.janus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.0.8"
+        versionCode = 9
+        versionName = "1.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -80,6 +80,9 @@ dependencies {
     // MIUIX UI (Android-specific artifacts)
     implementation("top.yukonga.miuix.kmp:miuix-android:0.8.8")
     implementation("top.yukonga.miuix.kmp:miuix-icons-android:0.8.8")
+
+    // Drag-and-drop reorderable LazyColumn
+    implementation("sh.calvin.reorderable:reorderable:2.4.3")
 
     // Compose
     implementation(platform("androidx.compose:compose-bom:2025.03.01"))

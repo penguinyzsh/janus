@@ -10,8 +10,14 @@ object RootUtils {
     fun exec(command: String): Boolean {
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
-            process.waitFor() == 0
-        } catch (_: Exception) {
+            val stderr = process.errorStream.bufferedReader().use { it.readText() }
+            val exitCode = process.waitFor()
+            if (exitCode != 0) {
+                android.util.Log.e("Janus-Root", "exec failed ($exitCode): $command\n$stderr")
+            }
+            exitCode == 0
+        } catch (e: Exception) {
+            android.util.Log.e("Janus-Root", "exec exception: $command", e)
             false
         }
     }

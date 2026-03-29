@@ -1,6 +1,6 @@
 # Xposed hook entry — must not be obfuscated
 -keep class org.pysh.janus.hook.HookEntry
--keep class org.pysh.janus.hook.WeatherCardHook { *; }
+-keep class org.pysh.janus.hook.CardHook { *; }
 -keep class org.pysh.janus.hook.MusicTemplatePatch { *; }
 
 # Lyric injection — base class + all providers

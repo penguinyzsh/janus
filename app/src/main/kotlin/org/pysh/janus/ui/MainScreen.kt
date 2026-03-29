@@ -51,6 +51,7 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.icon.extended.GridView
 import top.yukonga.miuix.kmp.icon.extended.Settings
+import top.yukonga.miuix.kmp.icon.extended.Layers
 import top.yukonga.miuix.kmp.icon.extended.Tune
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -63,6 +64,7 @@ sealed interface Screen : NavKey {
     data object About : Screen
     data object Wallpaper : Screen
     data class AppFeature(val packageName: String) : Screen
+    data class CardDetail(val slot: Int) : Screen
 }
 
 private class MainPagerState(
@@ -145,6 +147,7 @@ fun MainScreen(isModuleActive: Boolean) {
         var hasRoot by remember { mutableStateOf<Boolean?>(null) }
         var currentDpi by remember { mutableStateOf<Int?>(null) }
         var whitelistVersion by remember { mutableIntStateOf(0) }
+        var cardsVersion by remember { mutableIntStateOf(0) }
 
         // App list cached at MainScreen level — survives NavDisplay entry recreation
         val scanner = remember { MediaAppScanner(context) }
@@ -198,7 +201,7 @@ fun MainScreen(isModuleActive: Boolean) {
                     )
                 }
                 Screen.Main -> NavEntry(key) {
-                    val pagerState = rememberPagerState(pageCount = { 4 })
+                    val pagerState = rememberPagerState(pageCount = { 5 })
                     val mainPagerState = rememberMainPagerState(pagerState)
 
                     LaunchedEffect(pagerState.currentPage) {
@@ -231,6 +234,12 @@ fun MainScreen(isModuleActive: Boolean) {
                                 NavigationBarItem(
                                     selected = mainPagerState.selectedPage == 3,
                                     onClick = { mainPagerState.animateToPage(3) },
+                                    icon = MiuixIcons.Layers,
+                                    label = stringResource(R.string.nav_cards),
+                                )
+                                NavigationBarItem(
+                                    selected = mainPagerState.selectedPage == 4,
+                                    onClick = { mainPagerState.animateToPage(4) },
                                     icon = MiuixIcons.Settings,
                                     label = stringResource(R.string.nav_settings),
                                 )
@@ -246,7 +255,7 @@ fun MainScreen(isModuleActive: Boolean) {
                         val isMainCovered = backStack.size > 1
                         HorizontalPager(
                             state = pagerState,
-                            beyondViewportPageCount = 3,
+                            beyondViewportPageCount = 4,
                             userScrollEnabled = false,
                         ) { page ->
                             val hideFromA11y = isMainCovered || page != pagerState.currentPage
@@ -293,7 +302,12 @@ fun MainScreen(isModuleActive: Boolean) {
                                     onDpiChanged = { currentDpi = it },
                                     onWallpaperClick = { backStack.add(Screen.Wallpaper) },
                                 )
-                                3 -> SettingsPage(
+                                3 -> CardsPage(
+                                    bottomPadding = paddingValues.calculateBottomPadding(),
+                                    cardsVersion = cardsVersion,
+                                    onCardClick = { slot -> backStack.add(Screen.CardDetail(slot)) },
+                                )
+                                4 -> SettingsPage(
                                     bottomPadding = paddingValues.calculateBottomPadding(),
                                     onAboutClick = { backStack.add(Screen.About) },
                                 )
@@ -308,6 +322,15 @@ fun MainScreen(isModuleActive: Boolean) {
                 }
                 Screen.Wallpaper -> NavEntry(key) {
                     WallpaperPage(onBack = { backStack.removeLastOrNull() })
+                }
+                is Screen.CardDetail -> NavEntry(key) {
+                    CardDetailPage(
+                        slot = key.slot,
+                        onBack = {
+                            backStack.removeLastOrNull()
+                            cardsVersion++
+                        },
+                    )
                 }
                 is Screen.AppFeature -> NavEntry(key) {
                     AppFeaturePage(

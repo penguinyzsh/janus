@@ -6,6 +6,7 @@
     <string name="nav_home">首页</string>
     <string name="nav_apps">应用</string>
     <string name="nav_features">功能</string>
+    <string name="nav_cards">卡片</string>
     <string name="nav_settings">设置</string>
 
     <!-- 通用 -->
@@ -103,6 +104,31 @@
     <string name="dpi_input_error">请输入 100-800 之间的 DPI 值</string>
     <string name="reset">重置</string>
 
+    <!-- 卡片 -->
+    <string name="cards_master_toggle">卡片显示</string>
+    <string name="cards_master_on">在服务助手中显示自定义卡片</string>
+    <string name="cards_master_off">不显示自定义卡片</string>
+    <string name="section_cards">已导入卡片</string>
+    <string name="cards_empty">暂无导入卡片</string>
+    <string name="cards_import">导入卡片</string>
+    <string name="cards_import_success">卡片已导入: %s</string>
+    <string name="cards_import_failed">导入失败: 无效的卡片文件</string>
+    <string name="cards_no_slot">没有可用卡位（最多 19 张）</string>
+    <string name="cards_delete">删除卡片</string>
+    <string name="cards_delete_confirm">确认删除「%s」？</string>
+    <string name="cards_save_restart">保存并重启背屏</string>
+    <string name="card_refresh_interval">刷新间隔</string>
+    <string name="card_refresh_interval_value">%d 分钟</string>
+    <string name="card_refresh_interval_summary">输入 %1$d-%2$d 分钟</string>
+    <string name="card_priority">优先级</string>
+    <string name="card_priority_value">%d</string>
+    <string name="card_priority_summary">输入 %1$d-%2$d</string>
+    <string name="card_summary">优先级 %1$d | %2$d 分钟</string>
+    <string name="card_builtin_weather">天气（内置）</string>
+    <string name="card_enabled">启用</string>
+    <string name="card_enabled_on">在服务助手中显示此卡片</string>
+    <string name="card_enabled_off">不显示此卡片</string>
+
     <!-- 投屏 -->
     <string name="cast_rotation">投屏旋转</string>
     <string name="cast_rotation_none">不旋转</string>
@@ -148,7 +174,7 @@
 
     <!-- 更新通告 -->
     <string name="update_title">v%s 更新内容</string>
-    <string name="update_changelog">汽水音乐背屏滚动歌词\n天气卡片：可配置刷新间隔和优先级\n歌词显示：可配置淡入时长和检测阈值\n天气卡片模板国际化（中英文）</string>
+    <string name="update_changelog">允许导入 MAML 卡片到服务助手，支持拖拽排序、逐卡配置优先级和刷新间隔\n功能页移除天气卡片设置</string>
     <string name="update_join_group">加入 QQ 群</string>
     <string name="update_support">爱发电支持</string>
     <string name="update_dismiss">知道了</string>

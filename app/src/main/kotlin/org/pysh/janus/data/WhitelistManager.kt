@@ -18,21 +18,15 @@ class WhitelistManager(private val context: Context) {
         const val KEY_WALLPAPER_KEEP_ALIVE = "wallpaper_keep_alive"
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
-        const val KEY_WEATHER_CARD_ENABLED = "weather_card_enabled"
-        const val KEY_WEATHER_REFRESH_INTERVAL = "weather_refresh_interval"
-        const val KEY_WEATHER_CARD_PRIORITY = "weather_card_priority"
         const val KEY_LYRIC_FADE_DURATION = "lyric_fade_duration"
         const val KEY_LYRIC_MODE_THRESHOLD = "lyric_mode_threshold"
         const val KEY_LAST_SEEN_VERSION = "last_seen_version"
         private const val CONFIG_DIR =
             "/data/system/theme_magic/users/0/subscreencenter/config"
-        const val WEATHER_FLAG_PATH = "$CONFIG_DIR/janus_weather"
         const val WHITELIST_FLAG_PATH = "$CONFIG_DIR/janus_whitelist"
         const val TRACKING_FLAG_PATH = "$CONFIG_DIR/janus_tracking_disabled"
         const val WALLPAPER_KEEP_ALIVE_FLAG_PATH = "$CONFIG_DIR/janus_wallpaper_keep_alive"
         const val WALLPAPER_LOCK_FLAG_PATH = "$CONFIG_DIR/janus_wallpaper_lock"
-        const val WEATHER_REFRESH_FLAG_PATH = "$CONFIG_DIR/janus_weather_refresh"
-        const val WEATHER_PRIORITY_FLAG_PATH = "$CONFIG_DIR/janus_weather_priority"
         const val LYRIC_FADE_FLAG_PATH = "$CONFIG_DIR/janus_lyric_fade"
         const val LYRIC_THRESHOLD_FLAG_PATH = "$CONFIG_DIR/janus_lyric_threshold"
     }
@@ -136,36 +130,6 @@ class WhitelistManager(private val context: Context) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOOP, enabled).commit()
     }
 
-    fun isWeatherCardEnabled(): Boolean {
-        return prefs.getBoolean(KEY_WEATHER_CARD_ENABLED, false)
-    }
-
-    fun setWeatherCardEnabled(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_WEATHER_CARD_ENABLED, enabled).commit()
-        makePrefsWorldReadable()
-        syncBooleanFlag(WEATHER_FLAG_PATH, enabled)
-    }
-
-    fun getWeatherRefreshInterval(): Int {
-        return prefs.getInt(KEY_WEATHER_REFRESH_INTERVAL, 30)
-    }
-
-    fun setWeatherRefreshInterval(minutes: Int) {
-        prefs.edit().putInt(KEY_WEATHER_REFRESH_INTERVAL, minutes).commit()
-        makePrefsWorldReadable()
-        syncContentFlag(WEATHER_REFRESH_FLAG_PATH, minutes)
-    }
-
-    fun getWeatherCardPriority(): Int {
-        return prefs.getInt(KEY_WEATHER_CARD_PRIORITY, 100)
-    }
-
-    fun setWeatherCardPriority(priority: Int) {
-        prefs.edit().putInt(KEY_WEATHER_CARD_PRIORITY, priority).commit()
-        makePrefsWorldReadable()
-        syncContentFlag(WEATHER_PRIORITY_FLAG_PATH, priority)
-    }
-
     fun getLyricFadeDuration(): Int {
         return prefs.getInt(KEY_LYRIC_FADE_DURATION, 700)
     }
@@ -222,9 +186,7 @@ class WhitelistManager(private val context: Context) {
         syncBooleanFlag(TRACKING_FLAG_PATH, isTrackingDisabled())
         syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, isWallpaperKeepAlive())
         syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, isWallpaperLocked())
-        syncBooleanFlag(WEATHER_FLAG_PATH, isWeatherCardEnabled())
-        syncContentFlag(WEATHER_REFRESH_FLAG_PATH, getWeatherRefreshInterval())
-        syncContentFlag(WEATHER_PRIORITY_FLAG_PATH, getWeatherCardPriority())
+        // Card config is synced by CardManager.syncConfig()
         syncContentFlag(LYRIC_FADE_FLAG_PATH, getLyricFadeDuration())
         syncContentFlag(LYRIC_THRESHOLD_FLAG_PATH, getLyricModeThreshold())
     }

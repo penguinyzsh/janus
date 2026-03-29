@@ -51,7 +51,7 @@ class HookEntry : IXposedHookLoadPackage {
                 hookWallpaperLock(lpparam)
                 hookWallpaperPathRedirect(lpparam)
                 MusicTemplatePatch.hook(lpparam)
-                WeatherCardHook.hook(lpparam, prefs)
+                CardHook.hook(lpparam)
             }
             in musicAppHooks -> {
                 musicAppHooks[lpparam.packageName]?.invoke(lpparam)

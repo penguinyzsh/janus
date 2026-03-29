@@ -7,6 +7,7 @@
     <string name="nav_home">Home</string>
     <string name="nav_apps">Apps</string>
     <string name="nav_features">Features</string>
+    <string name="nav_cards">Cards</string>
     <string name="nav_settings">Settings</string>
 
     <!-- Common -->
@@ -104,6 +105,31 @@
     <string name="dpi_input_error">Please enter a DPI value between 100 and 800</string>
     <string name="reset">Reset</string>
 
+    <!-- Cards -->
+    <string name="cards_master_toggle">Card Display</string>
+    <string name="cards_master_on">Custom cards shown in Smart Assistant</string>
+    <string name="cards_master_off">Custom cards disabled</string>
+    <string name="section_cards">Imported Cards</string>
+    <string name="cards_empty">No cards imported yet</string>
+    <string name="cards_import">Import Card</string>
+    <string name="cards_import_success">Card imported: %s</string>
+    <string name="cards_import_failed">Import failed: invalid card file</string>
+    <string name="cards_no_slot">No available slots (max 19)</string>
+    <string name="cards_delete">Delete Card</string>
+    <string name="cards_delete_confirm">Delete \"%s\"?</string>
+    <string name="cards_save_restart">Save &amp; Restart Rear Screen</string>
+    <string name="card_refresh_interval">Refresh Interval</string>
+    <string name="card_refresh_interval_value">%d min</string>
+    <string name="card_refresh_interval_summary">Enter %1$d–%2$d minutes</string>
+    <string name="card_priority">Priority</string>
+    <string name="card_priority_value">%d</string>
+    <string name="card_priority_summary">Enter %1$d–%2$d</string>
+    <string name="card_summary">Priority %1$d | %2$d min</string>
+    <string name="card_builtin_weather">Weather (Built-in)</string>
+    <string name="card_enabled">Enabled</string>
+    <string name="card_enabled_on">Card shown in Smart Assistant</string>
+    <string name="card_enabled_off">Card hidden</string>
+
     <!-- Cast -->
     <string name="cast_rotation">Cast Rotation</string>
     <string name="cast_rotation_none">No rotation</string>
@@ -153,7 +179,7 @@
 
     <!-- Update Dialog -->
     <string name="update_title">What\'s New in v%s</string>
-    <string name="update_changelog">Luna Music rear screen scrolling lyrics\nWeather card: configurable refresh interval and priority\nLyric display: configurable fade duration and detection threshold\nWeather card template internationalization (Chinese/English)</string>
+    <string name="update_changelog">Allow importing MAML cards to Smart Assistant, drag-and-drop reorder, per-card priority and refresh interval\nWeather card removed from Features page</string>
     <string name="update_join_group">Join QQ Group</string>
     <string name="update_support">Support on Afdian</string>
     <string name="update_dismiss">Got it</string>
