@@ -65,6 +65,8 @@ sealed interface Screen : NavKey {
     data object Wallpaper : Screen
     data class AppFeature(val packageName: String) : Screen
     data class CardDetail(val slot: Int) : Screen
+    data object Other : Screen
+    data object Casting : Screen
 }
 
 private class MainPagerState(
@@ -166,6 +168,10 @@ fun MainScreen(isModuleActive: Boolean) {
             withContext(Dispatchers.IO) {
                 mediaApps = scanner.scanMediaApps()
                 allApps = scanner.scanAllApps()
+            }
+            // 自动迁移旧版存储布局（需 Root）
+            if (hasRoot == true) {
+                withContext(Dispatchers.IO) { org.pysh.janus.data.JanusMigration.migrateIfNeeded() }
             }
             // 同步已有配置到文件标志位（XSharedPreferences 不可用，Hook 端依赖文件）
             if (hasRoot == true) {
@@ -270,6 +276,7 @@ fun MainScreen(isModuleActive: Boolean) {
                                     bottomPadding = paddingValues.calculateBottomPadding(),
                                     isModuleActive = isModuleActive,
                                     hasRoot = hasRoot,
+                                    isVisible = pagerState.currentPage == 0,
                                     showUpdateDialog = showUpdateDialog,
                                     onDismissUpdateDialog = {
                                         showUpdateDialog = false
@@ -298,18 +305,19 @@ fun MainScreen(isModuleActive: Boolean) {
                                 )
                                 2 -> FeaturesPage(
                                     bottomPadding = paddingValues.calculateBottomPadding(),
-                                    currentDpi = currentDpi,
-                                    onDpiChanged = { currentDpi = it },
                                     onWallpaperClick = { backStack.add(Screen.Wallpaper) },
+                                    onCastingClick = { backStack.add(Screen.Casting) },
                                 )
                                 3 -> CardsPage(
                                     bottomPadding = paddingValues.calculateBottomPadding(),
                                     cardsVersion = cardsVersion,
                                     onCardClick = { slot -> backStack.add(Screen.CardDetail(slot)) },
+                                    onCardsChanged = { cardsVersion++ },
                                 )
                                 4 -> SettingsPage(
                                     bottomPadding = paddingValues.calculateBottomPadding(),
                                     onAboutClick = { backStack.add(Screen.About) },
+                                    onOtherClick = { backStack.add(Screen.Other) },
                                 )
                             }
                             }
@@ -320,8 +328,18 @@ fun MainScreen(isModuleActive: Boolean) {
                 Screen.About -> NavEntry(key) {
                     AboutPage(onBack = { backStack.removeLastOrNull() })
                 }
+                Screen.Other -> NavEntry(key) {
+                    OtherPage(onBack = { backStack.removeLastOrNull() })
+                }
                 Screen.Wallpaper -> NavEntry(key) {
                     WallpaperPage(onBack = { backStack.removeLastOrNull() })
+                }
+                Screen.Casting -> NavEntry(key) {
+                    CastingPage(
+                        currentDpi = currentDpi,
+                        onDpiChanged = { currentDpi = it },
+                        onBack = { backStack.removeLastOrNull() },
+                    )
                 }
                 is Screen.CardDetail -> NavEntry(key) {
                     CardDetailPage(

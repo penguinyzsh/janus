@@ -22,6 +22,15 @@ object RootUtils {
         }
     }
 
+    fun ensureDir(path: String): Boolean {
+        if (!exec("mkdir -p '$path' && chmod 777 '$path'")) return false
+        // Inherit parent's full SELinux context (preserves MCS categories like c512,c768).
+        // Hardcoding s0 without MCS would strip categories and break access on strict devices.
+        val parent = path.substringBeforeLast('/')
+        exec("chcon --reference='$parent' '$path' 2>/dev/null || true")
+        return true
+    }
+
     fun execWithOutput(command: String): String? {
         return try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))

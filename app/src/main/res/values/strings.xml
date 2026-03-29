@@ -32,6 +32,31 @@
     <string name="root_checking">Checking Root…</string>
     <string name="root_ok_summary">Auto-restart rear screen after saving</string>
     <string name="root_missing_summary">Please grant Root access</string>
+    <string name="status_active">Active</string>
+    <string name="status_inactive">Inactive</string>
+    <string name="status_available">Authorized</string>
+    <string name="status_unavailable">Unavailable</string>
+    <string name="status_checking">Checking…</string>
+
+    <!-- Hook Status -->
+    <string name="hook_status_title">Hook Status</string>
+    <string name="hook_status_refresh">Refresh</string>
+    <string name="hook_status_querying">Querying…</string>
+    <string name="hook_status_ok">OK</string>
+    <string name="hook_status_error">Error</string>
+    <string name="hook_status_empty">No active hooks detected</string>
+    <string name="process_subscreencenter">Rear Screen Center</string>
+    <string name="process_luna_music">Luna Music</string>
+    <string name="hook_music_whitelist">Music Whitelist</string>
+    <string name="hook_tracking_block">Tracking Block</string>
+    <string name="hook_wallpaper_keep_alive">Wallpaper Keep-Alive</string>
+    <string name="hook_wallpaper_lock">Wallpaper Lock</string>
+    <string name="hook_wallpaper_redirect">Wallpaper Redirect</string>
+    <string name="hook_music_template">Music Template</string>
+    <string name="hook_card_injection">Card Injection</string>
+    <string name="hook_apple_music_lyric">Lyric Extraction</string>
+    <string name="hook_luna_music_manager">Lyric Manager</string>
+    <string name="hook_luna_music_remote">Remote Control</string>
 
     <!-- Activation -->
     <string name="activation">Activation</string>
@@ -105,6 +130,19 @@
     <string name="dpi_input_error">Please enter a DPI value between 100 and 800</string>
     <string name="reset">Reset</string>
 
+    <!-- Music Override -->
+    <string name="section_music">Music Card</string>
+    <string name="music_override_title">Custom Music Card</string>
+    <string name="music_override_none">Using stock template</string>
+    <string name="music_override_set">Custom: %s</string>
+    <string name="music_override_import_success">Music card set: %s</string>
+    <string name="music_override_import_failed">Import failed: invalid card file</string>
+    <string name="music_override_removed">Reverted to stock music card</string>
+    <string name="music_override_remove">Remove Override</string>
+    <string name="music_lyric_patch">Apply Lyric Scrolling</string>
+    <string name="music_lyric_patch_on">Lyric optimizations applied to custom card</string>
+    <string name="music_lyric_patch_off">Using original custom card layout</string>
+
     <!-- Cards -->
     <string name="cards_master_toggle">Card Display</string>
     <string name="cards_master_on">Custom cards shown in Smart Assistant</string>
@@ -131,6 +169,7 @@
     <string name="card_enabled_off">Card hidden</string>
 
     <!-- Cast -->
+    <string name="section_casting">App Casting</string>
     <string name="cast_rotation">Cast Rotation</string>
     <string name="cast_rotation_none">No rotation</string>
     <string name="cast_rotation_left">Rotate left 90°</string>
@@ -162,6 +201,17 @@
     <string name="hide_icon_off">Icon shown in launcher</string>
     <string name="hide_icon_dialog_title">Hide Launcher Icon?</string>
     <string name="hide_icon_dialog_summary">After hiding, you can only open this app through the LSPosed module manager.</string>
+    <string name="resync">Resync &amp; Restart</string>
+    <string name="resync_summary">Re-deploy all configs and card templates, then restart rear screen</string>
+    <string name="resync_done">Resync complete, rear screen restarting</string>
+    <string name="cleanup">Clean Janus Data</string>
+    <string name="cleanup_summary">Remove all Janus system files before uninstalling</string>
+    <string name="cleanup_dialog_title">Clean Janus Data?</string>
+    <string name="cleanup_dialog_summary">This will remove all Janus files from system directories, including config flags, card templates, custom wallpaper, and wallpaper entries. The rear screen will restart.</string>
+    <string name="cleanup_success">All Janus data cleaned</string>
+    <string name="cleanup_failed">Cleanup failed, some files may remain</string>
+    <string name="other">Other</string>
+    <string name="other_summary">Resync, cleanup, and more</string>
     <string name="about">About</string>
     <string name="about_janus">Janus</string>
 
@@ -179,7 +229,7 @@
 
     <!-- Update Dialog -->
     <string name="update_title">What\'s New in v%s</string>
-    <string name="update_changelog">Allow importing MAML cards to Smart Assistant, drag-and-drop reorder, per-card priority and refresh interval\nWeather card removed from Features page</string>
+    <string name="update_changelog">Drag-to-reorder cards: back screen syncs instantly\nImporting cards and toggling switches auto-restart back screen\nCard detail settings auto-save in real time\nDeleting a card auto-restarts back screen</string>
     <string name="update_join_group">Join QQ Group</string>
     <string name="update_support">Support on Afdian</string>
     <string name="update_dismiss">Got it</string>

@@ -2,6 +2,7 @@ package org.pysh.janus.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import org.pysh.janus.util.JanusPaths
 import java.io.File
 
 class WhitelistManager(private val context: Context) {
@@ -21,14 +22,12 @@ class WhitelistManager(private val context: Context) {
         const val KEY_LYRIC_FADE_DURATION = "lyric_fade_duration"
         const val KEY_LYRIC_MODE_THRESHOLD = "lyric_mode_threshold"
         const val KEY_LAST_SEEN_VERSION = "last_seen_version"
-        private const val CONFIG_DIR =
-            "/data/system/theme_magic/users/0/subscreencenter/config"
-        const val WHITELIST_FLAG_PATH = "$CONFIG_DIR/janus_whitelist"
-        const val TRACKING_FLAG_PATH = "$CONFIG_DIR/janus_tracking_disabled"
-        const val WALLPAPER_KEEP_ALIVE_FLAG_PATH = "$CONFIG_DIR/janus_wallpaper_keep_alive"
-        const val WALLPAPER_LOCK_FLAG_PATH = "$CONFIG_DIR/janus_wallpaper_lock"
-        const val LYRIC_FADE_FLAG_PATH = "$CONFIG_DIR/janus_lyric_fade"
-        const val LYRIC_THRESHOLD_FLAG_PATH = "$CONFIG_DIR/janus_lyric_threshold"
+        val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
+        val TRACKING_FLAG_PATH = JanusPaths.TRACKING_DISABLED
+        val WALLPAPER_KEEP_ALIVE_FLAG_PATH = JanusPaths.WALLPAPER_KEEP_ALIVE
+        val WALLPAPER_LOCK_FLAG_PATH = JanusPaths.WALLPAPER_LOCK
+        val LYRIC_FADE_FLAG_PATH = JanusPaths.LYRIC_FADE
+        val LYRIC_THRESHOLD_FLAG_PATH = JanusPaths.LYRIC_THRESHOLD
     }
 
     private val prefs: SharedPreferences = try {
@@ -182,6 +181,7 @@ class WhitelistManager(private val context: Context) {
 
     /** Sync all SP settings to file flags so the hook side can read them. */
     fun syncAllFlags() {
+        JanusPaths.ensureAllDirs()
         syncWhitelistFlag(getWhitelist())
         syncBooleanFlag(TRACKING_FLAG_PATH, isTrackingDisabled())
         syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, isWallpaperKeepAlive())

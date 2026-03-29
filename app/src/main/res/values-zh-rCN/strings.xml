@@ -31,6 +31,31 @@
     <string name="root_checking">正在检测 Root…</string>
     <string name="root_ok_summary">保存后可自动重启背屏</string>
     <string name="root_missing_summary">请授予 Root 权限</string>
+    <string name="status_active">已激活</string>
+    <string name="status_inactive">未激活</string>
+    <string name="status_available">已授权</string>
+    <string name="status_unavailable">不可用</string>
+    <string name="status_checking">检测中…</string>
+
+    <!-- Hook 状态 -->
+    <string name="hook_status_title">Hook 状态</string>
+    <string name="hook_status_refresh">刷新</string>
+    <string name="hook_status_querying">查询中…</string>
+    <string name="hook_status_ok">正常</string>
+    <string name="hook_status_error">异常</string>
+    <string name="hook_status_empty">未检测到活跃 Hook</string>
+    <string name="process_subscreencenter">背屏中心</string>
+    <string name="process_luna_music">汽水音乐</string>
+    <string name="hook_music_whitelist">音乐白名单</string>
+    <string name="hook_tracking_block">遥测拦截</string>
+    <string name="hook_wallpaper_keep_alive">壁纸保活</string>
+    <string name="hook_wallpaper_lock">壁纸锁定</string>
+    <string name="hook_wallpaper_redirect">壁纸重定向</string>
+    <string name="hook_music_template">音乐模板</string>
+    <string name="hook_card_injection">卡片注入</string>
+    <string name="hook_apple_music_lyric">歌词提取</string>
+    <string name="hook_luna_music_manager">歌词管理器</string>
+    <string name="hook_luna_music_remote">远程控制</string>
 
     <!-- 激活页 -->
     <string name="activation">激活</string>
@@ -104,6 +129,19 @@
     <string name="dpi_input_error">请输入 100-800 之间的 DPI 值</string>
     <string name="reset">重置</string>
 
+    <!-- 音乐卡片覆盖 -->
+    <string name="section_music">音乐卡片</string>
+    <string name="music_override_title">自定义音乐卡片</string>
+    <string name="music_override_none">使用官方模板</string>
+    <string name="music_override_set">已设置: %s</string>
+    <string name="music_override_import_success">音乐卡片已设置: %s</string>
+    <string name="music_override_import_failed">导入失败: 无效的卡片文件</string>
+    <string name="music_override_removed">已恢复官方音乐卡片</string>
+    <string name="music_override_remove">删除覆盖</string>
+    <string name="music_lyric_patch">应用歌词滚动</string>
+    <string name="music_lyric_patch_on">对自定义卡片启用歌词优化</string>
+    <string name="music_lyric_patch_off">使用自定义卡片原始布局</string>
+
     <!-- 卡片 -->
     <string name="cards_master_toggle">卡片显示</string>
     <string name="cards_master_on">在服务助手中显示自定义卡片</string>
@@ -130,6 +168,7 @@
     <string name="card_enabled_off">不显示此卡片</string>
 
     <!-- 投屏 -->
+    <string name="section_casting">应用投屏</string>
     <string name="cast_rotation">投屏旋转</string>
     <string name="cast_rotation_none">不旋转</string>
     <string name="cast_rotation_left">向左旋转 90°</string>
@@ -161,6 +200,17 @@
     <string name="hide_icon_off">图标显示在桌面</string>
     <string name="hide_icon_dialog_title">隐藏桌面图标？</string>
     <string name="hide_icon_dialog_summary">隐藏后只能通过 LSPosed 模块管理器打开本应用。</string>
+    <string name="resync">重新同步并重启</string>
+    <string name="resync_summary">重新部署所有配置和卡片模板，然后重启背屏</string>
+    <string name="resync_done">同步完成，背屏正在重启</string>
+    <string name="cleanup">清除 Janus 数据</string>
+    <string name="cleanup_summary">卸载前清除所有 Janus 系统文件</string>
+    <string name="cleanup_dialog_title">清除 Janus 数据？</string>
+    <string name="cleanup_dialog_summary">将删除所有 Janus 写入的系统文件，包括配置标志、卡片模板、自定义壁纸和壁纸条目。背屏将重启。</string>
+    <string name="cleanup_success">已清除所有 Janus 数据</string>
+    <string name="cleanup_failed">清除失败，部分文件可能残留</string>
+    <string name="other">其他</string>
+    <string name="other_summary">重新同步、数据清除等</string>
     <string name="about">关于</string>
 
     <!-- 关于页 -->
@@ -174,7 +224,7 @@
 
     <!-- 更新通告 -->
     <string name="update_title">v%s 更新内容</string>
-    <string name="update_changelog">允许导入 MAML 卡片到服务助手，支持拖拽排序、逐卡配置优先级和刷新间隔\n功能页移除天气卡片设置</string>
+    <string name="update_changelog">卡片拖拽排序，背屏实时同步\n导入卡片、切换开关自动重启背屏\n卡片详情页设置实时自动保存\n删除卡片后自动重启背屏</string>
     <string name="update_join_group">加入 QQ 群</string>
     <string name="update_support">爱发电支持</string>
     <string name="update_dismiss">知道了</string>

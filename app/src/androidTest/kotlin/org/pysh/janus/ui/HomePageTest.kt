@@ -30,8 +30,8 @@ class HomePageTest {
         rule.setContent {
             MiuixTheme { HomePage(bottomPadding = 0.dp, isModuleActive = true, hasRoot = true) }
         }
-        rule.onNodeWithText(s(R.string.module_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_ok)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_active)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_available)).assertIsDisplayed()
     }
 
     // 首页 — 模块未激活 + 无 Root
@@ -40,8 +40,8 @@ class HomePageTest {
         rule.setContent {
             MiuixTheme { HomePage(bottomPadding = 0.dp, isModuleActive = false, hasRoot = false) }
         }
-        rule.onNodeWithText(s(R.string.module_not_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_missing)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_inactive)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_unavailable)).assertIsDisplayed()
     }
 
     // 首页 — Root 检测中
@@ -50,6 +50,6 @@ class HomePageTest {
         rule.setContent {
             MiuixTheme { HomePage(bottomPadding = 0.dp, isModuleActive = true, hasRoot = null) }
         }
-        rule.onNodeWithText(s(R.string.root_checking)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_checking)).assertIsDisplayed()
     }
 }

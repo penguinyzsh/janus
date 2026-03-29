@@ -27,41 +27,36 @@ class StatusCardTest {
     @Test
     fun moduleActivated_showsCorrectText() {
         rule.setContent { MiuixTheme { StatusCard(isModuleActive = true, hasRoot = true) } }
-        rule.onNodeWithText(s(R.string.module_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.module_activated_summary)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_active)).assertIsDisplayed()
     }
 
     // TC-HOME-003: 模块未激活 — 红色卡片
     @Test
     fun moduleNotActivated_showsCorrectText() {
         rule.setContent { MiuixTheme { StatusCard(isModuleActive = false, hasRoot = true) } }
-        rule.onNodeWithText(s(R.string.module_not_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.module_not_activated_summary)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_inactive)).assertIsDisplayed()
     }
 
     // TC-HOME-004: Root 权限正常 — 绿色卡片
     @Test
     fun rootOk_showsCorrectText() {
         rule.setContent { MiuixTheme { StatusCard(isModuleActive = true, hasRoot = true) } }
-        rule.onNodeWithText(s(R.string.root_ok)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_ok_summary)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_available)).assertIsDisplayed()
     }
 
     // TC-HOME-005: 无 Root 权限 — 红色卡片
     @Test
     fun rootMissing_showsCorrectText() {
         rule.setContent { MiuixTheme { StatusCard(isModuleActive = true, hasRoot = false) } }
-        rule.onNodeWithText(s(R.string.root_missing)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_missing_summary)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_unavailable)).assertIsDisplayed()
     }
 
     // TC-HOME-006: Root 检测中 — 灰色卡片
     @Test
     fun rootChecking_showsLoadingText() {
         rule.setContent { MiuixTheme { StatusCard(isModuleActive = true, hasRoot = null) } }
-        rule.onNodeWithText(s(R.string.root_checking)).assertIsDisplayed()
-        // loading 状态无摘要
-        rule.onNodeWithText(s(R.string.root_ok_summary)).assertDoesNotExist()
-        rule.onNodeWithText(s(R.string.root_missing_summary)).assertDoesNotExist()
+        rule.onNodeWithText(s(R.string.status_checking)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_available)).assertDoesNotExist()
+        rule.onNodeWithText(s(R.string.status_unavailable)).assertDoesNotExist()
     }
 }

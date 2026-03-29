@@ -29,8 +29,8 @@ class ActivationPageTest {
         rule.setContent {
             MiuixTheme { ActivationPage(isModuleActive = true, hasRoot = true) }
         }
-        rule.onNodeWithText(s(R.string.module_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_ok)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_active)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_available)).assertIsDisplayed()
     }
 
     // TC-ACT-004 + TC-ACT-006: 模块和 Root 都缺失
@@ -39,8 +39,8 @@ class ActivationPageTest {
         rule.setContent {
             MiuixTheme { ActivationPage(isModuleActive = false, hasRoot = false) }
         }
-        rule.onNodeWithText(s(R.string.module_not_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_missing)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_inactive)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_unavailable)).assertIsDisplayed()
     }
 
     // TC-ACT-008: 模块已激活但无 Root
@@ -49,8 +49,8 @@ class ActivationPageTest {
         rule.setContent {
             MiuixTheme { ActivationPage(isModuleActive = true, hasRoot = false) }
         }
-        rule.onNodeWithText(s(R.string.module_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_missing)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_active)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_unavailable)).assertIsDisplayed()
     }
 
     // TC-ACT-009: 无模块但有 Root
@@ -59,8 +59,8 @@ class ActivationPageTest {
         rule.setContent {
             MiuixTheme { ActivationPage(isModuleActive = false, hasRoot = true) }
         }
-        rule.onNodeWithText(s(R.string.module_not_activated)).assertIsDisplayed()
-        rule.onNodeWithText(s(R.string.root_ok)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_inactive)).assertIsDisplayed()
+        rule.onNodeWithText(s(R.string.status_available)).assertIsDisplayed()
     }
 
     // TC-ACT-001: 页面标题为"激活"

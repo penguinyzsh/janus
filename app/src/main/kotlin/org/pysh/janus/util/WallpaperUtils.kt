@@ -14,18 +14,16 @@ import java.util.zip.ZipOutputStream
 
 object WallpaperUtils {
 
-    private const val RUNTIME_JSON =
-        "/data/system/theme_magic/users/0/rearScreen/runtime.json"
-    private const val RUNTIME_DIR =
-        "/data/system/theme_magic/users/0/rearScreen"
-    private const val REAR_SCREEN_WHITE =
-        "/data/system/theme/rearScreenWhite"
+    private val RUNTIME_JSON = JanusPaths.RUNTIME_JSON
+    private val RUNTIME_DIR = JanusPaths.RUNTIME_DIR
+    private val REAR_SCREEN_WHITE = JanusPaths.REAR_SCREEN_WHITE
     private const val TEMPLATE_DIR = "wallpaper_template"
     // Janus 专用路径，不覆盖系统文件
-    private const val JANUS_MRC = "/data/system/theme/rearScreenWhite/janus_custom.mrc"
+    private val JANUS_MRC = JanusPaths.CUSTOM_MRC
+    private val JANUS_WALLPAPER_DIR = JanusPaths.WALLPAPER_DIR
     private const val AI_MP4_ENTRY = "assets/ai/ai.mp4"
     private const val MANIFEST_ENTRY = "manifest.xml"
-    private const val BACKUP_SUFFIX = ".janus_bak"
+    private const val LEGACY_BACKUP_SUFFIX = ".janus_bak"
     private const val OWNER = "system_theme:ext_data_rw"
 
     data class WallpaperPaths(
@@ -104,8 +102,7 @@ object WallpaperUtils {
 
     fun restoreBackup(): Boolean {
         val paths = detectWallpaper() ?: return false
-        val backup = "${paths.snapshotPath}$BACKUP_SUFFIX"
-        if (!RootUtils.exec("test -f '$backup'")) return false
+        val backup = findBackup(paths.snapshotPath) ?: return false
         val ok = RootUtils.exec("cp '$backup' '${paths.snapshotPath}'") &&
             RootUtils.exec("cp '$backup' '${paths.localPath}'")
         if (ok) {
@@ -125,7 +122,17 @@ object WallpaperUtils {
 
     fun hasBackup(): Boolean {
         val paths = detectWallpaper() ?: return false
-        return RootUtils.exec("test -f '${paths.snapshotPath}$BACKUP_SUFFIX'")
+        return findBackup(paths.snapshotPath) != null
+    }
+
+    /** Find backup file, checking new janus/ dir first, then legacy location. */
+    private fun findBackup(snapshotPath: String): String? {
+        val snapshotName = snapshotPath.substringAfterLast('/')
+        val newBackup = "$JANUS_WALLPAPER_DIR/$snapshotName.bak"
+        if (RootUtils.exec("test -f '$newBackup'")) return newBackup
+        val legacyBackup = "$snapshotPath$LEGACY_BACKUP_SUFFIX"
+        if (RootUtils.exec("test -f '$legacyBackup'")) return legacyBackup
+        return null
     }
 
     /**
@@ -156,8 +163,8 @@ object WallpaperUtils {
             }
 
             val applyId = System.currentTimeMillis().toString()
-            val resId = signatureEntry?.optString("resId")
-                ?: "janus-${java.util.UUID.randomUUID()}"
+            // Always use janus- prefix so cleanup can identify Janus-created entries
+            val resId = "janus-${java.util.UUID.randomUUID()}"
             val snapshotPath = "$REAR_SCREEN_WHITE/rearscreen_${resId}_${applyId}.mrc"
 
             if (!RootUtils.exec("cp '${mrcFile.absolutePath}' '$snapshotPath'")) return false
@@ -318,11 +325,13 @@ object WallpaperUtils {
     }
 
     private fun backupIfNeeded(snapshotPath: String) {
-        val backup = "$snapshotPath$BACKUP_SUFFIX"
-        if (!RootUtils.exec("test -f '$backup'")) {
-            RootUtils.exec("cp '$snapshotPath' '$backup'")
-            fixOwnership(backup)
-        }
+        // Skip if backup already exists (new or legacy location)
+        if (findBackup(snapshotPath) != null) return
+        JanusPaths.ensureWallpaperDir()
+        val snapshotName = snapshotPath.substringAfterLast('/')
+        val backup = "$JANUS_WALLPAPER_DIR/$snapshotName.bak"
+        RootUtils.exec("cp '$snapshotPath' '$backup'")
+        fixOwnership(backup)
     }
 
     private fun writeBack(resultZip: File, paths: WallpaperPaths): Boolean {
@@ -331,7 +340,7 @@ object WallpaperUtils {
         fixOwnership(paths.snapshotPath)
         RootUtils.exec("cp '$src' '${paths.localPath}'")
         fixOwnership(paths.localPath)
-        // 仅在 janus_custom.mrc 已存在时同步更新（如循环设置变更）
+        // 仅在 janus/custom.mrc 已存在时同步更新（如循环设置变更）
         // 不主动创建——创建由 replaceVideo/createAiWallpaper 显式调用 saveToJanusPath
         if (RootUtils.exec("test -f '$JANUS_MRC'")) {
             RootUtils.exec("cp '$src' '$JANUS_MRC'")
@@ -346,6 +355,7 @@ object WallpaperUtils {
      * Hook 会将 subscreencenter 重定向到此路径。不修改任何系统壁纸文件。
      */
     private fun saveToJanusPath(src: String) {
+        JanusPaths.ensureWallpaperDir()
         RootUtils.exec("cp '$src' '$JANUS_MRC'")
         fixOwnership(JANUS_MRC)
     }

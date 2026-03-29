@@ -28,17 +28,17 @@ object CardHook {
     private const val MAX_SLOTS = 20
     private const val BASE_NOTIF_ID = 19990
 
-    private const val CONFIG_PATH_DIR =
-        "/data/system/theme_magic/users/0/subscreencenter/config"
-    private const val CONFIG_PATH =
-        "$CONFIG_PATH_DIR/janus_cards_config"
+    private const val JANUS_BASE =
+        "/data/system/theme_magic/users/0/subscreencenter/janus"
+    private const val CONFIG_PATH = "$JANUS_BASE/config/cards_config"
+    private const val CARDS_SRC_DIR = "$JANUS_BASE/cards"
     private const val TEMPLATE_BASE =
-        "/data/system/theme_magic/users/\$user_id/subscreencenter/smart_assistant"
+        "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates"
 
     private var manager: Any? = null
     private var mainHandler: Handler? = null
     private val uiHandler = Handler(Looper.getMainLooper())
-    private var initialized = false
+    @Volatile private var initialized = false
 
     // ── Public entry ────────────────────────────────────────────
 
@@ -46,6 +46,7 @@ object CardHook {
         val config = readConfig()
         if (config == null || !config.optBoolean("master_enabled", false)) {
             XposedBridge.log("[$TAG] Card system disabled or config absent, skipping")
+            HookStatusReporter.reportSkip("card_injection")
             return
         }
         // Collect only active business names from config
@@ -58,14 +59,17 @@ object CardHook {
         }
         if (activeBusinesses.isEmpty()) {
             XposedBridge.log("[$TAG] No active cards, skipping")
+            HookStatusReporter.reportSkip("card_injection")
             return
         }
         patchConstants(lpparam, activeBusinesses)
         patchProtectedMap(lpparam)
         hookFilter(lpparam)
         hookAppList(lpparam, activeBusinesses)
+        hookCardSorting(lpparam)
         hookManagerInit(lpparam)
         XposedBridge.log("[$TAG] All hooks installed for ${activeBusinesses.size} card(s)")
+        HookStatusReporter.report("card_injection", true, "${activeBusinesses.size} cards")
     }
 
     // ── Hook methods ────────────────────────────────────────────
@@ -154,6 +158,30 @@ object CardHook {
         }
     }
 
+    /**
+     * Hook Z1.d0.n() to re-sort Janus cards by priority after each insertion.
+     * n() normally only sorts after currentIndex, and appends without sorting
+     * when currentIndex == -1 (initial state). This hook ensures our cards
+     * are always ordered by priority descending regardless of currentIndex.
+     */
+    private fun hookCardSorting(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            val mgrCls = XposedHelpers.findClass("Z1.d0", lpparam.classLoader)
+            val entryCls = XposedHelpers.findClass("Z1.c0", lpparam.classLoader)
+
+            XposedHelpers.findAndHookMethod(mgrCls, "n", entryCls,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        sortJanusCards()
+                    }
+                },
+            )
+            XposedBridge.log("[$TAG] Card sorting hook installed")
+        } catch (e: Throwable) {
+            XposedBridge.log("[$TAG] hookCardSorting: ${e.message}")
+        }
+    }
+
     private fun hookManagerInit(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
             val mgrCls = XposedHelpers.findClass("Z1.d0", lpparam.classLoader)
@@ -179,11 +207,11 @@ object CardHook {
                             // smart_assistant dir (inside this process, so we have write access).
                             deployTemplate(slot, business)
 
-                            // Schedule injection
+                            // Schedule injection in config order (= priority order)
                             val refreshMs = refresh * 60 * 1000L
                             uiHandler.postDelayed({
                                 injectCard(slot, business, priority)
-                            }, 3_000L + slot * 500L)
+                            }, 3_000L + i * 500L)
 
                             val periodic = object : Runnable {
                                 override fun run() {
@@ -194,6 +222,10 @@ object CardHook {
                             uiHandler.postDelayed(periodic, refreshMs)
                         }
 
+                        // Final sort after all injections complete
+                        val sortDelay = 3_000L + cards.length() * 500L + 500L
+                        uiHandler.postDelayed({ sortJanusCards() }, sortDelay)
+
                         XposedBridge.log("[$TAG] ${cards.length()} card(s) scheduled")
                     }
                 },
@@ -201,6 +233,38 @@ object CardHook {
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookManagerInit: ${e.message}")
         }
+    }
+
+    /**
+     * Sort all Janus cards in f1790a by priority ascending
+     * (lower priority earlier in list = displayed below; higher = on top).
+     */
+    @Suppress("UNCHECKED_CAST")
+    private fun sortJanusCards() {
+        val mgr = manager ?: return
+        val list = try {
+            XposedHelpers.getObjectField(mgr, "a") as? ArrayList<Any>
+        } catch (_: Throwable) { null } ?: return
+
+        val janusIndices = mutableListOf<Int>()
+        val janusEntries = mutableListOf<Any>()
+        for (i in list.indices) {
+            val entry = list[i]
+            val key = try {
+                XposedHelpers.getObjectField(entry, "a") as? String
+            } catch (_: Throwable) { null } ?: continue
+            if (JANUS_PKG in key) {
+                janusIndices.add(i)
+                janusEntries.add(entry)
+            }
+        }
+        if (janusEntries.size < 2) return
+
+        janusEntries.sortBy { XposedHelpers.getIntField(it, "d") }
+        for (i in janusIndices.indices) {
+            list[janusIndices[i]] = janusEntries[i]
+        }
+        XposedBridge.log("[$TAG] Sorted ${janusEntries.size} Janus cards by priority")
     }
 
     // ── Card injection ──────────────────────────────────────────
@@ -227,6 +291,7 @@ object CardHook {
                 String::class.java, Bundle::class.java,
             )
             h.post(ctor.newInstance(mgr, notifId, JANUS_PKG, notifKey, bundle) as Runnable)
+            h.post { sortJanusCards() }
             XposedBridge.log("[$TAG] Injected card slot=$slot biz=$business pri=$priority")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] injectCard slot=$slot: ${e.message}")
@@ -241,8 +306,8 @@ object CardHook {
             val destPath = "$TEMPLATE_BASE/$business".replace("\$user_id", userId.toString())
             val destFile = File(destPath)
 
-            // Source: theme_magic config/cards/ (deployed by app via root)
-            val srcFile = File("$CONFIG_PATH_DIR/cards/$slot.zip")
+            // Source: janus/cards/ (deployed by app via root)
+            val srcFile = File("$CARDS_SRC_DIR/$slot.zip")
             if (!srcFile.exists()) {
                 XposedBridge.log("[$TAG] deployTemplate: source not found: ${srcFile.absolutePath}")
                 return

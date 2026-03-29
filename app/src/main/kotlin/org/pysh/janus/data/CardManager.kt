@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
+import org.pysh.janus.util.JanusPaths
 import org.pysh.janus.util.RootUtils
 import java.io.File
 import java.util.zip.ZipFile
@@ -15,16 +16,17 @@ class CardManager(private val context: Context) {
         private const val PREFS_NAME = "janus_config"
         private const val KEY_CARDS = "cards_config"
         private const val KEY_MASTER_ENABLED = "cards_master_enabled"
+        private const val KEY_MUSIC_OVERRIDE = "music_override_name"
+        private const val KEY_MUSIC_LYRIC_PATCH = "music_lyric_patch"
         private const val MAX_SLOTS = 20
         private const val CARDS_DIR = "cards"
+        private const val MUSIC_CUSTOM_FILE = "music_custom.zip"
 
-        private const val CONFIG_DIR =
-            "/data/system/theme_magic/users/0/subscreencenter/config"
-        const val CARDS_CONFIG_FLAG_PATH = "$CONFIG_DIR/janus_cards_config"
-
-        private const val CARDS_DEPLOY_DIR = "$CONFIG_DIR/cards"
-        private const val DEPLOY_BASE =
-            "/data/system/theme_magic/users/0/subscreencenter/smart_assistant"
+        val CARDS_CONFIG_FLAG_PATH = JanusPaths.CARDS_CONFIG
+        private val CARDS_DEPLOY_DIR = JanusPaths.CARDS_DIR
+        private val DEPLOY_BASE = JanusPaths.TEMPLATES_DIR
+        private val MUSIC_CUSTOM_DEPLOY = "${JanusPaths.CARDS_DIR}/$MUSIC_CUSTOM_FILE"
+        private val MUSIC_LYRIC_PATCH_FLAG = "${JanusPaths.CONFIG_DIR}/music_lyric_patch"
     }
 
     private val prefs: SharedPreferences = try {
@@ -112,8 +114,15 @@ class CardManager(private val context: Context) {
     }
 
     fun reorderCards(reordered: List<CardInfo>) {
+        // Redistribute existing priorities: top position = highest priority
+        val priorities = reordered.map { it.priority }.sortedDescending().toMutableList()
+        for (i in 1 until priorities.size) {
+            if (priorities[i] >= priorities[i - 1]) {
+                priorities[i] = (priorities[i - 1] - 1).coerceAtLeast(1)
+            }
+        }
         val updated = reordered.mapIndexed { index, card ->
-            card.copy(sortOrder = index)
+            card.copy(sortOrder = index, priority = priorities[index])
         }
         saveCards(updated)
     }
@@ -131,6 +140,7 @@ class CardManager(private val context: Context) {
 
     /** Write the full card config as a JSON flag file for the Hook side. */
     fun syncConfig() {
+        JanusPaths.ensureAllDirs()
         val config = JSONObject().apply {
             put("master_enabled", isMasterEnabled())
             val arr = JSONArray()
@@ -162,6 +172,7 @@ class CardManager(private val context: Context) {
             android.util.Log.e("Janus-CardMgr", "deployCard: ${zipFile.absolutePath} not found")
             return
         }
+        JanusPaths.ensureAllDirs()
         val tmp = File(context.cacheDir, "card_deploy_${card.slot}.zip")
         zipFile.copyTo(tmp, overwrite = true)
         android.util.Log.d("Janus-CardMgr", "deployCard: copied ${zipFile.absolutePath} (${zipFile.length()}) to ${tmp.absolutePath} (${tmp.length()})")
@@ -181,7 +192,7 @@ class CardManager(private val context: Context) {
     /** Deploy card ZIPs to theme_magic config/cards/ so Hook can read them.
      *  subscreencenter can't read Janus app-private dir (SELinux MCS). */
     fun prepareCardsForHook() {
-        RootUtils.exec("mkdir -p $CARDS_DEPLOY_DIR")
+        JanusPaths.ensureAllDirs()
         getCards().filter { it.enabled }.forEach { card ->
             val src = File(cardsDir, "${card.slot}.zip")
             if (!src.exists()) return@forEach
@@ -195,11 +206,85 @@ class CardManager(private val context: Context) {
         }
     }
 
+    // ── Music Override ───────────────────────────────────────────
+
+    fun importMusicOverride(uri: Uri): String? {
+        val tmpFile = File(context.cacheDir, "music_import_tmp.zip")
+        try {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                tmpFile.outputStream().use { output -> input.copyTo(output) }
+            } ?: return null
+
+            val name = try {
+                ZipFile(tmpFile).use { zip ->
+                    val entry = zip.getEntry("manifest.xml") ?: return null
+                    parseCardName(zip.getInputStream(entry).bufferedReader().readText())
+                }
+            } catch (_: Exception) { return null }
+
+            val localFile = File(cardsDir, MUSIC_CUSTOM_FILE)
+            tmpFile.copyTo(localFile, overwrite = true)
+            localFile.setReadable(true, false)
+            tmpFile.delete()
+
+            JanusPaths.ensureAllDirs()
+            val tmp = File(context.cacheDir, "music_deploy_tmp.zip")
+            localFile.copyTo(tmp, overwrite = true)
+            RootUtils.exec(
+                "cp ${tmp.absolutePath} $MUSIC_CUSTOM_DEPLOY && chmod 644 $MUSIC_CUSTOM_DEPLOY && chcon u:object_r:theme_data_file:s0 $MUSIC_CUSTOM_DEPLOY"
+            )
+            tmp.delete()
+
+            val displayName = name ?: getFileNameFromUri(uri)?.removeSuffix(".zip") ?: "Custom"
+            prefs.edit().putString(KEY_MUSIC_OVERRIDE, displayName).commit()
+            makePrefsWorldReadable()
+            return displayName
+        } catch (_: Exception) {
+            tmpFile.delete()
+            return null
+        }
+    }
+
+    fun removeMusicOverride() {
+        File(cardsDir, MUSIC_CUSTOM_FILE).delete()
+        RootUtils.exec("rm -f '$MUSIC_CUSTOM_DEPLOY'")
+        // Also remove the deployed custom template so Hook falls back to stock
+        RootUtils.exec("rm -f '${JanusPaths.TEMPLATES_DIR}/music_custom'")
+        prefs.edit().remove(KEY_MUSIC_OVERRIDE).commit()
+        makePrefsWorldReadable()
+    }
+
+    fun getMusicOverrideName(): String? = prefs.getString(KEY_MUSIC_OVERRIDE, null)
+
+    fun isMusicLyricPatch(): Boolean = prefs.getBoolean(KEY_MUSIC_LYRIC_PATCH, true)
+
+    fun setMusicLyricPatch(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_MUSIC_LYRIC_PATCH, enabled).commit()
+        makePrefsWorldReadable()
+        JanusPaths.ensureAllDirs()
+        if (enabled) {
+            RootUtils.exec("touch '$MUSIC_LYRIC_PATCH_FLAG' && chmod 644 '$MUSIC_LYRIC_PATCH_FLAG' && chcon u:object_r:theme_data_file:s0 '$MUSIC_LYRIC_PATCH_FLAG'")
+        } else {
+            RootUtils.exec("rm -f '$MUSIC_LYRIC_PATCH_FLAG'")
+        }
+    }
+
     // ── Slot Management ─────────────────────────────────────────
 
     fun getNextAvailableSlot(): Int? {
         val usedSlots = getCards().map { it.slot }.toSet()
         return (0 until MAX_SLOTS).firstOrNull { it !in usedSlots }
+    }
+
+    // ── Observe ──────────────────────────────────────────────────
+
+    /** Watch for card config changes. Returns an unregister function. */
+    fun observeCards(onChange: () -> Unit): () -> Unit {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == KEY_CARDS) onChange()
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        return { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
     // ── Internal ────────────────────────────────────────────────

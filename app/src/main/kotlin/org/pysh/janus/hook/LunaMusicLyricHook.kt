@@ -54,8 +54,10 @@ object LunaMusicLyricHook {
                     XposedBridge.log("[$TAG] Hooked ${singleton.javaClass.name}.c() → true")
                 }
             }
+            HookStatusReporter.report("luna_music_manager", true, "BlueToothLyricsManager")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] forceManagerOpen failed: ${e.message}")
+            HookStatusReporter.report("luna_music_manager", false, e.message)
         }
     }
 
@@ -77,8 +79,10 @@ object LunaMusicLyricHook {
                 }
             )
             XposedBridge.log("[$TAG] Force-enabled RemoteControlContext.a(boolean) → true")
+            HookStatusReporter.report("luna_music_remote", true, "RemoteControlContext.a")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] forceRemoteControlFlag failed: ${e.message}")
+            HookStatusReporter.report("luna_music_remote", false, e.message)
         }
     }
 }

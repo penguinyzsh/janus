@@ -33,8 +33,10 @@ object AppleMusicLyricHook : LyricInjector("Janus-AppleMusic") {
                     }
                 }
             )
+            HookStatusReporter.report("apple_music_lyric", true, "TTMLParserNative")
         } catch (e: Throwable) {
             XposedBridge.log("[Janus-AppleMusic] hookTtmlParser failed: ${e.message}")
+            HookStatusReporter.report("apple_music_lyric", false, e.message)
         }
     }
 }

@@ -29,13 +29,13 @@ class HookEntry : IXposedHookLoadPackage {
         )
         private const val WALLPAPER_LONG_PRESS_GESTURE = "Z1.t" // MainPanel long-press-to-edit handler
         private const val SUB_SCREEN_LAUNCHER = "$TARGET_PACKAGE.SubScreenLauncher"
-        private const val JANUS_MRC = "/data/system/theme/rearScreenWhite/janus_custom.mrc"
+        private const val JANUS_MRC = "/data/system/theme/rearScreenWhite/janus/custom.mrc"
         private const val CONFIG_DIR =
-            "/data/system/theme_magic/users/0/subscreencenter/config"
-        private const val WHITELIST_FLAG = "$CONFIG_DIR/janus_whitelist"
-        private const val TRACKING_FLAG = "$CONFIG_DIR/janus_tracking_disabled"
-        private const val WALLPAPER_KEEP_ALIVE_FLAG = "$CONFIG_DIR/janus_wallpaper_keep_alive"
-        private const val WALLPAPER_LOCK_FLAG = "$CONFIG_DIR/janus_wallpaper_lock"
+            "/data/system/theme_magic/users/0/subscreencenter/janus/config"
+        private const val WHITELIST_FLAG = "$CONFIG_DIR/whitelist"
+        private const val TRACKING_FLAG = "$CONFIG_DIR/tracking_disabled"
+        private const val WALLPAPER_KEEP_ALIVE_FLAG = "$CONFIG_DIR/wallpaper_keep_alive"
+        private const val WALLPAPER_LOCK_FLAG = "$CONFIG_DIR/wallpaper_lock"
     }
 
     @Suppress("DEPRECATION")
@@ -45,6 +45,7 @@ class HookEntry : IXposedHookLoadPackage {
         when (lpparam.packageName) {
             SELF_PACKAGE -> hookSelf(lpparam)
             TARGET_PACKAGE -> {
+                HookStatusReporter.init(lpparam)
                 hookMusicWhitelist(lpparam)
                 hookTracking(lpparam)
                 hookWallpaperKeepAlive(lpparam)
@@ -54,6 +55,7 @@ class HookEntry : IXposedHookLoadPackage {
                 CardHook.hook(lpparam)
             }
             in musicAppHooks -> {
+                HookStatusReporter.init(lpparam)
                 musicAppHooks[lpparam.packageName]?.invoke(lpparam)
             }
         }
@@ -124,8 +126,10 @@ class HookEntry : IXposedHookLoadPackage {
             hookMusicControllerPackageList(lpparam)
 
             XposedBridge.log("[$TAG] Hooks installed successfully")
+            HookStatusReporter.report("music_whitelist", true, "p2.a")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookMusicWhitelist failed: ${e.message}")
+            HookStatusReporter.report("music_whitelist", false, e.message)
         }
     }
 
@@ -175,8 +179,10 @@ class HookEntry : IXposedHookLoadPackage {
                 }
             )
             XposedBridge.log("[$TAG] Tracking hook installed")
+            HookStatusReporter.report("tracking_block", true, "DailyTrackReceiver")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookTracking failed: ${e.message}")
+            HookStatusReporter.report("tracking_block", false, e.message)
         }
     }
 
@@ -214,8 +220,10 @@ class HookEntry : IXposedHookLoadPackage {
                 }
             )
             XposedBridge.log("[$TAG] Wallpaper keep-alive hook installed on SubScreenLauncher.onPause")
+            HookStatusReporter.report("wallpaper_keep_alive", true, "SubScreenLauncher.onPause")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookWallpaperKeepAlive failed: ${e.message}")
+            HookStatusReporter.report("wallpaper_keep_alive", false, e.message)
         }
     }
 
@@ -236,15 +244,16 @@ class HookEntry : IXposedHookLoadPackage {
                 }
             )
             XposedBridge.log("[$TAG] Wallpaper lock hook installed on Z1.t.e")
+            HookStatusReporter.report("wallpaper_lock", true, "Z1.t.e")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookWallpaperLock failed: ${e.message}")
+            HookStatusReporter.report("wallpaper_lock", false, e.message)
         }
     }
 
     /**
      * Hook Widget.d()（有效路径获取方法），重定向到 Janus 专用 .mrc。
-     * 仅当 Janus 的 janus_custom.mrc 存在时才重定向，不影响原始壁纸。
-     * 同时重定向 configPath 到 Janus editConfig（bgmode=2）。
+     * 仅当 janus/custom.mrc 存在时才重定向，不影响原始壁纸。
      */
     private fun hookWallpaperPathRedirect(lpparam: XC_LoadPackage.LoadPackageParam) {
         try {
@@ -266,8 +275,10 @@ class HookEntry : IXposedHookLoadPackage {
                 }
             )
             XposedBridge.log("[$TAG] Wallpaper path redirect hook installed on m2.a.d")
+            HookStatusReporter.report("wallpaper_redirect", true, "m2.a.d")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] hookWallpaperPathRedirect failed: ${e.message}")
+            HookStatusReporter.report("wallpaper_redirect", false, e.message)
         }
     }
 

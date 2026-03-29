@@ -29,6 +29,7 @@ Janus is an LSPosed module for Xiaomi phones with a rear screen, designed to enh
 - **Rear Screen Keep Alive** — Foreground service periodically sends key events to prevent auto-sleep
 - **Screen Casting Settings** — Screen casting rotation control, keep rear screen on during casting
 - **Smart Assistant Custom Cards** — Import and manage custom MAML cards for the Smart Assistant panel, with drag-and-drop reordering, per-card enable/disable, priority and refresh interval settings
+- **Custom Music Card** — Replace the stock music card template with a custom MAML template, with optional lyric scrolling patch
 - **Apple Music Rear Screen Lyrics** — Display timed lyrics from Apple Music on the rear screen with smooth progress-synced marquee scrolling and fade-in transitions
 - **Luna Music Rear Screen Lyrics** — Force-enable Bluetooth lyrics in Luna Music so lyrics display on the rear screen via MediaSession
 - **Telemetry Blocking** — Intercept `DailyTrackReceiver` to block data reporting

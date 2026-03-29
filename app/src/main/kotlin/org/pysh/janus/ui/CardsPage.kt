@@ -43,6 +43,8 @@ import org.pysh.janus.R
 import org.pysh.janus.data.CardInfo
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.util.RootUtils
+import top.yukonga.miuix.kmp.extra.SuperArrow
+import top.yukonga.miuix.kmp.extra.SuperDialog
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -74,6 +76,7 @@ fun CardsPage(
     bottomPadding: Dp,
     cardsVersion: Int = 0,
     onCardClick: (Int) -> Unit,
+    onCardsChanged: () -> Unit = {},
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -81,12 +84,30 @@ fun CardsPage(
     val cardManager = remember { if (!isInPreview) CardManager(context) else null }
 
     var masterEnabled by remember { mutableStateOf(cardManager?.isMasterEnabled() ?: false) }
-    var cards by remember { mutableStateOf(cardManager?.getCards()?.sortedBy { it.sortOrder } ?: emptyList()) }
+    var cards by remember { mutableStateOf(cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()) }
+    var musicOverrideName by remember { mutableStateOf(cardManager?.getMusicOverrideName()) }
+    var musicLyricPatch by remember { mutableStateOf(cardManager?.isMusicLyricPatch() ?: true) }
+    var showMusicRemoveDialog by remember { mutableStateOf(false) }
 
     // Re-read cards when returning from CardDetailPage (version bumped)
     LaunchedEffect(cardsVersion) {
         if (cardsVersion > 0) {
-            cards = cardManager?.getCards()?.sortedBy { it.sortOrder } ?: emptyList()
+            cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
+        }
+    }
+
+    val musicPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        scope.launch {
+            val name = withContext(Dispatchers.IO) { cardManager?.importMusicOverride(uri) }
+            if (name != null) {
+                musicOverrideName = name
+                Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -97,7 +118,13 @@ fun CardsPage(
         scope.launch {
             val result = withContext(Dispatchers.IO) { cardManager?.addCard(uri) }
             if (result != null) {
-                cards = cardManager?.getCards()?.sortedBy { it.sortOrder } ?: emptyList()
+                cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
+                onCardsChanged()
+                withContext(Dispatchers.IO) {
+                    cardManager?.syncConfig()
+                    cardManager?.prepareCardsForHook()
+                    RootUtils.restartBackScreen()
+                }
                 Toast.makeText(context, context.getString(R.string.cards_import_success, result.name), Toast.LENGTH_SHORT).show()
             } else {
                 if (cardManager?.getNextAvailableSlot() == null) {
@@ -113,14 +140,15 @@ fun CardsPage(
     val title = stringResource(R.string.nav_cards)
 
     val lazyListState = rememberLazyListState()
-    // Card items start after 2 fixed items (master toggle card + section title)
     val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        val fromCardIndex = from.index - 2
-        val toCardIndex = to.index - 2
-        if (fromCardIndex in cards.indices && toCardIndex in cards.indices) {
-            cards = cards.toMutableList().apply {
-                add(toCardIndex, removeAt(fromCardIndex))
-            }
+        val fromSlot = from.key as? Int ?: return@rememberReorderableLazyListState
+        val toSlot = to.key as? Int ?: return@rememberReorderableLazyListState
+        val mutableCards = cards.toMutableList()
+        val fromIndex = mutableCards.indexOfFirst { it.slot == fromSlot }
+        val toIndex = mutableCards.indexOfFirst { it.slot == toSlot }
+        if (fromIndex != -1 && toIndex != -1) {
+            mutableCards.add(toIndex, mutableCards.removeAt(fromIndex))
+            cards = mutableCards
         }
     }
 
@@ -169,6 +197,60 @@ fun CardsPage(
                 }
             }
 
+            // Music override section
+            item(key = "music_section_title") {
+                SmallTitle(text = stringResource(R.string.section_music))
+            }
+            item(key = "music_override") {
+                Card(modifier = Modifier.padding(bottom = if (musicOverrideName != null) 0.dp else 12.dp)) {
+                    SuperArrow(
+                        title = stringResource(R.string.music_override_title),
+                        summary = if (musicOverrideName != null) {
+                            stringResource(R.string.music_override_set, musicOverrideName!!)
+                        } else {
+                            stringResource(R.string.music_override_none)
+                        },
+                        onClick = {
+                            musicPicker.launch(arrayOf("application/zip", "application/octet-stream"))
+                        },
+                    )
+                    if (musicOverrideName != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .padding(bottom = 12.dp),
+                        ) {
+                            TextButton(
+                                text = stringResource(R.string.music_override_remove),
+                                onClick = { showMusicRemoveDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
+                }
+            }
+            if (musicOverrideName != null) {
+                item(key = "music_lyric_patch") {
+                    Card(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)) {
+                        SuperSwitch(
+                            title = stringResource(R.string.music_lyric_patch),
+                            summary = stringResource(
+                                if (musicLyricPatch) R.string.music_lyric_patch_on
+                                else R.string.music_lyric_patch_off
+                            ),
+                            checked = musicLyricPatch,
+                            onCheckedChange = {
+                                musicLyricPatch = it
+                                scope.launch {
+                                    withContext(Dispatchers.IO) { cardManager?.setMusicLyricPatch(it) }
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
             // Section title
             item(key = "section_title") {
                 SmallTitle(text = stringResource(R.string.section_cards))
@@ -214,7 +296,20 @@ fun CardsPage(
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(24.dp)
-                                        .draggableHandle(),
+                                        .longPressDraggableHandle(
+                                            onDragStopped = {
+                                                val reordered = cards.toList()
+                                                scope.launch {
+                                                    withContext(Dispatchers.IO) {
+                                                        cardManager?.reorderCards(reordered)
+                                                        cardManager?.syncConfig()
+                                                        cardManager?.prepareCardsForHook()
+                                                        RootUtils.restartBackScreen()
+                                                    }
+                                                    cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
+                                                }
+                                            },
+                                        ),
                                     tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -226,11 +321,6 @@ fun CardsPage(
                                         style = MiuixTheme.textStyles.headline2,
                                         color = MiuixTheme.colorScheme.onSurface,
                                     )
-                                    Text(
-                                        text = stringResource(R.string.card_summary, card.priority, card.refreshInterval),
-                                        style = MiuixTheme.textStyles.body2,
-                                        color = MiuixTheme.colorScheme.onSurfaceVariantActions,
-                                    )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -241,7 +331,12 @@ fun CardsPage(
                                         val updated = card.copy(enabled = enabled)
                                         cards = cards.map { if (it.slot == card.slot) updated else it }
                                         scope.launch {
-                                            withContext(Dispatchers.IO) { cardManager?.updateCard(updated) }
+                                            withContext(Dispatchers.IO) {
+                                                cardManager?.updateCard(updated)
+                                                cardManager?.syncConfig()
+                                                cardManager?.prepareCardsForHook()
+                                                RootUtils.restartBackScreen()
+                                            }
                                         }
                                     },
                                 )
@@ -253,35 +348,48 @@ fun CardsPage(
 
             // Import button
             item(key = "import_button") {
-                Row(
+                TextButton(
+                    text = stringResource(R.string.cards_import),
+                    onClick = { cardPicker.launch(arrayOf("application/zip", "application/octet-stream")) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 4.dp, bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    TextButton(
-                        text = stringResource(R.string.cards_import),
-                        onClick = { cardPicker.launch(arrayOf("application/zip", "application/octet-stream")) },
-                        modifier = Modifier.weight(1f),
-                    )
-                    TextButton(
-                        text = stringResource(R.string.cards_save_restart),
-                        onClick = {
-                            scope.launch {
-                                withContext(Dispatchers.IO) {
-                                    cardManager?.reorderCards(cards)
-                                    cardManager?.syncConfig()
-                                    cardManager?.prepareCardsForHook()
-                                    RootUtils.restartBackScreen()
-                                }
-                                Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.textButtonColorsPrimary(),
-                    )
-                }
+                )
             }
+        }
+    }
+
+    SuperDialog(
+        show = showMusicRemoveDialog,
+        title = stringResource(R.string.music_override_remove),
+        summary = stringResource(R.string.cards_delete_confirm, musicOverrideName ?: ""),
+        onDismissRequest = { showMusicRemoveDialog = false },
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TextButton(
+                text = stringResource(R.string.cancel),
+                onClick = { showMusicRemoveDialog = false },
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(
+                text = stringResource(R.string.confirm),
+                onClick = {
+                    showMusicRemoveDialog = false
+                    scope.launch {
+                        withContext(Dispatchers.IO) {
+                            cardManager?.removeMusicOverride()
+                            RootUtils.restartBackScreen()
+                        }
+                        musicOverrideName = null
+                        Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.textButtonColorsPrimary(),
+            )
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,7 +40,6 @@ import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.extra.SuperDialog
-import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -69,9 +69,23 @@ fun CardDetailPage(
     val cardManager = remember { if (!isInPreview) CardManager(context) else null }
     val card = remember { cardManager?.getCards()?.find { it.slot == slot } }
 
-    var enabled by remember { mutableStateOf(card?.enabled ?: false) }
     var refreshInterval by remember { mutableFloatStateOf(card?.refreshInterval?.toFloat() ?: 30f) }
     var priority by remember { mutableFloatStateOf(card?.priority?.toFloat() ?: 100f) }
+
+    // Auto-save on any change (only refreshInterval and priority; enabled is managed on CardsPage)
+    var initialized by remember { mutableStateOf(false) }
+    LaunchedEffect(refreshInterval.toInt(), priority.toInt()) {
+        if (!initialized) {
+            initialized = true
+            return@LaunchedEffect
+        }
+        if (card == null) return@LaunchedEffect
+        val updated = card.copy(
+            refreshInterval = refreshInterval.toInt(),
+            priority = priority.toInt(),
+        )
+        withContext(Dispatchers.IO) { cardManager?.updateCard(updated) }
+    }
 
     var showRefreshDialog by remember { mutableStateOf(false) }
     var showPriorityDialog by remember { mutableStateOf(false) }
@@ -105,15 +119,6 @@ fun CardDetailPage(
                 .padding(innerPadding)
                 .padding(horizontal = 12.dp),
         ) {
-            Card(modifier = Modifier.padding(top = 12.dp, bottom = 12.dp)) {
-                SuperSwitch(
-                    title = stringResource(R.string.card_enabled),
-                    summary = stringResource(if (enabled) R.string.card_enabled_on else R.string.card_enabled_off),
-                    checked = enabled,
-                    onCheckedChange = { enabled = it },
-                )
-            }
-
             // Settings
             SmallTitle(text = stringResource(R.string.nav_settings))
             Card(modifier = Modifier.padding(bottom = 12.dp)) {
@@ -147,46 +152,18 @@ fun CardDetailPage(
                             )
                         },
                     )
-                    Row(
+                    TextButton(
+                        text = stringResource(R.string.reset_default),
+                        onClick = {
+                            refreshInterval = 30f
+                            priority = 100f
+                            Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp)
                             .padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        TextButton(
-                            text = stringResource(R.string.cards_save_restart),
-                            onClick = {
-                                val updated = card?.copy(
-                                    enabled = enabled,
-                                    refreshInterval = refreshInterval.toInt(),
-                                    priority = priority.toInt(),
-                                )
-                                if (updated != null) {
-                                    scope.launch {
-                                        withContext(Dispatchers.IO) {
-                                            cardManager?.updateCard(updated)
-                                            cardManager?.syncConfig()
-                                            cardManager?.prepareCardsForHook()
-                                            RootUtils.restartBackScreen()
-                                        }
-                                        Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                        )
-                        TextButton(
-                            text = stringResource(R.string.reset_default),
-                            onClick = {
-                                refreshInterval = 30f
-                                priority = 100f
-                                Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                    )
             }
 
             // Delete
@@ -197,6 +174,7 @@ fun CardDetailPage(
                             scope.launch {
                                 withContext(Dispatchers.IO) {
                                     cardManager?.removeCard(slot)
+                                    RootUtils.restartBackScreen()
                                 }
                                 onBack()
                             }

@@ -35,7 +35,13 @@ object MusicTemplatePatch {
     private const val TAG = "Janus-MusicTemplate"
     private const val TEMPLATE_ASSET = "smart_assistant/music"
     private const val TEMPLATE_PATH =
-        "/data/system/theme_magic/users/\$user_id/subscreencenter/smart_assistant/music"
+        "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates/music"
+    private const val CUSTOM_SRC =
+        "/data/system/theme_magic/users/0/subscreencenter/janus/cards/music_custom.zip"
+    private const val CUSTOM_TEMPLATE_PATH =
+        "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates/music_custom"
+    private const val LYRIC_PATCH_FLAG =
+        "/data/system/theme_magic/users/0/subscreencenter/janus/config/music_lyric_patch"
 
     @Volatile
     private var titleElement: Any? = null
@@ -43,19 +49,39 @@ object MusicTemplatePatch {
     private var templatePatched = false
 
     private const val LYRIC_FADE_FLAG =
-        "/data/system/theme_magic/users/0/subscreencenter/config/janus_lyric_fade"
+        "/data/system/theme_magic/users/0/subscreencenter/janus/config/lyric_fade"
     private const val LYRIC_THRESHOLD_FLAG =
-        "/data/system/theme_magic/users/0/subscreencenter/config/janus_lyric_threshold"
+        "/data/system/theme_magic/users/0/subscreencenter/janus/config/lyric_threshold"
 
     // Auto-speed: track title changes to detect lyric lines
     private var lastTitle: String? = null
     private var lastTitleChangeMs: Long = 0
 
     fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
+        patchMusicPath(lpparam)
         hookManagerInit(lpparam)
         hookTextElementInit(lpparam)
         hookMetadataUpdate(lpparam)
         XposedBridge.log("[$TAG] All hooks installed")
+        HookStatusReporter.report("music_template", true, "Z1.d0")
+    }
+
+    /** Redirect the "music" entry in p2.a.d. Uses custom template if available, else stock. */
+    private fun patchMusicPath(lpparam: XC_LoadPackage.LoadPackageParam) {
+        try {
+            val userId = Process.myUid() / 100_000
+            val hasCustom = File(CUSTOM_SRC).exists()
+            val targetTemplate = if (hasCustom) CUSTOM_TEMPLATE_PATH else TEMPLATE_PATH
+            val newPath = targetTemplate.replace("\$user_id", userId.toString())
+            val cls = XposedHelpers.findClass("p2.a", lpparam.classLoader)
+            @Suppress("UNCHECKED_CAST")
+            val origD = XposedHelpers.getStaticObjectField(cls, "d") as Map<String, String>
+            XposedHelpers.setStaticObjectField(cls, "d",
+                HashMap(origD).apply { put("music", newPath) })
+            XposedBridge.log("[$TAG] Patched p2.a.d music → $newPath (custom=$hasCustom)")
+        } catch (e: Throwable) {
+            XposedBridge.log("[$TAG] patchMusicPath: ${e.message}")
+        }
     }
 
     // ── Template deployment ───────────────────────────────────────────
@@ -80,56 +106,64 @@ object MusicTemplatePatch {
     private fun patchTemplate(context: Context) {
         try {
             val userId = Process.myUid() / 100_000
+
+            // Always deploy patched stock template
             val deployPath = TEMPLATE_PATH.replace("\$user_id", userId.toString())
-
             val stockBytes = context.assets.open(TEMPLATE_ASSET).use { it.readBytes() }
-            val entries = linkedMapOf<String, ByteArray>()
-            ZipInputStream(ByteArrayInputStream(stockBytes)).use { zis ->
-                var entry = zis.nextEntry
-                while (entry != null) {
-                    if (!entry.isDirectory) entries[entry.name] = zis.readBytes()
-                    zis.closeEntry()
-                    entry = zis.nextEntry
-                }
+            deployPatchedZip(stockBytes, deployPath, applyLyricPatch = true)
+            XposedBridge.log("[$TAG] Stock template deployed → $deployPath")
+
+            // Deploy custom template if source exists
+            val customSrc = File(CUSTOM_SRC)
+            if (customSrc.exists()) {
+                val customPath = CUSTOM_TEMPLATE_PATH.replace("\$user_id", userId.toString())
+                val applyPatch = File(LYRIC_PATCH_FLAG).exists()
+                deployPatchedZip(customSrc.readBytes(), customPath, applyLyricPatch = applyPatch)
+                XposedBridge.log("[$TAG] Custom template deployed → $customPath (lyricPatch=$applyPatch)")
             }
-
-            val manifestBytes = entries["manifest.xml"] ?: return
-            var manifest = String(manifestBytes, Charsets.UTF_8)
-
-            // Remove textAlign and enableClip from normal-mode title.
-            // textAlign causes StaticLayout to use element width → text wraps → marquee fails.
-            // enableClip is unnecessary (marquee has its own clipRect).
-            // Keep ellipsis="true" — toggled at runtime by hookMetadataUpdate.
-            manifest = manifest.replace(
-                """name="album_name_text" enableClip="'false'" textAlign="'left'" fontFamily""",
-                """name="album_name_text" fontFamily"""
-            )
-
-            // AOD-mode title (album_name_text_aod) is NOT patched:
-            // hookTextElementInit only captures the normal-mode element, so the AOD
-            // element never receives runtime marquee control.  Removing its
-            // textAlign="'center'" would unconditionally left-align the song title
-            // on the AOD screen for all songs (including those without lyrics).
-
-            entries["manifest.xml"] = manifest.toByteArray(Charsets.UTF_8)
-
-            val deployFile = File(deployPath)
-            if (deployFile.isDirectory) deployFile.deleteRecursively()
-            if (deployFile.isFile) deployFile.delete()
-            deployFile.parentFile?.mkdirs()
-            ZipOutputStream(FileOutputStream(deployFile)).use { zos ->
-                for ((name, data) in entries) {
-                    zos.putNextEntry(ZipEntry(name))
-                    zos.write(data)
-                    zos.closeEntry()
-                }
-            }
-            deployFile.setReadable(true, false)
-            deployFile.parentFile?.let { it.setReadable(true, false); it.setExecutable(true, false) }
-            XposedBridge.log("[$TAG] Template deployed → $deployPath")
         } catch (e: Throwable) {
             XposedBridge.log("[$TAG] patchTemplate: ${e.message}")
         }
+    }
+
+    private fun deployPatchedZip(zipBytes: ByteArray, deployPath: String, applyLyricPatch: Boolean) {
+        val entries = linkedMapOf<String, ByteArray>()
+        ZipInputStream(ByteArrayInputStream(zipBytes)).use { zis ->
+            var entry = zis.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory) entries[entry.name] = zis.readBytes()
+                zis.closeEntry()
+                entry = zis.nextEntry
+            }
+        }
+
+        if (applyLyricPatch) {
+            val manifestBytes = entries["manifest.xml"]
+            if (manifestBytes != null) {
+                // Remove textAlign and enableClip from normal-mode title.
+                // textAlign causes StaticLayout to use element width → text wraps → marquee fails.
+                // enableClip is unnecessary (marquee has its own clipRect).
+                val manifest = String(manifestBytes, Charsets.UTF_8).replace(
+                    """name="album_name_text" enableClip="'false'" textAlign="'left'" fontFamily""",
+                    """name="album_name_text" fontFamily"""
+                )
+                entries["manifest.xml"] = manifest.toByteArray(Charsets.UTF_8)
+            }
+        }
+
+        val deployFile = File(deployPath)
+        if (deployFile.isDirectory) deployFile.deleteRecursively()
+        if (deployFile.isFile) deployFile.delete()
+        deployFile.parentFile?.mkdirs()
+        ZipOutputStream(FileOutputStream(deployFile)).use { zos ->
+            for ((name, data) in entries) {
+                zos.putNextEntry(ZipEntry(name))
+                zos.write(data)
+                zos.closeEntry()
+            }
+        }
+        deployFile.setReadable(true, false)
+        deployFile.parentFile?.let { it.setReadable(true, false); it.setExecutable(true, false) }
     }
 
     // ── Capture title TextScreenElement ────────────────────────────────

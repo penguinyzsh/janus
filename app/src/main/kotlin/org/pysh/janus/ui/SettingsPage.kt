@@ -40,7 +40,7 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 @Composable
 private fun SettingsPagePreview() {
     MiuixTheme {
-        SettingsPage(bottomPadding = 0.dp, onAboutClick = {})
+        SettingsPage(bottomPadding = 0.dp, onAboutClick = {}, onOtherClick = {})
     }
 }
 
@@ -48,6 +48,7 @@ private fun SettingsPagePreview() {
 fun SettingsPage(
     bottomPadding: Dp,
     onAboutClick: () -> Unit,
+    onOtherClick: () -> Unit,
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -121,6 +122,17 @@ fun SettingsPage(
                     modifier = Modifier.padding(bottom = 6.dp),
                 ) {
                     SuperArrow(
+                        title = stringResource(R.string.other),
+                        summary = stringResource(R.string.other_summary),
+                        onClick = onOtherClick,
+                    )
+                }
+            }
+            item {
+                Card(
+                    modifier = Modifier.padding(bottom = 6.dp),
+                ) {
+                    SuperArrow(
                         title = stringResource(R.string.about),
                         summary = stringResource(R.string.about_janus),
                         onClick = onAboutClick,
@@ -161,4 +173,5 @@ fun SettingsPage(
             )
         }
     }
+
 }
