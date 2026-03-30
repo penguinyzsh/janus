@@ -1,0 +1,16 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_wallpaper_keepalive",
+  "name": "Wallpaper Keep Alive",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Engine rule to keep wallpaper alive by intercepting launcher pause",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "configFlag": "wallpaper_keep_alive",
+  "order": 100,
+  "engine": "wallpaper_keep_alive",
+  "targets": {
+    "launcher_class": "com.xiaomi.subscreencenter.SubScreenLauncher",
+    "on_pause_method": "onPause"
+  }
+}

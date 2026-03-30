@@ -11,8 +11,8 @@ android {
         applicationId = "org.pysh.janus"
         minSdk = 26
         targetSdk = 35
-        versionCode = 11
-        versionName = "1.1.1"
+        versionCode = 12
+        versionName = "1.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -103,8 +103,9 @@ dependencies {
     // AndroidX
     implementation("androidx.core:core-ktx:1.16.0")
 
-    // Xposed API (compileOnly — runtime provided by framework)
-    compileOnly("de.robv.android.xposed:api:82")
+    // libxposed Modern API
+    compileOnly("io.github.libxposed:api:101.0.0")
+    implementation("io.github.libxposed:service:101.0.0")
 
     // Unit testing (Robolectric)
     testImplementation("junit:junit:4.13.2")
@@ -118,4 +119,17 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test:runner:1.6.2")
+}
+
+// ADB-based device tests (require connected device with module activated)
+tasks.register<Exec>("testE2E") {
+    group = "verification"
+    description = "Run ADB-based E2E tests (module loading, hook status, stability)"
+    commandLine("bash", "${rootProject.projectDir}/_scripts/test_e2e.sh", "--no-build")
+}
+
+tasks.register<Exec>("testBehavior") {
+    group = "verification"
+    description = "Run ADB-based behavioral correctness tests"
+    commandLine("bash", "${rootProject.projectDir}/_scripts/test_behavior.sh")
 }

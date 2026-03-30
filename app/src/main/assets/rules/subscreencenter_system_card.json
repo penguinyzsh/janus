@@ -1,0 +1,17 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_system_card",
+  "name": "System Card",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Engine rule for system card template overrides",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "order": 60,
+  "engine": "system_card",
+  "targets": {
+    "business_path_map_class": "p2.a",
+    "business_path_map_field": "d",
+    "manager_class": "Z1.d0",
+    "manager_init_method": "l"
+  }
+}

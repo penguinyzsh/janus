@@ -45,10 +45,6 @@ import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
-private const val LYRIC_FADE_MIN = 100
-private const val LYRIC_FADE_MAX = 2000
-private const val LYRIC_THRESHOLD_MIN_SEC = 1
-private const val LYRIC_THRESHOLD_MAX_SEC = 60
 
 @Preview(showBackground = true)
 @Composable
@@ -63,6 +59,7 @@ fun FeaturesPage(
     bottomPadding: Dp,
     onWallpaperClick: () -> Unit,
     onCastingClick: () -> Unit,
+    onHookRulesClick: () -> Unit = {},
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -70,13 +67,6 @@ fun FeaturesPage(
     val whitelistManager = remember { if (!isInPreview) WhitelistManager(context) else null }
     var disableTracking by remember { mutableStateOf(whitelistManager?.isTrackingDisabled() ?: false) }
     var hideTimeTip by remember { mutableStateOf(whitelistManager?.isTimeTipHidden() ?: false) }
-
-    var lyricFadeDuration by remember { mutableFloatStateOf(whitelistManager?.getLyricFadeDuration()?.toFloat() ?: 700f) }
-    var lyricThreshold by remember { mutableFloatStateOf((whitelistManager?.getLyricModeThreshold()?.toFloat() ?: 15000f) / 1000f) }
-
-    var showLyricFadeDialog by remember { mutableStateOf(false) }
-    var showLyricThresholdDialog by remember { mutableStateOf(false) }
-    var dialogInput by remember { mutableStateOf("") }
 
     val scrollBehavior = MiuixScrollBehavior()
     val title = stringResource(R.string.nav_features)
@@ -133,73 +123,6 @@ fun FeaturesPage(
                 }
             }
 
-            item { SmallTitle(text = stringResource(R.string.section_lyric)) }
-            item {
-                Card(modifier = Modifier.padding(bottom = 12.dp)) {
-                    SuperArrow(
-                        title = stringResource(R.string.lyric_fade_duration),
-                        summary = stringResource(R.string.lyric_fade_duration_value, lyricFadeDuration.toInt()),
-                        onClick = {
-                            dialogInput = lyricFadeDuration.toInt().toString()
-                            showLyricFadeDialog = true
-                        },
-                        bottomAction = {
-                            Slider(
-                                value = lyricFadeDuration,
-                                onValueChange = { lyricFadeDuration = it },
-                                valueRange = LYRIC_FADE_MIN.toFloat()..LYRIC_FADE_MAX.toFloat(),
-                            )
-                        },
-                    )
-                    SuperArrow(
-                        title = stringResource(R.string.lyric_mode_threshold),
-                        summary = stringResource(R.string.lyric_mode_threshold_value, lyricThreshold.toInt()),
-                        onClick = {
-                            dialogInput = lyricThreshold.toInt().toString()
-                            showLyricThresholdDialog = true
-                        },
-                        bottomAction = {
-                            Slider(
-                                value = lyricThreshold,
-                                onValueChange = { lyricThreshold = it },
-                                valueRange = LYRIC_THRESHOLD_MIN_SEC.toFloat()..LYRIC_THRESHOLD_MAX_SEC.toFloat(),
-                            )
-                        },
-                    )
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        TextButton(
-                            text = stringResource(R.string.lyric_save),
-                            onClick = {
-                                scope.launch {
-                                    withContext(Dispatchers.IO) {
-                                        whitelistManager?.setLyricFadeDuration(lyricFadeDuration.toInt())
-                                        whitelistManager?.setLyricModeThreshold((lyricThreshold * 1000).toInt())
-                                    }
-                                    Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                        )
-                        TextButton(
-                            text = stringResource(R.string.reset_default),
-                            onClick = {
-                                lyricFadeDuration = 700f
-                                lyricThreshold = 15f
-                                Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-            }
-
             item {
                 Card(modifier = Modifier.padding(bottom = 12.dp)) {
                     SuperArrow(
@@ -210,80 +133,12 @@ fun FeaturesPage(
                         title = stringResource(R.string.section_casting),
                         onClick = onCastingClick,
                     )
+                    SuperArrow(
+                        title = stringResource(R.string.section_hook_rules),
+                        onClick = onHookRulesClick,
+                    )
                 }
             }
-        }
-    }
-
-    // 歌词淡入时长输入弹窗
-    SuperDialog(
-        show = showLyricFadeDialog,
-        title = stringResource(R.string.lyric_fade_duration),
-        summary = stringResource(R.string.lyric_fade_duration_summary, LYRIC_FADE_MIN, LYRIC_FADE_MAX),
-        onDismissRequest = { showLyricFadeDialog = false },
-    ) {
-        TextField(
-            value = dialogInput,
-            onValueChange = { dialogInput = it.filter { c -> c.isDigit() } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showLyricFadeDialog = false },
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = {
-                    val ms = dialogInput.toIntOrNull()?.coerceIn(LYRIC_FADE_MIN, LYRIC_FADE_MAX)
-                    if (ms != null) lyricFadeDuration = ms.toFloat()
-                    showLyricFadeDialog = false
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
-        }
-    }
-
-    // 歌词检测阈值输入弹窗
-    SuperDialog(
-        show = showLyricThresholdDialog,
-        title = stringResource(R.string.lyric_mode_threshold),
-        summary = stringResource(R.string.lyric_mode_threshold_summary, LYRIC_THRESHOLD_MIN_SEC, LYRIC_THRESHOLD_MAX_SEC),
-        onDismissRequest = { showLyricThresholdDialog = false },
-    ) {
-        TextField(
-            value = dialogInput,
-            onValueChange = { dialogInput = it.filter { c -> c.isDigit() } },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showLyricThresholdDialog = false },
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = {
-                    val sec = dialogInput.toIntOrNull()?.coerceIn(LYRIC_THRESHOLD_MIN_SEC, LYRIC_THRESHOLD_MAX_SEC)
-                    if (sec != null) lyricThreshold = sec.toFloat()
-                    showLyricThresholdDialog = false
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
         }
     }
 

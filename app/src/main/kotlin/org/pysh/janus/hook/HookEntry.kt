@@ -1,336 +1,95 @@
 package org.pysh.janus.hook
 
-import android.annotation.SuppressLint
-import de.robv.android.xposed.IXposedHookLoadPackage
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XSharedPreferences
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.callbacks.XC_LoadPackage
+import android.util.Log
+import io.github.libxposed.api.XposedInterface
+import io.github.libxposed.api.XposedModule
+import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
+import org.pysh.janus.hook.engine.RuleEngine
+import org.pysh.janus.hook.engine.RuleLoader
+import org.pysh.janus.hook.engine.engines.CardInjectionEngine
+import org.pysh.janus.hook.engine.engines.SystemCardEngine
+import org.pysh.janus.hook.engine.engines.WallpaperKeepAliveEngine
+import org.pysh.janus.hook.engine.engines.WhitelistEngine
 
-class HookEntry : IXposedHookLoadPackage {
+class HookEntry : XposedModule() {
 
     companion object {
         private const val TAG = "Janus"
         private const val TARGET_PACKAGE = "com.xiaomi.subscreencenter"
-        private const val TARGET_CLASS = "p2.a"
-        private const val SELF_PACKAGE = "org.pysh.janus"
-        private const val PREFS_NAME = "janus_config"
-        private const val APPLE_MUSIC_PACKAGE = "com.apple.android.music"
-        private const val LUNA_MUSIC_PACKAGE = "com.luna.music"
+    }
 
-        /** Package → hook for music apps needing lyric support.
-         *  LyricInjector subclasses for apps without native BT lyrics,
-         *  simple force-enable hooks for apps that have BT lyrics. */
-        private val musicAppHooks: Map<String, (XC_LoadPackage.LoadPackageParam) -> Unit> = mapOf(
-            APPLE_MUSIC_PACKAGE to { AppleMusicLyricHook.hook(it) },
-            LUNA_MUSIC_PACKAGE to { LunaMusicLyricHook.hook(it) },
+    override fun onPackageLoaded(param: PackageLoadedParam) {
+        val packageName = param.packageName
+        val classLoader = param.defaultClassLoader
+
+        Log.d(TAG, "onPackageLoaded: $packageName")
+
+        // Infrastructure: status reporter + view state observer (always active)
+        HookStatusReporter.init(this, packageName)
+        ViewStateObserver.init(this, packageName)
+
+        // Load config from RemotePreferences (with file-flag fallback)
+        val config = try {
+            getRemotePreferences("janus_config")
+        } catch (e: Throwable) {
+            Log.w(TAG, "RemotePreferences not available, using empty config: ${e.message}")
+            null
+        }
+
+        // Load rules for this package
+        val rulesPrefs = try {
+            getRemotePreferences("janus_rules")
+        } catch (_: Throwable) {
+            null
+        }
+
+        val rules = RuleLoader.loadForPackage(
+            packageName = packageName,
+            moduleAppInfo = moduleApplicationInfo,
+            rulesPrefs = rulesPrefs,
         )
-        private const val WALLPAPER_LONG_PRESS_GESTURE = "Z1.t" // MainPanel long-press-to-edit handler
-        private const val SUB_SCREEN_LAUNCHER = "$TARGET_PACKAGE.SubScreenLauncher"
-        private const val JANUS_MRC = "/data/system/theme/rearScreenWhite/janus/custom.mrc"
-        private const val CONFIG_DIR =
-            "/data/system/theme_magic/users/0/subscreencenter/janus/config"
-        private const val WHITELIST_FLAG = "$CONFIG_DIR/whitelist"
-        private const val TRACKING_FLAG = "$CONFIG_DIR/tracking_disabled"
-        private const val WALLPAPER_KEEP_ALIVE_FLAG = "$CONFIG_DIR/wallpaper_keep_alive"
-        private const val WALLPAPER_LOCK_FLAG = "$CONFIG_DIR/wallpaper_lock"
-        private const val HIDE_TIME_TIP_FLAG = "$CONFIG_DIR/hide_time_tip"
+
+        if (rules.isEmpty()) {
+            Log.d(TAG, "No rules for $packageName")
+            return
+        }
+
+        // If any rule has lyric_extract action, install LyricInjector infrastructure
+        if (rules.any { rule -> rule.hasActionType("lyric_extract") }) {
+            installLyricInfrastructure(classLoader)
+        }
+
+        // Create engine and install rules
+        val engine = RuleEngine(
+            module = this,
+            config = config ?: EmptyPreferences,
+        )
+        engine.registerEngine("whitelist", WhitelistEngine())
+        engine.registerEngine("system_card", SystemCardEngine())
+        engine.registerEngine("card_injection", CardInjectionEngine())
+        engine.registerEngine("wallpaper_keep_alive", WallpaperKeepAliveEngine())
+
+        engine.install(rules, classLoader)
     }
 
-    @Suppress("DEPRECATION")
-    private val prefs by lazy { XSharedPreferences(SELF_PACKAGE, PREFS_NAME) }
-
-    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        when (lpparam.packageName) {
-            SELF_PACKAGE -> hookSelf(lpparam)
-            TARGET_PACKAGE -> {
-                HookStatusReporter.init(lpparam)
-                hookMusicWhitelist(lpparam)
-                hookTracking(lpparam)
-                hookWallpaperKeepAlive(lpparam)
-                hookWallpaperLock(lpparam)
-                hookWallpaperPathRedirect(lpparam)
-                hookTimeTip(lpparam)
-                MusicTemplatePatch.hook(lpparam)
-                SystemCardPatch.hook(lpparam)
-                CardHook.hook(lpparam)
-            }
-            in musicAppHooks -> {
-                HookStatusReporter.init(lpparam)
-                musicAppHooks[lpparam.packageName]?.invoke(lpparam)
-            }
-        }
-    }
-
-    private fun hookSelf(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            XposedHelpers.findAndHookMethod(
-                "$SELF_PACKAGE.MainActivity",
-                lpparam.classLoader,
-                "isModuleActive",
-                XC_MethodReplacement.returnConstant(true)
-            )
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookSelf failed: ${e.message}")
-        }
-    }
-
-    private fun hookMusicWhitelist(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            val targetClass = XposedHelpers.findClass(TARGET_CLASS, lpparam.classLoader)
-
-            // Hook c(String) -> boolean : single package whitelist check
-            XposedHelpers.findAndHookMethod(
-                targetClass, "c", String::class.java,
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val result = param.result as? Boolean ?: return
-                        if (result) return
-
-                        val packageName = param.args[0] as? String ?: return
-                        val customWhitelist = getCustomWhitelist()
-                        if (packageName in customWhitelist) {
-                            param.result = true
-                            XposedBridge.log("[$TAG] Allowed: $packageName")
-                        }
-                    }
-                }
-            )
-
-            // Hook b() -> Set<String> : full whitelist retrieval
-            XposedHelpers.findAndHookMethod(
-                targetClass, "b",
-                object : XC_MethodHook() {
-                    @Suppress("UNCHECKED_CAST")
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val customWhitelist = getCustomWhitelist()
-                        if (customWhitelist.isEmpty()) return
-                        val original = param.result
-                        try {
-                            (original as MutableCollection<String>).addAll(customWhitelist)
-                        } catch (_: Throwable) {
-                            val merged = HashSet<String>()
-                            if (original is Collection<*>) {
-                                @Suppress("UNCHECKED_CAST")
-                                merged.addAll(original as Collection<String>)
-                            }
-                            merged.addAll(customWhitelist)
-                            param.result = merged
-                        }
-                    }
-                }
-            )
-
-            // Hook MusicController.addMusicPackageList to inject whitelist into
-            // MediaSession monitoring. Without this, <MusicControl> MAML element
-            // won't track third-party sessions (no lyrics, no progress bar).
-            hookMusicControllerPackageList(lpparam)
-
-            XposedBridge.log("[$TAG] Hooks installed successfully")
-            HookStatusReporter.report("music_whitelist", true, "p2.a")
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookMusicWhitelist failed: ${e.message}")
-            HookStatusReporter.report("music_whitelist", false, e.message)
-        }
-    }
-
-    private fun hookMusicControllerPackageList(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            XposedHelpers.findAndHookMethod(
-                "com.miui.maml.elements.MusicController",
-                lpparam.classLoader,
-                "addMusicPackageList",
-                java.util.List::class.java,
-                object : XC_MethodHook() {
-                    @Suppress("UNCHECKED_CAST")
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        val list = param.args[0] as? MutableList<String> ?: return
-                        val whitelist = getCustomWhitelist()
-                        for (pkg in whitelist) {
-                            if (pkg !in list) list.add(pkg)
-                        }
-                        if (whitelist.isNotEmpty()) {
-                            XposedBridge.log("[$TAG] Injected ${whitelist.size} packages into MusicController")
-                        }
-                    }
-                }
-            )
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookMusicControllerPackageList failed: ${e.message}")
-        }
-    }
-
-    private fun hookTracking(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            val receiverClass = XposedHelpers.findClass(
-                "$TARGET_PACKAGE.track.DailyTrackReceiver",
-                lpparam.classLoader
-            )
-            XposedHelpers.findAndHookMethod(
-                receiverClass, "onReceive",
-                android.content.Context::class.java,
-                android.content.Intent::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (isTrackingDisabled()) {
-                            param.result = null
-                            XposedBridge.log("[$TAG] Blocked daily tracking report")
-                        }
-                    }
-                }
-            )
-            XposedBridge.log("[$TAG] Tracking hook installed")
-            HookStatusReporter.report("tracking_block", true, "DailyTrackReceiver")
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookTracking failed: ${e.message}")
-            HookStatusReporter.report("tracking_block", false, e.message)
-        }
-    }
-
-    @SuppressLint("BlockedPrivateApi") // Runs in Xposed hook context, not subject to targetSdk restrictions
-    private fun hookWallpaperKeepAlive(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            // Hook SubScreenLauncher.onPause() to prevent MainPanel.A() → widget destruction.
-            // onPause triggers: MainPanel.A() → widget cleanup → MamlView.onDestroy()
-            // → ScreenElementRoot destroyed → animation restarts from 0 on resume.
-            // By skipping onPause body, widgets stay alive and animation continues.
-            XposedHelpers.findAndHookMethod(
-                SUB_SCREEN_LAUNCHER,
-                lpparam.classLoader,
-                "onPause",
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!isWallpaperKeepAlive()) return
-                        try {
-                            // Must satisfy Activity lifecycle check to avoid SuperNotCalledException.
-                            // Activity.onPause() sets mCalled=true and calls dispatchActivityPaused().
-                            val activityClass = android.app.Activity::class.java
-                            val dispatchMethod = activityClass.getDeclaredMethod("dispatchActivityPaused")
-                            dispatchMethod.isAccessible = true
-                            dispatchMethod.invoke(param.thisObject)
-                            val mCalledField = activityClass.getDeclaredField("mCalled")
-                            mCalledField.isAccessible = true
-                            mCalledField.setBoolean(param.thisObject, true)
-                        } catch (e: Throwable) {
-                            XposedBridge.log("[$TAG] super.onPause simulation failed: ${e.message}")
-                            return // Let original onPause run to avoid crash
-                        }
-                        param.result = null // Skip SubScreenLauncher.onPause() body
-                        XposedBridge.log("[$TAG] Blocked SubScreenLauncher.onPause → wallpaper kept alive")
-                    }
-                }
-            )
-            XposedBridge.log("[$TAG] Wallpaper keep-alive hook installed on SubScreenLauncher.onPause")
-            HookStatusReporter.report("wallpaper_keep_alive", true, "SubScreenLauncher.onPause")
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookWallpaperKeepAlive failed: ${e.message}")
-            HookStatusReporter.report("wallpaper_keep_alive", false, e.message)
-        }
-    }
-
-    private fun hookWallpaperLock(lpparam: XC_LoadPackage.LoadPackageParam) {
-        // Hook Z1.t.e(MotionEvent) — long-press gesture to enter edit mode.
-        // Blocking edit mode entry is sufficient: swipe-to-switch only works
-        // inside edit mode, so it becomes unreachable.
-        try {
-            XposedHelpers.findAndHookMethod(
-                WALLPAPER_LONG_PRESS_GESTURE, lpparam.classLoader,
-                "e", android.view.MotionEvent::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (isWallpaperLocked()) {
-                            param.result = false
-                        }
-                    }
-                }
-            )
-            XposedBridge.log("[$TAG] Wallpaper lock hook installed on Z1.t.e")
-            HookStatusReporter.report("wallpaper_lock", true, "Z1.t.e")
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookWallpaperLock failed: ${e.message}")
-            HookStatusReporter.report("wallpaper_lock", false, e.message)
-        }
+    private fun installLyricInfrastructure(classLoader: ClassLoader) {
+        LyricInjector.hookMediaSession(this)
     }
 
     /**
-     * Hook Widget.d()（有效路径获取方法），重定向到 Janus 专用 .mrc。
-     * 仅当 janus/custom.mrc 存在时才重定向，不影响原始壁纸。
+     * Empty SharedPreferences fallback when RemotePreferences is unavailable.
      */
-    private fun hookWallpaperPathRedirect(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            XposedHelpers.findAndHookMethod(
-                "m2.a", lpparam.classLoader, "d",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        if (param.result == null) return
-                        val janusFile = java.io.File(JANUS_MRC)
-                        if (!janusFile.exists()) return
-
-                        val result = param.result as String
-                        if (result != JANUS_MRC) {
-                            param.result = JANUS_MRC
-                            XposedBridge.log("[$TAG] Redirected wallpaper: $result → $JANUS_MRC")
-                        }
-                        // 不修改 configPath（字段 g），避免被持久化到 widget.json
-                    }
-                }
-            )
-            XposedBridge.log("[$TAG] Wallpaper path redirect hook installed on m2.a.d")
-            HookStatusReporter.report("wallpaper_redirect", true, "m2.a.d")
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookWallpaperPathRedirect failed: ${e.message}")
-            HookStatusReporter.report("wallpaper_redirect", false, e.message)
-        }
-    }
-
-    /**
-     * Hook Widget Parcelable m2.a to hide the time capsule when flag is set.
-     * Overrides field f8006l (mShowTimeTip) to false on all widget instances.
-     */
-    private fun hookTimeTip(lpparam: XC_LoadPackage.LoadPackageParam) {
-        if (!isTimeTipHidden()) return
-        try {
-            val widgetCls = XposedHelpers.findClass("m2.a", lpparam.classLoader)
-            XposedBridge.hookAllConstructors(widgetCls, object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam) {
-                    XposedHelpers.setBooleanField(param.thisObject, "l", false)
-                }
-            })
-            XposedBridge.log("[$TAG] Time tip hidden: hooked m2.a constructors")
-            HookStatusReporter.report("hide_time_tip", true, "m2.a")
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] hookTimeTip failed: ${e.message}")
-            HookStatusReporter.report("hide_time_tip", false, e.message)
-        }
-    }
-
-    private fun isTimeTipHidden(): Boolean {
-        return java.io.File(HIDE_TIME_TIP_FLAG).exists()
-    }
-
-    private fun isWallpaperLocked(): Boolean {
-        return java.io.File(WALLPAPER_LOCK_FLAG).exists()
-    }
-
-    private fun isWallpaperKeepAlive(): Boolean {
-        return java.io.File(WALLPAPER_KEEP_ALIVE_FLAG).exists()
-    }
-
-    private fun isTrackingDisabled(): Boolean {
-        return java.io.File(TRACKING_FLAG).exists()
-    }
-
-    private fun getCustomWhitelist(): Set<String> {
-        return try {
-            val file = java.io.File(WHITELIST_FLAG)
-            if (!file.exists()) return emptySet()
-            val raw = file.readText().trim()
-            if (raw.isEmpty()) emptySet() else raw.split(",").filter { it.isNotBlank() }.toSet()
-        } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] Failed to read whitelist file: ${e.message}")
-            emptySet()
-        }
+    private object EmptyPreferences : android.content.SharedPreferences {
+        override fun getAll(): MutableMap<String, *> = mutableMapOf<String, Any>()
+        override fun getString(key: String?, defValue: String?): String? = defValue
+        override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? = defValues
+        override fun getInt(key: String?, defValue: Int): Int = defValue
+        override fun getLong(key: String?, defValue: Long): Long = defValue
+        override fun getFloat(key: String?, defValue: Float): Float = defValue
+        override fun getBoolean(key: String?, defValue: Boolean): Boolean = defValue
+        override fun contains(key: String?): Boolean = false
+        override fun edit(): android.content.SharedPreferences.Editor = throw UnsupportedOperationException()
+        override fun registerOnSharedPreferenceChangeListener(listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener?) {}
+        override fun unregisterOnSharedPreferenceChangeListener(listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener?) {}
     }
 }

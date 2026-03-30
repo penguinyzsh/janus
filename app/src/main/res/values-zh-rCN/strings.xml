@@ -207,6 +207,21 @@
     <string name="cast_tile_active">已投屏</string>
     <string name="cast_tile_failed">失败</string>
 
+    <!-- Hook 规则 -->
+    <string name="section_hook_rules">Hook 规则</string>
+    <string name="hook_rules_title">Hook 规则</string>
+    <string name="hook_rules_import">导入规则</string>
+    <string name="hook_rules_builtin">内置</string>
+    <string name="hook_rules_custom">自定义</string>
+    <string name="hook_rules_target">目标: %s</string>
+    <string name="hook_rules_hooks_count">%d 个 Hook</string>
+    <string name="hook_rules_engine">引擎: %s</string>
+    <string name="hook_rules_delete_confirm">删除规则「%s」？</string>
+    <string name="hook_rules_import_success">已导入规则: %s</string>
+    <string name="hook_rules_import_failed">导入规则失败</string>
+    <string name="hook_rules_empty">暂无规则</string>
+    <string name="hook_rules_restart_hint">重启背屏中心以生效</string>
+
     <!-- 应用页 -->
     <string name="search_apps">搜索应用…</string>
     <string name="media_tag">媒体</string>
@@ -218,6 +233,12 @@
     <string name="whitelist_off">不允许显示此应用的音乐信息</string>
     <string name="whitelist_added">已添加</string>
     <string name="whitelist_removed">已移除</string>
+    <string name="app_lyric_rules">歌词 Hook 规则</string>
+    <string name="app_lyric_rules_empty">此应用暂无歌词规则</string>
+    <string name="app_lyric_rules_import">导入规则</string>
+    <string name="app_lyric_rules_package_mismatch">规则目标为 %1$s，与当前应用不匹配</string>
+    <string name="app_lyric_rules_restart_hint">重启目标应用以生效</string>
+    <string name="app_lyric_rules_long_press_hint">长按规则可删除，重启目标应用以生效</string>
 
     <!-- 设置页 -->
     <string name="hide_icon">隐藏桌面图标</string>
@@ -249,7 +270,7 @@
 
     <!-- 更新通告 -->
     <string name="update_title">v%s 更新内容</string>
-    <string name="update_changelog">支持覆盖所有系统卡片模板\n新增系统卡片覆盖专属页面\n功能页新增隐藏时间胶囊开关\n导入和删除卡片自动重启背屏</string>
+    <string name="update_changelog">歌词 Hook 规则按应用管理\n支持导入、启用/禁用、删除歌词规则\nHook 规则页仅展示内置规则</string>
     <string name="update_join_group">加入 QQ 群</string>
     <string name="update_support">爱发电支持</string>
     <string name="update_dismiss">知道了</string>

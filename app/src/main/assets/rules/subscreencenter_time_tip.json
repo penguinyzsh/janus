@@ -1,0 +1,22 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_time_tip",
+  "name": "Hide Time Tip",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Hide time tip by setting field to false on all constructors",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "configFlag": "hide_time_tip",
+  "order": 100,
+  "hooks": [
+    {
+      "id": "set_time_tip_field",
+      "className": "m2.a",
+      "action": {
+        "type": "field_set",
+        "field": "l",
+        "value": false
+      }
+    }
+  ]
+}

@@ -182,7 +182,7 @@ object LyricParser {
                 val ms = (frac.toIntOrNull() ?: 0).let {
                     if (frac.length == 2) it * 10 else it
                 }
-                val time = (min * 60 + sec) * 1000 + ms + offsetMs
+                val time = ((min * 60 + sec) * 1000 + ms + offsetMs).coerceAtLeast(0)
                 entries.add(time to text)
             }
         }

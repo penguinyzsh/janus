@@ -1,0 +1,25 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_tracking",
+  "name": "Tracking Blocker",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Block daily tracking receiver to disable telemetry",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "configFlag": "tracking_disabled",
+  "order": 100,
+  "hooks": [
+    {
+      "id": "block_daily_track",
+      "className": "com.xiaomi.subscreencenter.track.DailyTrackReceiver",
+      "methodName": "onReceive",
+      "paramTypes": [
+        "android.content.Context",
+        "android.content.Intent"
+      ],
+      "action": {
+        "type": "block_method"
+      }
+    }
+  ]
+}

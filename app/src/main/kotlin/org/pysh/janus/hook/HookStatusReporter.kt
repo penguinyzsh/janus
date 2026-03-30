@@ -6,10 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.callbacks.XC_LoadPackage
+import android.util.Log
+import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 
@@ -27,34 +25,44 @@ object HookStatusReporter {
 
     const val ACTION_QUERY = "org.pysh.janus.action.QUERY_HOOK_STATUS"
     const val ACTION_REPORT = "org.pysh.janus.action.HOOK_STATUS_REPORT"
+    const val ACTION_QUERY_BEHAVIOR = "org.pysh.janus.action.QUERY_BEHAVIOR"
+    const val ACTION_BEHAVIOR_REPORT = "org.pysh.janus.action.BEHAVIOR_REPORT"
     const val EXTRA_PROCESS = "process"
     const val EXTRA_HOOKS = "hooks"
+    const val EXTRA_BEHAVIORS = "behaviors"
 
     private const val TAG = "Janus-Status"
     private const val JANUS_PACKAGE = "org.pysh.janus"
 
-    /** hook name → (status, detail). Status: "ok", "error", "skip". */
+    /** hook name -> (status, detail). Status: "ok", "error", "skip". */
     private val statuses = ConcurrentHashMap<String, Pair<String, String?>>()
+
+    /** hook id -> last behavioral data as JSON string. */
+    private val behaviors = ConcurrentHashMap<String, String>()
+
+    /** hook id -> invocation count. */
+    private val behaviorCounts = ConcurrentHashMap<String, Int>()
+
     private var processName: String? = null
 
     /**
      * Initialise the reporter for this process.
-     * Call once per process in [handleLoadPackage][de.robv.android.xposed.IXposedHookLoadPackage.handleLoadPackage].
+     * Call once per process before installing any hooks.
      */
-    fun init(lpparam: XC_LoadPackage.LoadPackageParam) {
-        processName = lpparam.packageName
+    fun init(module: XposedInterface, packageName: String) {
+        processName = packageName
         try {
-            XposedHelpers.findAndHookMethod(
-                Application::class.java, "onCreate",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val app = param.thisObject as? Application ?: return
-                        registerReceiver(app.applicationContext)
-                    }
+            val onCreateMethod = Application::class.java.getDeclaredMethod("onCreate")
+            module.hook(onCreateMethod).intercept(XposedInterface.Hooker { chain ->
+                val result = chain.proceed()
+                val app = chain.thisObject as? Application
+                if (app != null) {
+                    registerReceiver(app.applicationContext)
                 }
-            )
+                result
+            })
         } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] Failed to hook Application.onCreate: ${e.message}")
+            Log.e(TAG, "Failed to hook Application.onCreate: ${e.message}")
         }
     }
 
@@ -68,23 +76,36 @@ object HookStatusReporter {
         statuses[name] = "skip" to detail
     }
 
+    /** Record what a hook actually did at runtime (for behavioral verification). */
+    fun reportBehavior(hookId: String, data: JSONObject) {
+        val count = behaviorCounts.merge(hookId, 1) { old, _ -> old + 1 } ?: 1
+        data.put("call_count", count)
+        behaviors[hookId] = data.toString()
+    }
+
     private fun registerReceiver(context: Context) {
         try {
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context, intent: Intent) {
-                    sendReport(ctx)
+                    when (intent.action) {
+                        ACTION_QUERY -> sendReport(ctx)
+                        ACTION_QUERY_BEHAVIOR -> sendBehaviorReport(ctx)
+                    }
                 }
             }
-            val filter = IntentFilter(ACTION_QUERY)
+            val filter = IntentFilter().apply {
+                addAction(ACTION_QUERY)
+                addAction(ACTION_QUERY_BEHAVIOR)
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
             } else {
                 @Suppress("UnspecifiedRegisterReceiverFlag")
                 context.registerReceiver(receiver, filter)
             }
-            XposedBridge.log("[$TAG] Receiver registered in $processName")
+            Log.d(TAG, "Receiver registered in $processName")
         } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] Failed to register receiver: ${e.message}")
+            Log.e(TAG, "Failed to register receiver: ${e.message}")
         }
     }
 
@@ -97,13 +118,35 @@ object HookStatusReporter {
                     pair.second?.let { put("detail", it) }
                 })
             }
+            val payload = json.toString()
+            // Log to logcat for ADB-based test scripts to read
+            Log.i(TAG, "HOOK_STATUS_REPORT:$payload")
             context.sendBroadcast(Intent(ACTION_REPORT).apply {
                 setPackage(JANUS_PACKAGE)
                 putExtra(EXTRA_PROCESS, processName)
-                putExtra(EXTRA_HOOKS, json.toString())
+                putExtra(EXTRA_HOOKS, payload)
             })
         } catch (e: Throwable) {
-            XposedBridge.log("[$TAG] Failed to send report: ${e.message}")
+            Log.e(TAG, "Failed to send report: ${e.message}")
+        }
+    }
+
+    private fun sendBehaviorReport(context: Context) {
+        try {
+            val json = JSONObject()
+            for ((hookId, data) in behaviors) {
+                json.put(hookId, JSONObject(data))
+            }
+            val payload = json.toString()
+            // Log to logcat for ADB-based test scripts to read
+            Log.i(TAG, "BEHAVIOR_REPORT:$payload")
+            context.sendBroadcast(Intent(ACTION_BEHAVIOR_REPORT).apply {
+                setPackage(JANUS_PACKAGE)
+                putExtra(EXTRA_PROCESS, processName)
+                putExtra(EXTRA_BEHAVIORS, payload)
+            })
+        } catch (e: Throwable) {
+            Log.e(TAG, "Failed to send behavior report: ${e.message}")
         }
     }
 }

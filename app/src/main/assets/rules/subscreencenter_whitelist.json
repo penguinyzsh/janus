@@ -1,0 +1,18 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_whitelist",
+  "name": "Music Whitelist",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Engine rule for music whitelist management",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "order": 10,
+  "engine": "whitelist",
+  "targets": {
+    "whitelist_class": "p2.a",
+    "whitelist_check_method": "c",
+    "whitelist_get_method": "b",
+    "music_controller_class": "com.miui.maml.elements.MusicController",
+    "music_controller_add_method": "addMusicPackageList"
+  }
+}

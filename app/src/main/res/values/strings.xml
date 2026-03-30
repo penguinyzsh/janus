@@ -208,6 +208,21 @@
     <string name="cast_tile_active">Casting</string>
     <string name="cast_tile_failed">Failed</string>
 
+    <!-- Hook Rules -->
+    <string name="section_hook_rules">Hook Rules</string>
+    <string name="hook_rules_title">Hook Rules</string>
+    <string name="hook_rules_import">Import Rule</string>
+    <string name="hook_rules_builtin">Built-in</string>
+    <string name="hook_rules_custom">Custom</string>
+    <string name="hook_rules_target">Target: %s</string>
+    <string name="hook_rules_hooks_count">%d hooks</string>
+    <string name="hook_rules_engine">Engine: %s</string>
+    <string name="hook_rules_delete_confirm">Delete rule \"%s\"?</string>
+    <string name="hook_rules_import_success">Rule imported: %s</string>
+    <string name="hook_rules_import_failed">Failed to import rule</string>
+    <string name="hook_rules_empty">No rules loaded</string>
+    <string name="hook_rules_restart_hint">Restart subscreencenter to apply changes</string>
+
     <!-- Apps -->
     <string name="search_apps">Search apps…</string>
     <string name="media_tag">Media</string>
@@ -219,6 +234,12 @@
     <string name="whitelist_off">Don\'t allow showing music info from this app</string>
     <string name="whitelist_added">Added</string>
     <string name="whitelist_removed">Removed</string>
+    <string name="app_lyric_rules">Lyric Hook Rules</string>
+    <string name="app_lyric_rules_empty">No lyric rules for this app</string>
+    <string name="app_lyric_rules_import">Import Rule</string>
+    <string name="app_lyric_rules_package_mismatch">Rule targets %1$s, not this app</string>
+    <string name="app_lyric_rules_restart_hint">Restart the target app to apply changes</string>
+    <string name="app_lyric_rules_long_press_hint">Long press a rule to delete. Restart the target app to apply changes</string>
 
     <!-- Settings -->
     <string name="hide_icon">Hide Launcher Icon</string>
@@ -254,7 +275,7 @@
 
     <!-- Update Dialog -->
     <string name="update_title">What\'s New in v%s</string>
-    <string name="update_changelog">Override any system card template\nDedicated System Card Overrides page\nHide time capsule toggle on Features page\nAll card imports and deletions auto-restart back screen</string>
+    <string name="update_changelog">Lyric hook rules managed per app\nImport, enable/disable, and delete lyric rules\nHook Rules page now shows built-in rules only</string>
     <string name="update_join_group">Join QQ Group</string>
     <string name="update_support">Support on Afdian</string>
     <string name="update_dismiss">Got it</string>

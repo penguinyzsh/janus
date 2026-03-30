@@ -1,0 +1,25 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_wallpaper_lock",
+  "name": "Wallpaper Lock",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Lock wallpaper by blocking touch event handling",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "configFlag": "wallpaper_lock",
+  "order": 100,
+  "hooks": [
+    {
+      "id": "block_touch_event",
+      "className": "Z1.t",
+      "methodName": "e",
+      "paramTypes": [
+        "android.view.MotionEvent"
+      ],
+      "action": {
+        "type": "return_constant",
+        "value": false
+      }
+    }
+  ]
+}

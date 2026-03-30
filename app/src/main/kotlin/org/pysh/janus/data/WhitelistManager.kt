@@ -2,10 +2,14 @@ package org.pysh.janus.data
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
+import org.pysh.janus.JanusApplication
 import org.pysh.janus.util.JanusPaths
 import java.io.File
 
 class WhitelistManager(private val context: Context) {
+
+    private val TAG = "Janus-Config"
 
     companion object {
         const val PREFS_NAME = "janus_config"
@@ -20,16 +24,12 @@ class WhitelistManager(private val context: Context) {
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_HIDE_TIME_TIP = "hide_time_tip"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
-        const val KEY_LYRIC_FADE_DURATION = "lyric_fade_duration"
-        const val KEY_LYRIC_MODE_THRESHOLD = "lyric_mode_threshold"
         const val KEY_LAST_SEEN_VERSION = "last_seen_version"
         val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
         val TRACKING_FLAG_PATH = JanusPaths.TRACKING_DISABLED
         val WALLPAPER_KEEP_ALIVE_FLAG_PATH = JanusPaths.WALLPAPER_KEEP_ALIVE
         val WALLPAPER_LOCK_FLAG_PATH = JanusPaths.WALLPAPER_LOCK
         val HIDE_TIME_TIP_FLAG_PATH = JanusPaths.HIDE_TIME_TIP
-        val LYRIC_FADE_FLAG_PATH = JanusPaths.LYRIC_FADE
-        val LYRIC_THRESHOLD_FLAG_PATH = JanusPaths.LYRIC_THRESHOLD
     }
 
     private val prefs: SharedPreferences = try {
@@ -65,6 +65,7 @@ class WhitelistManager(private val context: Context) {
         prefs.edit().putBoolean(KEY_DISABLE_TRACKING, disabled).commit()
         makePrefsWorldReadable()
         syncBooleanFlag(TRACKING_FLAG_PATH, disabled)
+        syncRemoteBool("tracking_disabled", disabled)
     }
 
     fun isKeepAliveEnabled(): Boolean {
@@ -111,6 +112,7 @@ class WhitelistManager(private val context: Context) {
         prefs.edit().putBoolean(KEY_WALLPAPER_KEEP_ALIVE, enabled).commit()
         makePrefsWorldReadable()
         syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, enabled)
+        syncRemoteBool("wallpaper_keep_alive", enabled)
     }
 
     fun isWallpaperLocked(): Boolean {
@@ -121,6 +123,7 @@ class WhitelistManager(private val context: Context) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOCK, locked).commit()
         makePrefsWorldReadable()
         syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, locked)
+        syncRemoteBool("wallpaper_lock", locked)
     }
 
     fun isTimeTipHidden(): Boolean {
@@ -131,6 +134,7 @@ class WhitelistManager(private val context: Context) {
         prefs.edit().putBoolean(KEY_HIDE_TIME_TIP, hidden).commit()
         makePrefsWorldReadable()
         syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, hidden)
+        syncRemoteBool("hide_time_tip", hidden)
     }
 
     fun isWallpaperLoop(): Boolean {
@@ -139,26 +143,6 @@ class WhitelistManager(private val context: Context) {
 
     fun setWallpaperLoop(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOOP, enabled).commit()
-    }
-
-    fun getLyricFadeDuration(): Int {
-        return prefs.getInt(KEY_LYRIC_FADE_DURATION, 700)
-    }
-
-    fun setLyricFadeDuration(ms: Int) {
-        prefs.edit().putInt(KEY_LYRIC_FADE_DURATION, ms).commit()
-        makePrefsWorldReadable()
-        syncContentFlag(LYRIC_FADE_FLAG_PATH, ms)
-    }
-
-    fun getLyricModeThreshold(): Int {
-        return prefs.getInt(KEY_LYRIC_MODE_THRESHOLD, 15000)
-    }
-
-    fun setLyricModeThreshold(ms: Int) {
-        prefs.edit().putInt(KEY_LYRIC_MODE_THRESHOLD, ms).commit()
-        makePrefsWorldReadable()
-        syncContentFlag(LYRIC_THRESHOLD_FLAG_PATH, ms)
     }
 
     fun getLastSeenVersion(): Int {
@@ -175,6 +159,7 @@ class WhitelistManager(private val context: Context) {
             .commit()
         makePrefsWorldReadable()
         syncWhitelistFlag(packages)
+        syncRemoteWhitelist(packages)
     }
 
     private fun syncWhitelistFlag(packages: Set<String>) {
@@ -191,7 +176,7 @@ class WhitelistManager(private val context: Context) {
         }
     }
 
-    /** Sync all SP settings to file flags so the hook side can read them. */
+    /** Sync all SP settings to file flags and RemotePreferences so the hook side can read them. */
     fun syncAllFlags() {
         JanusPaths.ensureAllDirs()
         syncWhitelistFlag(getWhitelist())
@@ -200,8 +185,60 @@ class WhitelistManager(private val context: Context) {
         syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, isWallpaperLocked())
         syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, isTimeTipHidden())
         // Card config is synced by CardManager.syncConfig()
-        syncContentFlag(LYRIC_FADE_FLAG_PATH, getLyricFadeDuration())
-        syncContentFlag(LYRIC_THRESHOLD_FLAG_PATH, getLyricModeThreshold())
+        syncAllToRemotePrefs()
+    }
+
+    /**
+     * Sync all config to RemotePreferences for the hook side.
+     * Key names match the JSON rule configFlag values.
+     */
+    fun syncAllToRemotePrefs() {
+        val remotePrefs = try {
+            JanusApplication.instance?.xposedService?.getRemotePreferences("janus_config")
+        } catch (e: Throwable) {
+            Log.w(TAG, "RemotePreferences not available: ${e.message}")
+            null
+        } ?: return
+
+        try {
+            remotePrefs.edit()
+                .putString("whitelist", getWhitelist().joinToString(","))
+                .putBoolean("tracking_disabled", isTrackingDisabled())
+                .putBoolean("wallpaper_keep_alive", isWallpaperKeepAlive())
+                .putBoolean("wallpaper_lock", isWallpaperLocked())
+                .putBoolean("hide_time_tip", isTimeTipHidden())
+                .commit()
+            Log.d(TAG, "Config synced to RemotePreferences")
+        } catch (e: Throwable) {
+            Log.w(TAG, "Failed to sync RemotePreferences: ${e.message}")
+        }
+    }
+
+    /** Sync a single boolean config to RemotePreferences. */
+    private fun syncRemoteBool(key: String, value: Boolean) {
+        try {
+            JanusApplication.instance?.xposedService
+                ?.getRemotePreferences("janus_config")
+                ?.edit()?.putBoolean(key, value)?.commit()
+        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
+    }
+
+    /** Sync a single int config to RemotePreferences. */
+    private fun syncRemoteInt(key: String, value: Int) {
+        try {
+            JanusApplication.instance?.xposedService
+                ?.getRemotePreferences("janus_config")
+                ?.edit()?.putInt(key, value)?.commit()
+        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
+    }
+
+    /** Sync whitelist string to RemotePreferences. */
+    private fun syncRemoteWhitelist(packages: Set<String>) {
+        try {
+            JanusApplication.instance?.xposedService
+                ?.getRemotePreferences("janus_config")
+                ?.edit()?.putString("whitelist", packages.joinToString(","))?.commit()
+        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
     }
 
     private fun syncContentFlag(path: String, value: Int) {

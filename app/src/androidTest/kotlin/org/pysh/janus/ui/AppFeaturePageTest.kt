@@ -71,4 +71,31 @@ class AppFeaturePageTest {
         rule.onNodeWithContentDescription(s(R.string.back)).performClick()
         assertTrue(backCalled)
     }
+
+    // TC-APP-014: 歌词规则区域标题展示
+    @Test
+    fun appFeaturePage_showsLyricRulesSection() {
+        rule.setContent {
+            MiuixTheme { AppFeaturePage(packageName = testPackageName, onBack = {}) }
+        }
+        rule.onNodeWithText(s(R.string.app_lyric_rules)).assertIsDisplayed()
+    }
+
+    // TC-APP-014: 歌词规则导入按钮展示
+    @Test
+    fun appFeaturePage_showsLyricRulesImportButton() {
+        rule.setContent {
+            MiuixTheme { AppFeaturePage(packageName = testPackageName, onBack = {}) }
+        }
+        rule.onNodeWithText(s(R.string.app_lyric_rules_import)).assertIsDisplayed()
+    }
+
+    // TC-APP-015: 无歌词规则时显示空提示
+    @Test
+    fun appFeaturePage_showsEmptyLyricRulesHint() {
+        rule.setContent {
+            MiuixTheme { AppFeaturePage(packageName = testPackageName, onBack = {}) }
+        }
+        rule.onNodeWithText(s(R.string.app_lyric_rules_empty)).assertIsDisplayed()
+    }
 }

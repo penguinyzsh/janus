@@ -63,7 +63,6 @@ fun SystemCardsPage(onBack: () -> Unit) {
 
     // Music state
     var musicOverrideName by remember { mutableStateOf(cardManager?.getMusicOverrideName()) }
-    var musicLyricPatch by remember { mutableStateOf(cardManager?.isMusicLyricPatch() ?: true) }
     var showMusicRemoveDialog by remember { mutableStateOf(false) }
 
     // Non-music system cards state
@@ -177,27 +176,6 @@ fun SystemCardsPage(onBack: () -> Unit) {
                     }
                 }
             }
-            if (musicOverrideName != null) {
-                item(key = "music_lyric_patch") {
-                    Card(modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)) {
-                        SuperSwitch(
-                            title = stringResource(R.string.music_lyric_patch),
-                            summary = stringResource(
-                                if (musicLyricPatch) R.string.music_lyric_patch_on
-                                else R.string.music_lyric_patch_off
-                            ),
-                            checked = musicLyricPatch,
-                            onCheckedChange = {
-                                musicLyricPatch = it
-                                scope.launch {
-                                    withContext(Dispatchers.IO) { cardManager?.setMusicLyricPatch(it) }
-                                }
-                            },
-                        )
-                    }
-                }
-            }
-
             // Other system cards section
             item(key = "other_system_cards_title") {
                 SmallTitle(text = stringResource(R.string.section_other_system_cards))
@@ -236,53 +214,13 @@ fun SystemCardsPage(onBack: () -> Unit) {
                 }
             }
         }
-    }
 
-    // Music remove dialog
-    SuperDialog(
-        show = showMusicRemoveDialog,
-        title = stringResource(R.string.music_override_remove),
-        summary = stringResource(R.string.cards_delete_confirm, musicOverrideName ?: ""),
-        onDismissRequest = { showMusicRemoveDialog = false },
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showMusicRemoveDialog = false },
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = {
-                    showMusicRemoveDialog = false
-                    scope.launch {
-                        withContext(Dispatchers.IO) {
-                            cardManager?.removeMusicOverride()
-                            RootUtils.restartBackScreen()
-                        }
-                        musicOverrideName = null
-                        Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
-        }
-    }
-
-    // System card remove dialog
-    val systemCardToRemove = showSystemCardRemoveDialog
-    if (systemCardToRemove != null) {
-        val removeLabel = stringResource(systemCardToRemove.labelResId)
-        val removeName = systemCardOverrides[systemCardToRemove] ?: ""
+        // Music remove dialog
         SuperDialog(
-            show = true,
+            show = showMusicRemoveDialog,
             title = stringResource(R.string.music_override_remove),
-            summary = stringResource(R.string.cards_delete_confirm, removeName),
-            onDismissRequest = { showSystemCardRemoveDialog = null },
+            summary = stringResource(R.string.cards_delete_confirm, musicOverrideName ?: ""),
+            onDismissRequest = { showMusicRemoveDialog = false },
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -290,27 +228,67 @@ fun SystemCardsPage(onBack: () -> Unit) {
             ) {
                 TextButton(
                     text = stringResource(R.string.cancel),
-                    onClick = { showSystemCardRemoveDialog = null },
+                    onClick = { showMusicRemoveDialog = false },
                     modifier = Modifier.weight(1f),
                 )
                 TextButton(
                     text = stringResource(R.string.confirm),
                     onClick = {
-                        showSystemCardRemoveDialog = null
+                        showMusicRemoveDialog = false
                         scope.launch {
                             withContext(Dispatchers.IO) {
-                                cardManager?.removeSystemCardOverride(systemCardToRemove)
+                                cardManager?.removeMusicOverride()
                                 RootUtils.restartBackScreen()
                             }
-                            systemCardOverrides = systemCardOverrides.toMutableMap().apply {
-                                put(systemCardToRemove, null)
-                            }
-                            Toast.makeText(context, context.getString(R.string.system_card_override_removed, removeLabel), Toast.LENGTH_SHORT).show()
+                            musicOverrideName = null
+                            Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()
                         }
                     },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.textButtonColorsPrimary(),
                 )
+            }
+        }
+
+        // System card remove dialog
+        val systemCardToRemove = showSystemCardRemoveDialog
+        if (systemCardToRemove != null) {
+            val removeLabel = stringResource(systemCardToRemove.labelResId)
+            val removeName = systemCardOverrides[systemCardToRemove] ?: ""
+            SuperDialog(
+                show = true,
+                title = stringResource(R.string.music_override_remove),
+                summary = stringResource(R.string.cards_delete_confirm, removeName),
+                onDismissRequest = { showSystemCardRemoveDialog = null },
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    TextButton(
+                        text = stringResource(R.string.cancel),
+                        onClick = { showSystemCardRemoveDialog = null },
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(
+                        text = stringResource(R.string.confirm),
+                        onClick = {
+                            showSystemCardRemoveDialog = null
+                            scope.launch {
+                                withContext(Dispatchers.IO) {
+                                    cardManager?.removeSystemCardOverride(systemCardToRemove)
+                                    RootUtils.restartBackScreen()
+                                }
+                                systemCardOverrides = systemCardOverrides.toMutableMap().apply {
+                                    put(systemCardToRemove, null)
+                                }
+                                Toast.makeText(context, context.getString(R.string.system_card_override_removed, removeLabel), Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.textButtonColorsPrimary(),
+                    )
+                }
             }
         }
     }

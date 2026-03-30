@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <application
+        android:name=".JanusApplication"
         android:allowBackup="false"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
@@ -55,12 +56,7 @@
                 android:value="keepScreenAlive" />
         </service>
 
-        <!-- Xposed module metadata -->
-        <meta-data android:name="xposedmodule" android:value="true" />
-        <meta-data android:name="xposeddescription" android:value="@string/xposed_description" />
-        <meta-data android:name="xposedminversion" android:value="93" />
-        <meta-data android:name="xposedsharedprefs" android:value="true" />
-        <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
+        <!-- Xposed module metadata (libxposed uses META-INF/xposed/ instead) -->
 
     </application>
 </manifest>

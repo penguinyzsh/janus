@@ -1,0 +1,22 @@
+{
+  "schema": "janus_hook_rule_v1",
+  "id": "subscreencenter_wallpaper_redirect",
+  "name": "Wallpaper Redirect",
+  "version": 1,
+  "author": "penguinyzsh",
+  "description": "Redirect wallpaper path to custom Janus MRC file",
+  "targetPackage": "com.xiaomi.subscreencenter",
+  "order": 100,
+  "hooks": [
+    {
+      "id": "redirect_wallpaper_path",
+      "className": "m2.a",
+      "methodName": "d",
+      "paramTypes": [],
+      "action": {
+        "type": "path_redirect",
+        "value": "/data/system/theme/rearScreenWhite/janus/custom.mrc"
+      }
+    }
+  ]
+}

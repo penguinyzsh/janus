@@ -6,10 +6,8 @@ import android.media.session.MediaSession
 import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.callbacks.XC_LoadPackage
+import android.util.Log
+import io.github.libxposed.api.XposedInterface
 
 /**
  * Generic lyric injector for the rear screen.
@@ -18,16 +16,24 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage
  * subscreencenter's music template displays it. This is the same mechanism
  * used by QQ Music (Bluetooth lyrics) and 汽水音乐.
  *
- * Subclasses only need to:
- * 1. Call [hookLyricSource] to install app-specific hooks that capture lyrics
- * 2. Call [setLyrics] when timed lyrics become available
- *
- * The base class handles MediaSession hooks, scheduling, song-change
- * detection, and title replacement automatically.
+ * Hooks MediaSession.setMetadata and setPlaybackState (stable Android API).
+ * Lyric sources are handled externally by JSON rule actions (lyric_extract)
+ * that call [setLyrics] when timed lyrics become available.
  */
-abstract class LyricInjector(protected val tag: String) {
+object LyricInjector {
 
     data class TimedLine(val beginMs: Int, val endMs: Int, val text: String)
+
+    /**
+     * The currently active LyricInjector reference for ActionExecutor to call setLyrics().
+     * Points to this singleton once hooks are installed.
+     */
+    @Volatile
+    @JvmStatic
+    var activeInstance: LyricInjector? = null
+        private set
+
+    private const val TAG = "Janus-Lyric"
 
     @Volatile
     var lyrics: List<TimedLine> = emptyList()
@@ -51,111 +57,114 @@ abstract class LyricInjector(protected val tag: String) {
     private val handler by lazy { Handler(Looper.getMainLooper()) }
     private var updaterRunning = false
 
-    // ── Public API for subclasses ─────────────────────────────────────
+    // ── Public API ───────────────────────────────────────────────────
 
-    fun hook(lpparam: XC_LoadPackage.LoadPackageParam) {
-        hookSetMetadata()
-        hookPlaybackState()
-        hookLyricSource(lpparam)
-        XposedBridge.log("[$tag] Hooks installed")
+    /**
+     * Install MediaSession hooks in the current process.
+     * Call once per music app process that needs lyric injection.
+     */
+    fun hookMediaSession(module: XposedInterface) {
+        hookSetMetadata(module)
+        hookPlaybackState(module)
+        activeInstance = this
+        Log.d(TAG, "MediaSession hooks installed")
     }
 
-    /** Override to install app-specific hooks that capture lyrics. */
-    protected abstract fun hookLyricSource(lpparam: XC_LoadPackage.LoadPackageParam)
-
-    /** Call from subclass when timed lyrics are available. */
-    protected fun setLyrics(
+    /** Called when timed lyrics are available (from lyric_extract action or external source). */
+    fun setLyrics(
         lines: List<TimedLine>,
         trans: Map<Int, String> = emptyMap()
     ) {
         lyrics = lines
         translations = trans
-        XposedBridge.log("[$tag] Loaded ${lines.size} lines, ${trans.size} translations")
+        Log.d(TAG, "Loaded ${lines.size} lines, ${trans.size} translations")
         if (lines.isNotEmpty()) startLyricUpdater()
     }
 
-    // ── MediaSession hooks (generic) ──────────────────────────────────
+    // ── MediaSession hooks (generic, stable Android API) ─────────────
 
-    private fun hookSetMetadata() {
+    private fun hookSetMetadata(module: XposedInterface) {
         try {
-            XposedHelpers.findAndHookMethod(
-                MediaSession::class.java, "setMetadata",
-                MediaMetadata::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        val metadata = param.args[0] as? MediaMetadata ?: return
-                        val session = param.thisObject as MediaSession
-
-                        if (mediaSessionRef !== session) {
-                            mediaSessionRef = session
-                            controllerRef = session.controller
-                        }
-
-                        val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
-                        val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)
-
-                        // Detect song change → clear stale lyrics
-                        if (title != null && title != lastLyricLine) {
-                            val songKey = "$title|$artist"
-                            if (songKey != currentSongKey) {
-                                currentSongKey = songKey
-                                lyrics = emptyList()
-                                translations = emptyMap()
-                                lastLyricLine = null
-                                stopLyricUpdater()
-                            }
-                            originalTitle = title
-                        }
-
-                        // If lyrics are active, overwrite title with current lyric
-                        if (lyrics.isNotEmpty() && lastLyricLine != null) {
-                            try {
-                                val bundle = XposedHelpers.getObjectField(metadata, "mBundle")
-                                        as android.os.Bundle
-                                bundle.putString(MediaMetadata.METADATA_KEY_TITLE, lastLyricLine)
-                                bundle.putString(
-                                    "android.media.metadata.CUSTOM_FIELD_TITLE", lastLyricLine)
-                            } catch (_: Throwable) { }
-                        }
-
-                        if (lyrics.isNotEmpty()) startLyricUpdater()
-                    }
-                }
+            val method = MediaSession::class.java.getDeclaredMethod(
+                "setMetadata", MediaMetadata::class.java
             )
+            module.hook(method).intercept(XposedInterface.Hooker { chain ->
+                val metadata = chain.args[0] as? MediaMetadata
+                val session = chain.thisObject as MediaSession
+
+                if (metadata != null) {
+                    if (mediaSessionRef !== session) {
+                        mediaSessionRef = session
+                        controllerRef = session.controller
+                    }
+
+                    val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE)
+                    val artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST)
+
+                    // Detect song change -> clear stale lyrics
+                    if (title != null && title != lastLyricLine) {
+                        val songKey = "$title|$artist"
+                        if (songKey != currentSongKey) {
+                            currentSongKey = songKey
+                            lyrics = emptyList()
+                            translations = emptyMap()
+                            lastLyricLine = null
+                            stopLyricUpdater()
+                        }
+                        originalTitle = title
+                    }
+
+                    // If lyrics are active, overwrite title with current lyric
+                    if (lyrics.isNotEmpty() && lastLyricLine != null) {
+                        try {
+                            val bundle = ReflectUtils.getField(metadata, "mBundle")
+                                    as android.os.Bundle
+                            bundle.putString(MediaMetadata.METADATA_KEY_TITLE, lastLyricLine)
+                            bundle.putString(
+                                "android.media.metadata.CUSTOM_FIELD_TITLE", lastLyricLine)
+                        } catch (_: Throwable) { }
+                    }
+
+                    if (lyrics.isNotEmpty()) startLyricUpdater()
+                }
+
+                chain.proceed()
+            })
         } catch (e: Throwable) {
-            XposedBridge.log("[$tag] hookSetMetadata failed: ${e.message}")
+            Log.e(TAG, "hookSetMetadata failed: ${e.message}")
         }
     }
 
-    private fun hookPlaybackState() {
+    private fun hookPlaybackState(module: XposedInterface) {
         try {
-            XposedHelpers.findAndHookMethod(
-                MediaSession::class.java, "setPlaybackState",
-                PlaybackState::class.java,
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val state = param.args[0] as? PlaybackState ?: return
-                        when (state.state) {
-                            PlaybackState.STATE_PLAYING,
-                            PlaybackState.STATE_BUFFERING,
-                            PlaybackState.STATE_FAST_FORWARDING,
-                            PlaybackState.STATE_REWINDING -> {
-                                startLyricUpdater()
-                                if (lyrics.isNotEmpty()) {
-                                    handler.post { scheduleNextUpdate() }
-                                }
+            val method = MediaSession::class.java.getDeclaredMethod(
+                "setPlaybackState", PlaybackState::class.java
+            )
+            module.hook(method).intercept(XposedInterface.Hooker { chain ->
+                val result = chain.proceed()
+                val state = chain.args[0] as? PlaybackState
+                if (state != null) {
+                    when (state.state) {
+                        PlaybackState.STATE_PLAYING,
+                        PlaybackState.STATE_BUFFERING,
+                        PlaybackState.STATE_FAST_FORWARDING,
+                        PlaybackState.STATE_REWINDING -> {
+                            startLyricUpdater()
+                            if (lyrics.isNotEmpty()) {
+                                handler.post { scheduleNextUpdate() }
                             }
-                            else -> stopLyricUpdater()
                         }
+                        else -> stopLyricUpdater()
                     }
                 }
-            )
+                result
+            })
         } catch (e: Throwable) {
-            XposedBridge.log("[$tag] hookPlaybackState failed: ${e.message}")
+            Log.e(TAG, "hookPlaybackState failed: ${e.message}")
         }
     }
 
-    // ── Lyric updater ─────────────────────────────────────────────────
+    // ── Lyric updater ────────────────────────────────────────────────
 
     private val updateRunnable = Runnable {
         if (updaterRunning) scheduleNextUpdate()
@@ -191,24 +200,20 @@ abstract class LyricInjector(protected val tag: String) {
             else -> line.text
         }
 
-        // Calculate marquee speed for this line so scrolling completes in sync
+        // Schedule next line
         val nextIdx = idx + 1
         val nextBeginMs = if (nextIdx in currentLyrics.indices)
             currentLyrics[nextIdx].beginMs.toLong() else -1L
-        val lineDurationMs = if (nextBeginMs > 0 && line != null)
-            nextBeginMs - line.beginMs else 0L
-        val marqueeSpeed = calculateMarqueeSpeed(line?.text, lineDurationMs)
 
         if (lyricText != lastLyricLine) {
             lastLyricLine = lyricText
             val session = mediaSessionRef ?: return
             val metadata = controller.metadata
             if (metadata != null) try {
-                val bundle = XposedHelpers.getObjectField(metadata, "mBundle")
+                val bundle = ReflectUtils.getField(metadata, "mBundle")
                         as android.os.Bundle
                 bundle.putString(MediaMetadata.METADATA_KEY_TITLE, lyricText)
                 bundle.putString("android.media.metadata.CUSTOM_FIELD_TITLE", lyricText)
-                bundle.putInt(MARQUEE_SPEED_KEY, marqueeSpeed)
                 session.setMetadata(metadata)
             } catch (_: Throwable) { }
         }
@@ -219,32 +224,6 @@ abstract class LyricInjector(protected val tag: String) {
             2000L
         }
         handler.postDelayed(updateRunnable, delayMs)
-    }
-
-    /**
-     * Calculate MAML marqueeSpeed so that text overflow scrolls to completion
-     * within the lyric line duration (minus a small buffer).
-     *
-     * Returns 0 if the text fits or no scrolling is needed.
-     */
-    private fun calculateMarqueeSpeed(text: String?, durationMs: Long): Int {
-        if (text == null || durationMs <= 0) return 0
-        // Estimate text width in sr-units (CJK ≈ fontSize, ASCII ≈ 0.55 * fontSize)
-        val textWidthSr = text.sumOf { ch ->
-            if (ch.code > 0x7F) MamlConstants.FONT_SIZE_SR else MamlConstants.FONT_SIZE_SR * 0.55
-        }
-        val overflowSr = textWidthSr - MamlConstants.ELEM_WIDTH_SR
-        if (overflowSr <= 0) return 0
-        // Convert to MAML pixels and include 50px initial offset
-        val totalScrollMaml = (overflowSr * MamlConstants.SR) + MamlConstants.MARQUEE_START_OFFSET
-        // Complete 200ms before next line so end state is briefly visible
-        val effectiveDurationSec = (durationMs - 200).coerceAtLeast(200) / 1000.0
-        return (totalScrollMaml / effectiveDurationSec).toInt().coerceIn(1, 1000)
-    }
-
-    companion object {
-        /** Metadata key for passing calculated marquee speed to subscreencenter. */
-        const val MARQUEE_SPEED_KEY = "janus.lyric.marquee_speed"
     }
 
     private fun getPosition(state: PlaybackState): Long {
