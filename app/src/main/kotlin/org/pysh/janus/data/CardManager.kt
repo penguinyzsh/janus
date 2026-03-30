@@ -16,16 +16,13 @@ class CardManager(private val context: Context) {
         private const val PREFS_NAME = "janus_config"
         private const val KEY_CARDS = "cards_config"
         private const val KEY_MASTER_ENABLED = "cards_master_enabled"
-        private const val KEY_MUSIC_OVERRIDE = "music_override_name"
         private const val KEY_MUSIC_LYRIC_PATCH = "music_lyric_patch"
         private const val MAX_SLOTS = 20
         private const val CARDS_DIR = "cards"
-        private const val MUSIC_CUSTOM_FILE = "music_custom.zip"
 
         val CARDS_CONFIG_FLAG_PATH = JanusPaths.CARDS_CONFIG
         private val CARDS_DEPLOY_DIR = JanusPaths.CARDS_DIR
         private val DEPLOY_BASE = JanusPaths.TEMPLATES_DIR
-        private val MUSIC_CUSTOM_DEPLOY = "${JanusPaths.CARDS_DIR}/$MUSIC_CUSTOM_FILE"
         private val MUSIC_LYRIC_PATCH_FLAG = "${JanusPaths.CONFIG_DIR}/music_lyric_patch"
     }
 
@@ -206,10 +203,10 @@ class CardManager(private val context: Context) {
         }
     }
 
-    // ── Music Override ───────────────────────────────────────────
+    // ── System Card Override (generic) ────────────────────────────
 
-    fun importMusicOverride(uri: Uri): String? {
-        val tmpFile = File(context.cacheDir, "music_import_tmp.zip")
+    fun importSystemCardOverride(card: SystemCard, uri: Uri): String? {
+        val tmpFile = File(context.cacheDir, "${card.business}_import_tmp.zip")
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 tmpFile.outputStream().use { output -> input.copyTo(output) }
@@ -222,21 +219,22 @@ class CardManager(private val context: Context) {
                 }
             } catch (_: Exception) { return null }
 
-            val localFile = File(cardsDir, MUSIC_CUSTOM_FILE)
+            val localFile = File(cardsDir, card.customFileName)
             tmpFile.copyTo(localFile, overwrite = true)
             localFile.setReadable(true, false)
             tmpFile.delete()
 
             JanusPaths.ensureAllDirs()
-            val tmp = File(context.cacheDir, "music_deploy_tmp.zip")
+            val deployDest = "${JanusPaths.CARDS_DIR}/${card.customFileName}"
+            val tmp = File(context.cacheDir, "${card.business}_deploy_tmp.zip")
             localFile.copyTo(tmp, overwrite = true)
             RootUtils.exec(
-                "cp ${tmp.absolutePath} $MUSIC_CUSTOM_DEPLOY && chmod 644 $MUSIC_CUSTOM_DEPLOY && chcon u:object_r:theme_data_file:s0 $MUSIC_CUSTOM_DEPLOY"
+                "cp ${tmp.absolutePath} $deployDest && chmod 644 $deployDest && chcon u:object_r:theme_data_file:s0 $deployDest"
             )
             tmp.delete()
 
             val displayName = name ?: getFileNameFromUri(uri)?.removeSuffix(".zip") ?: "Custom"
-            prefs.edit().putString(KEY_MUSIC_OVERRIDE, displayName).commit()
+            prefs.edit().putString(card.overridePrefsKey, displayName).commit()
             makePrefsWorldReadable()
             return displayName
         } catch (_: Exception) {
@@ -245,16 +243,38 @@ class CardManager(private val context: Context) {
         }
     }
 
-    fun removeMusicOverride() {
-        File(cardsDir, MUSIC_CUSTOM_FILE).delete()
-        RootUtils.exec("rm -f '$MUSIC_CUSTOM_DEPLOY'")
-        // Also remove the deployed custom template so Hook falls back to stock
-        RootUtils.exec("rm -f '${JanusPaths.TEMPLATES_DIR}/music_custom'")
-        prefs.edit().remove(KEY_MUSIC_OVERRIDE).commit()
+    fun removeSystemCardOverride(card: SystemCard) {
+        File(cardsDir, card.customFileName).delete()
+        RootUtils.exec("rm -f '${JanusPaths.CARDS_DIR}/${card.customFileName}'")
+        RootUtils.exec("rm -f '${JanusPaths.TEMPLATES_DIR}/${card.customTemplateName}'")
+        prefs.edit().remove(card.overridePrefsKey).commit()
         makePrefsWorldReadable()
     }
 
-    fun getMusicOverrideName(): String? = prefs.getString(KEY_MUSIC_OVERRIDE, null)
+    fun getSystemCardOverrideName(card: SystemCard): String? =
+        prefs.getString(card.overridePrefsKey, null)
+
+    /** Deploy all system card override ZIPs to theme_magic cards/ so Hook can read them. */
+    fun prepareSystemCardOverridesForHook() {
+        JanusPaths.ensureAllDirs()
+        for (card in SystemCard.entries) {
+            val src = File(cardsDir, card.customFileName)
+            if (!src.exists()) continue
+            val tmp = File(context.cacheDir, "${card.business}_hook_tmp.zip")
+            src.copyTo(tmp, overwrite = true)
+            val dest = "${JanusPaths.CARDS_DIR}/${card.customFileName}"
+            RootUtils.exec(
+                "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest"
+            )
+            tmp.delete()
+        }
+    }
+
+    // ── Music Override (wrappers + lyric-specific) ──────────────────
+
+    fun importMusicOverride(uri: Uri): String? = importSystemCardOverride(SystemCard.MUSIC, uri)
+    fun removeMusicOverride() = removeSystemCardOverride(SystemCard.MUSIC)
+    fun getMusicOverrideName(): String? = getSystemCardOverrideName(SystemCard.MUSIC)
 
     fun isMusicLyricPatch(): Boolean = prefs.getBoolean(KEY_MUSIC_LYRIC_PATCH, true)
 

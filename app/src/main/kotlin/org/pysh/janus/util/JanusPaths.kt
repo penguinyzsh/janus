@@ -29,6 +29,7 @@ object JanusPaths {
     const val LYRIC_FADE = "$CONFIG_DIR/lyric_fade"
     const val LYRIC_THRESHOLD = "$CONFIG_DIR/lyric_threshold"
     const val CARDS_CONFIG = "$CONFIG_DIR/cards_config"
+    const val HIDE_TIME_TIP = "$CONFIG_DIR/hide_time_tip"
 
     // ── Wallpaper ───────────────────────────────────────────────
     const val REAR_SCREEN_WHITE = "/data/system/theme/rearScreenWhite"

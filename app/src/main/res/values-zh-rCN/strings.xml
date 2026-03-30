@@ -66,6 +66,11 @@
     <string name="disable_tracking_on">已拦截使用数据上报</string>
     <string name="disable_tracking_off">正常上报使用数据</string>
 
+    <string name="hide_time_tip">隐藏时间胶囊</string>
+    <string name="hide_time_tip_on">卡片显示时隐藏时间胶囊</string>
+    <string name="hide_time_tip_off">卡片显示时显示时间胶囊</string>
+    <string name="hook_hide_time_tip">隐藏时间胶囊</string>
+
     <string name="weather_card">背屏天气卡片</string>
     <string name="weather_card_on">服务助手中显示天气卡片</string>
     <string name="weather_card_off">不显示天气卡片</string>
@@ -128,6 +133,26 @@
     <string name="dpi_reset_success">DPI 已重置，背屏正在重启</string>
     <string name="dpi_input_error">请输入 100-800 之间的 DPI 值</string>
     <string name="reset">重置</string>
+
+    <!-- 系统卡片名称 -->
+    <string name="system_card_music">音乐</string>
+    <string name="system_card_incall">来电</string>
+    <string name="system_card_alarm">闹钟</string>
+    <string name="system_card_countdown">计时器</string>
+    <string name="system_card_car_hailing">打车</string>
+    <string name="system_card_food_delivery">外卖</string>
+    <string name="system_card_xiaomi_ev">小米汽车</string>
+    <string name="system_card_privacy">隐私保护</string>
+    <string name="system_card_stock">股票</string>
+    <string name="system_card_mi_home_camera">智能摄像头</string>
+
+    <!-- 系统卡片覆盖 -->
+    <string name="section_system_cards">系统卡片覆盖</string>
+    <string name="section_other_system_cards">其他系统卡片</string>
+    <string name="system_cards_summary">替换系统卡片的官方模板</string>
+    <string name="system_card_override_import_success">%1$s卡片已设置: %2$s</string>
+    <string name="system_card_override_removed">已恢复官方%s卡片</string>
+    <string name="hook_system_card_patch">系统卡片覆盖</string>
 
     <!-- 音乐卡片覆盖 -->
     <string name="section_music">音乐卡片</string>
@@ -224,7 +249,7 @@
 
     <!-- 更新通告 -->
     <string name="update_title">v%s 更新内容</string>
-    <string name="update_changelog">卡片拖拽排序，背屏实时同步\n导入卡片、切换开关自动重启背屏\n卡片详情页设置实时自动保存\n删除卡片后自动重启背屏</string>
+    <string name="update_changelog">支持覆盖所有系统卡片模板\n新增系统卡片覆盖专属页面\n功能页新增隐藏时间胶囊开关\n导入和删除卡片自动重启背屏</string>
     <string name="update_join_group">加入 QQ 群</string>
     <string name="update_support">爱发电支持</string>
     <string name="update_dismiss">知道了</string>

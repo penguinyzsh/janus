@@ -36,6 +36,7 @@ class HookEntry : IXposedHookLoadPackage {
         private const val TRACKING_FLAG = "$CONFIG_DIR/tracking_disabled"
         private const val WALLPAPER_KEEP_ALIVE_FLAG = "$CONFIG_DIR/wallpaper_keep_alive"
         private const val WALLPAPER_LOCK_FLAG = "$CONFIG_DIR/wallpaper_lock"
+        private const val HIDE_TIME_TIP_FLAG = "$CONFIG_DIR/hide_time_tip"
     }
 
     @Suppress("DEPRECATION")
@@ -51,7 +52,9 @@ class HookEntry : IXposedHookLoadPackage {
                 hookWallpaperKeepAlive(lpparam)
                 hookWallpaperLock(lpparam)
                 hookWallpaperPathRedirect(lpparam)
+                hookTimeTip(lpparam)
                 MusicTemplatePatch.hook(lpparam)
+                SystemCardPatch.hook(lpparam)
                 CardHook.hook(lpparam)
             }
             in musicAppHooks -> {
@@ -280,6 +283,31 @@ class HookEntry : IXposedHookLoadPackage {
             XposedBridge.log("[$TAG] hookWallpaperPathRedirect failed: ${e.message}")
             HookStatusReporter.report("wallpaper_redirect", false, e.message)
         }
+    }
+
+    /**
+     * Hook Widget Parcelable m2.a to hide the time capsule when flag is set.
+     * Overrides field f8006l (mShowTimeTip) to false on all widget instances.
+     */
+    private fun hookTimeTip(lpparam: XC_LoadPackage.LoadPackageParam) {
+        if (!isTimeTipHidden()) return
+        try {
+            val widgetCls = XposedHelpers.findClass("m2.a", lpparam.classLoader)
+            XposedBridge.hookAllConstructors(widgetCls, object : XC_MethodHook() {
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    XposedHelpers.setBooleanField(param.thisObject, "l", false)
+                }
+            })
+            XposedBridge.log("[$TAG] Time tip hidden: hooked m2.a constructors")
+            HookStatusReporter.report("hide_time_tip", true, "m2.a")
+        } catch (e: Throwable) {
+            XposedBridge.log("[$TAG] hookTimeTip failed: ${e.message}")
+            HookStatusReporter.report("hide_time_tip", false, e.message)
+        }
+    }
+
+    private fun isTimeTipHidden(): Boolean {
+        return java.io.File(HIDE_TIME_TIP_FLAG).exists()
     }
 
     private fun isWallpaperLocked(): Boolean {

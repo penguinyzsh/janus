@@ -65,6 +65,7 @@ sealed interface Screen : NavKey {
     data object Wallpaper : Screen
     data class AppFeature(val packageName: String) : Screen
     data class CardDetail(val slot: Int) : Screen
+    data object SystemCards : Screen
     data object Other : Screen
     data object Casting : Screen
 }
@@ -312,6 +313,7 @@ fun MainScreen(isModuleActive: Boolean) {
                                     bottomPadding = paddingValues.calculateBottomPadding(),
                                     cardsVersion = cardsVersion,
                                     onCardClick = { slot -> backStack.add(Screen.CardDetail(slot)) },
+                                    onSystemCardsClick = { backStack.add(Screen.SystemCards) },
                                     onCardsChanged = { cardsVersion++ },
                                 )
                                 4 -> SettingsPage(
@@ -338,6 +340,11 @@ fun MainScreen(isModuleActive: Boolean) {
                     CastingPage(
                         currentDpi = currentDpi,
                         onDpiChanged = { currentDpi = it },
+                        onBack = { backStack.removeLastOrNull() },
+                    )
+                }
+                Screen.SystemCards -> NavEntry(key) {
+                    SystemCardsPage(
                         onBack = { backStack.removeLastOrNull() },
                     )
                 }

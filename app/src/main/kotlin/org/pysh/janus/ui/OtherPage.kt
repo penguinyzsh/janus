@@ -85,6 +85,7 @@ fun OtherPage(onBack: () -> Unit) {
                             CardManager(context).run {
                                 syncConfig()
                                 prepareCardsForHook()
+                                prepareSystemCardOverridesForHook()
                             }
                             RootUtils.restartBackScreen()
                         }

@@ -263,8 +263,9 @@ fun HomePage(
 /** Display order for hooks within a process. Unknown hooks sort last. */
 private val HOOK_ORDER = listOf(
     "music_whitelist", "tracking_block",
+    "hide_time_tip",
     "wallpaper_keep_alive", "wallpaper_lock", "wallpaper_redirect",
-    "music_template", "card_injection",
+    "music_template", "system_card_patch", "card_injection",
     "apple_music_lyric",
     "luna_music_manager", "luna_music_remote",
 )
@@ -341,11 +342,13 @@ private fun ProcessInfoCard(
 
 private fun hookTargetName(hookName: String): String = when (hookName) {
     "music_whitelist" -> "p2.a"
+    "hide_time_tip" -> "m2.a"
     "tracking_block" -> "DailyTrackReceiver"
     "wallpaper_keep_alive" -> "SubScreenLauncher.onPause"
     "wallpaper_lock" -> "Z1.t.e"
     "wallpaper_redirect" -> "m2.a.d"
     "music_template" -> "Z1.d0"
+    "system_card_patch" -> "p2.a.d"
     "card_injection" -> "p2.c"
     "apple_music_lyric" -> "TTMLParserNative"
     "luna_music_manager" -> "BlueToothLyricsManager"
@@ -356,11 +359,13 @@ private fun hookTargetName(hookName: String): String = when (hookName) {
 @Composable
 private fun hookDisplayName(hookName: String): String = when (hookName) {
     "music_whitelist" -> stringResource(R.string.hook_music_whitelist)
+    "hide_time_tip" -> stringResource(R.string.hook_hide_time_tip)
     "tracking_block" -> stringResource(R.string.hook_tracking_block)
     "wallpaper_keep_alive" -> stringResource(R.string.hook_wallpaper_keep_alive)
     "wallpaper_lock" -> stringResource(R.string.hook_wallpaper_lock)
     "wallpaper_redirect" -> stringResource(R.string.hook_wallpaper_redirect)
     "music_template" -> stringResource(R.string.hook_music_template)
+    "system_card_patch" -> stringResource(R.string.hook_system_card_patch)
     "card_injection" -> stringResource(R.string.hook_card_injection)
     "apple_music_lyric" -> stringResource(R.string.hook_apple_music_lyric)
     "luna_music_manager" -> stringResource(R.string.hook_luna_music_manager)

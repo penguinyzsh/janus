@@ -67,6 +67,11 @@
     <string name="disable_tracking_on">Usage data reporting blocked</string>
     <string name="disable_tracking_off">Usage data reported normally</string>
 
+    <string name="hide_time_tip">Hide Time Capsule</string>
+    <string name="hide_time_tip_on">Time capsule hidden on card display</string>
+    <string name="hide_time_tip_off">Time capsule shown on card display</string>
+    <string name="hook_hide_time_tip">Hide Time Capsule</string>
+
     <string name="weather_card">Weather Card on Rear Screen</string>
     <string name="weather_card_on">Weather card shown in Smart Assistant</string>
     <string name="weather_card_off">Weather card hidden</string>
@@ -129,6 +134,26 @@
     <string name="dpi_reset_success">DPI reset, restarting rear screen</string>
     <string name="dpi_input_error">Please enter a DPI value between 100 and 800</string>
     <string name="reset">Reset</string>
+
+    <!-- System Card Names -->
+    <string name="system_card_music">Music</string>
+    <string name="system_card_incall">Incoming Call</string>
+    <string name="system_card_alarm">Alarm</string>
+    <string name="system_card_countdown">Timer</string>
+    <string name="system_card_car_hailing">Ride Hailing</string>
+    <string name="system_card_food_delivery">Food Delivery</string>
+    <string name="system_card_xiaomi_ev">Xiaomi EV</string>
+    <string name="system_card_privacy">Privacy</string>
+    <string name="system_card_stock">Stock</string>
+    <string name="system_card_mi_home_camera">Smart Home Camera</string>
+
+    <!-- System Card Override -->
+    <string name="section_system_cards">System Card Overrides</string>
+    <string name="section_other_system_cards">Other System Cards</string>
+    <string name="system_cards_summary">Override stock system card templates</string>
+    <string name="system_card_override_import_success">%1$s card set: %2$s</string>
+    <string name="system_card_override_removed">Reverted to stock %s card</string>
+    <string name="hook_system_card_patch">System Card Override</string>
 
     <!-- Music Override -->
     <string name="section_music">Music Card</string>
@@ -229,7 +254,7 @@
 
     <!-- Update Dialog -->
     <string name="update_title">What\'s New in v%s</string>
-    <string name="update_changelog">Drag-to-reorder cards: back screen syncs instantly\nImporting cards and toggling switches auto-restart back screen\nCard detail settings auto-save in real time\nDeleting a card auto-restarts back screen</string>
+    <string name="update_changelog">Override any system card template\nDedicated System Card Overrides page\nHide time capsule toggle on Features page\nAll card imports and deletions auto-restart back screen</string>
     <string name="update_join_group">Join QQ Group</string>
     <string name="update_support">Support on Afdian</string>
     <string name="update_dismiss">Got it</string>

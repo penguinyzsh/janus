@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.pysh.janus.R
 import org.pysh.janus.data.WhitelistManager
+import org.pysh.janus.util.RootUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -68,6 +69,7 @@ fun FeaturesPage(
     val scope = rememberCoroutineScope()
     val whitelistManager = remember { if (!isInPreview) WhitelistManager(context) else null }
     var disableTracking by remember { mutableStateOf(whitelistManager?.isTrackingDisabled() ?: false) }
+    var hideTimeTip by remember { mutableStateOf(whitelistManager?.isTimeTipHidden() ?: false) }
 
     var lyricFadeDuration by remember { mutableFloatStateOf(whitelistManager?.getLyricFadeDuration()?.toFloat() ?: 700f) }
     var lyricThreshold by remember { mutableFloatStateOf((whitelistManager?.getLyricModeThreshold()?.toFloat() ?: 15000f) / 1000f) }
@@ -111,6 +113,21 @@ fun FeaturesPage(
                             disableTracking = it
                             whitelistManager?.setTrackingDisabled(it)
                             Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
+                        },
+                    )
+                    SuperSwitch(
+                        title = stringResource(R.string.hide_time_tip),
+                        summary = stringResource(if (hideTimeTip) R.string.hide_time_tip_on else R.string.hide_time_tip_off),
+                        checked = hideTimeTip,
+                        onCheckedChange = {
+                            hideTimeTip = it
+                            scope.launch {
+                                withContext(Dispatchers.IO) {
+                                    whitelistManager?.setTimeTipHidden(it)
+                                    RootUtils.restartBackScreen()
+                                }
+                                Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
+                            }
                         },
                     )
                 }

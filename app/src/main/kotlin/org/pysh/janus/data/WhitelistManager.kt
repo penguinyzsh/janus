@@ -18,6 +18,7 @@ class WhitelistManager(private val context: Context) {
         const val KEY_CAST_KEEP_ALIVE = "cast_keep_alive"
         const val KEY_WALLPAPER_KEEP_ALIVE = "wallpaper_keep_alive"
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
+        const val KEY_HIDE_TIME_TIP = "hide_time_tip"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
         const val KEY_LYRIC_FADE_DURATION = "lyric_fade_duration"
         const val KEY_LYRIC_MODE_THRESHOLD = "lyric_mode_threshold"
@@ -26,6 +27,7 @@ class WhitelistManager(private val context: Context) {
         val TRACKING_FLAG_PATH = JanusPaths.TRACKING_DISABLED
         val WALLPAPER_KEEP_ALIVE_FLAG_PATH = JanusPaths.WALLPAPER_KEEP_ALIVE
         val WALLPAPER_LOCK_FLAG_PATH = JanusPaths.WALLPAPER_LOCK
+        val HIDE_TIME_TIP_FLAG_PATH = JanusPaths.HIDE_TIME_TIP
         val LYRIC_FADE_FLAG_PATH = JanusPaths.LYRIC_FADE
         val LYRIC_THRESHOLD_FLAG_PATH = JanusPaths.LYRIC_THRESHOLD
     }
@@ -121,6 +123,16 @@ class WhitelistManager(private val context: Context) {
         syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, locked)
     }
 
+    fun isTimeTipHidden(): Boolean {
+        return prefs.getBoolean(KEY_HIDE_TIME_TIP, false)
+    }
+
+    fun setTimeTipHidden(hidden: Boolean) {
+        prefs.edit().putBoolean(KEY_HIDE_TIME_TIP, hidden).commit()
+        makePrefsWorldReadable()
+        syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, hidden)
+    }
+
     fun isWallpaperLoop(): Boolean {
         return prefs.getBoolean(KEY_WALLPAPER_LOOP, false)
     }
@@ -186,6 +198,7 @@ class WhitelistManager(private val context: Context) {
         syncBooleanFlag(TRACKING_FLAG_PATH, isTrackingDisabled())
         syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, isWallpaperKeepAlive())
         syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, isWallpaperLocked())
+        syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, isTimeTipHidden())
         // Card config is synced by CardManager.syncConfig()
         syncContentFlag(LYRIC_FADE_FLAG_PATH, getLyricFadeDuration())
         syncContentFlag(LYRIC_THRESHOLD_FLAG_PATH, getLyricModeThreshold())
