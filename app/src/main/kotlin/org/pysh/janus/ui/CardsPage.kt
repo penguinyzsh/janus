@@ -39,7 +39,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.pysh.janus.R
-import org.pysh.janus.data.CardInfo
+import org.pysh.janus.core.model.CardInfo
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.util.RootUtils
 import top.yukonga.miuix.kmp.extra.SuperArrow

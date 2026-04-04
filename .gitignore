@@ -1,6 +1,8 @@
 # Build outputs
 /build/
 /app/build/
+*.apk
+*.aab
 
 # Gradle
 .gradle/
@@ -11,7 +13,11 @@
 
 # Local config
 local.properties
+
+# Signing (NEVER commit keystores or signing configs)
 *.jks
+*.keystore
+signing.properties
 
 # IDE
 .idea/
@@ -19,12 +25,13 @@ local.properties
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Local directories
-/_*/
+_*/
+openspec/
 docs/
 
+# Claude
 .claude/
 CLAUDE.md
-
-TODO.md

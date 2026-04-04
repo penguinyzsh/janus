@@ -2,8 +2,8 @@ package org.pysh.janus.data
 
 import android.util.Base64
 import org.json.JSONArray
-import org.pysh.janus.util.JanusPaths
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.JanusPaths
+import org.pysh.janus.core.util.RootUtils
 
 /**
  * Removes all Janus residual files from system directories.

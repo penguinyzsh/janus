@@ -1,19 +1,25 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/penguinyzsh/janus/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" width="160" height="160" style="display: block; margin: 0 auto;" alt="icon" />
+<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" width="128" height="128" alt="Janus" />
 
 # Janus
 
-### Xiaomi Rear Screen Enhancement LSPosed Module
+**Xiaomi Rear Screen Enhancement LSPosed Module**
 
 **English** | [简体中文](README_CN.md)
 
-[![Android](https://img.shields.io/badge/Android-15+-green?logo=android)](https://developer.android.com)
-[![LSPosed](https://img.shields.io/badge/libxposed-API%20101-blue?logo=lsposed)](https://github.com/libxposed/api)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-purple?logo=kotlin)](https://kotlinlang.org)
-[![License](https://img.shields.io/badge/License-GPL--3.0-orange?logo=gnu)](LICENSE)
+[![Android](https://img.shields.io/badge/Android-15+-34A853?style=flat-square&logo=android&logoColor=white)](https://developer.android.com)
+[![LSPosed](https://img.shields.io/badge/libxposed-API%20101-4285F4?style=flat-square)](https://github.com/libxposed/api)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.20-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![License](https://img.shields.io/badge/License-GPL--3.0-EA4335?style=flat-square&logo=gnu&logoColor=white)](LICENSE)
+
+---
+
+*Unlock the full potential of your Xiaomi rear screen*
 
 </div>
+
+
 
 ## Introduction
 
@@ -21,19 +27,60 @@ Janus is an LSPosed module for Xiaomi phones with a rear screen, designed to enh
 
 ## Features
 
-- **Music Whitelist Unlock** — Remove rear screen music app whitelist restrictions, manage whitelist per app
-- **Live Wallpaper Anti-Interrupt** — Prevent live wallpaper from pausing or resetting when rear screen is covered, keep wallpaper playing continuously
-- **Lock Wallpaper Switching** — Block long-press gesture on rear screen wallpaper to prevent accidental wallpaper changes
-- **Custom Rear Wallpaper Video** — Replace AI-generated wallpaper video with your own, with loop playback toggle and backup/restore
-- **Rear Screen DPI Adjustment** — Customize rear screen display density for better small-screen experience
-- **Rear Screen Keep Alive** — Foreground service periodically sends key events to prevent auto-sleep
-- **Screen Casting Settings** — Screen casting rotation control, keep rear screen on during casting
-- **Smart Assistant Custom Cards** — Import and manage custom MAML cards for the Smart Assistant panel, with drag-and-drop reordering, per-card enable/disable, priority and refresh interval settings
-- **Custom Music Card** — Replace the stock music card template with a custom MAML template, with optional lyric scrolling patch
-- **Lyric Hook Rules** — Per-app lyric hook rules via JSON rule engine. Import community-provided rules to display timed lyrics (TTML/LRC) from any music app on the rear screen. Manage rules per app with import, enable/disable, and delete
-- **Telemetry Blocking** — Intercept `DailyTrackReceiver` to block data reporting
-- **Quick Switch** — Quick settings tile for one-tap casting to rear screen
-- **Hide Launcher Icon** — Hide app icon from launcher, open via LSPosed module manager
+<table>
+  <tr>
+    <td><b>Music Whitelist Unlock</b></td>
+    <td>Remove rear screen music app whitelist restrictions, manage whitelist per app</td>
+  </tr>
+  <tr>
+    <td><b>Live Wallpaper Anti-Interrupt</b></td>
+    <td>Prevent live wallpaper from pausing or resetting when rear screen is covered</td>
+  </tr>
+  <tr>
+    <td><b>Lock Wallpaper Switching</b></td>
+    <td>Block long-press gesture on rear screen wallpaper to prevent accidental changes</td>
+  </tr>
+  <tr>
+    <td><b>Custom Rear Wallpaper Video</b></td>
+    <td>Replace AI-generated wallpaper video with your own, with loop playback toggle and backup/restore</td>
+  </tr>
+  <tr>
+    <td><b>Rear Screen DPI Adjustment</b></td>
+    <td>Customize rear screen display density for better small-screen experience</td>
+  </tr>
+  <tr>
+    <td><b>Rear Screen Keep Alive</b></td>
+    <td>Foreground service periodically sends key events to prevent auto-sleep</td>
+  </tr>
+  <tr>
+    <td><b>Screen Casting Settings</b></td>
+    <td>Screen casting rotation control, keep rear screen on during casting</td>
+  </tr>
+  <tr>
+    <td><b>Smart Assistant Custom Cards</b></td>
+    <td>Import and manage custom MAML cards for the Smart Assistant panel, with drag-and-drop reordering, per-card enable/disable, priority and refresh interval settings</td>
+  </tr>
+  <tr>
+    <td><b>Custom Music Card</b></td>
+    <td>Replace the stock music card template with a custom MAML template, with optional lyric scrolling patch</td>
+  </tr>
+  <tr>
+    <td><b>Lyric Hook Rules</b></td>
+    <td>Per-app lyric hook rules via JSON rule engine. Import community-provided rules to display timed lyrics (TTML/LRC) from any music app on the rear screen</td>
+  </tr>
+  <tr>
+    <td><b>Telemetry Blocking</b></td>
+    <td>Intercept <code>DailyTrackReceiver</code> to block data reporting</td>
+  </tr>
+  <tr>
+    <td><b>Quick Switch</b></td>
+    <td>Quick settings tile for one-tap casting to rear screen</td>
+  </tr>
+  <tr>
+    <td><b>Hide Launcher Icon</b></td>
+    <td>Hide app icon from launcher, open via LSPosed module manager</td>
+  </tr>
+</table>
 
 ## Prerequisites
 
@@ -43,15 +90,17 @@ Janus is an LSPosed module for Xiaomi phones with a rear screen, designed to enh
 4. Open Janus app and configure features as needed
 5. Restart the scope or reboot the device for hooks to take effect
 
-> **Note**: Keep alive, DPI adjustment, task migration and other features require Root access.
+> [!NOTE]
+> Keep alive, DPI adjustment, task migration and other features require Root access.
 
 ## Scope
 
-| App Name          | Package Name                    |
-|:------------------|:--------------------------------|
-| Rear Display | com.xiaomi.subscreencenter      |
+| App Name | Package Name |
+|:--|:--|
+| Rear Display | `com.xiaomi.subscreencenter` |
 
-Additional scopes (e.g. music apps for lyric hooks) are added dynamically via `requestScope()` when importing hook rules.
+> [!TIP]
+> Additional scopes (e.g. music apps for lyric hooks) are added dynamically via `requestScope()` when importing hook rules.
 
 ## Building
 
@@ -66,12 +115,17 @@ Additional scopes (e.g. music apps for lyric hooks) are added dynamically via `r
 ./gradlew clean
 ```
 
-### Build Environment
+<details>
+<summary><b>Build Environment</b></summary>
 
-- JDK 17+
-- Android SDK, compileSdk 36
-- Kotlin 2.3.20
-- Compose BOM 2025.03.01
+| Requirement | Version |
+|:--|:--|
+| JDK | 17+ |
+| Android SDK | compileSdk 36 |
+| Kotlin | 2.3.20 |
+| Compose BOM | 2025.03.01 |
+
+</details>
 
 ## Project Structure
 
@@ -96,8 +150,8 @@ If you find this project helpful, consider supporting the development on [Afdian
 
 > Janus uses content from the following open-source projects. Thanks to the developers of these projects.
 
-- [MIUIX by YuKongA](https://github.com/compose-miuix-ui/miuix) — Xiaomi-style Compose UI component library
-- [LSPosed by LSPosed](https://github.com/LSPosed/LSPosed) — Modern Xposed framework
+- [**MIUIX** by YuKongA](https://github.com/compose-miuix-ui/miuix) — Xiaomi-style Compose UI component library
+- [**LSPosed** by LSPosed](https://github.com/LSPosed/LSPosed) — Modern Xposed framework
 
 ## License
 

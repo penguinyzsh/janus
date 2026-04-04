@@ -1,0 +1,28 @@
+# Janus Code Owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+*                                   @penguinyzsh
+
+# Hook layer (critical — requires careful review)
+/app/src/main/kotlin/org/pysh/janus/hook/   @penguinyzsh
+
+# JSON rule engine
+/app/src/main/kotlin/org/pysh/janus/hook/engine/ @penguinyzsh
+
+# Data layer
+/app/src/main/kotlin/org/pysh/janus/data/    @penguinyzsh
+
+# UI layer
+/app/src/main/kotlin/org/pysh/janus/ui/      @penguinyzsh
+
+# CI/CD and build config
+/.github/                           @penguinyzsh
+/app/build.gradle.kts               @penguinyzsh
+/settings.gradle.kts                @penguinyzsh
+
+# ProGuard rules (affects hook stability)
+/app/proguard-rules.pro             @penguinyzsh
+
+# Built-in hook rules
+/app/src/main/assets/rules/         @penguinyzsh

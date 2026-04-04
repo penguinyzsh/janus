@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "Janus"
 include(":app")
+include(":core")
+include(":hook")

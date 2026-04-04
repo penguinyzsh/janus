@@ -5,8 +5,9 @@ import android.content.SharedPreferences
 import android.net.Uri
 import org.json.JSONArray
 import org.json.JSONObject
-import org.pysh.janus.util.JanusPaths
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.JanusPaths
+import org.pysh.janus.core.util.RootUtils
+import org.pysh.janus.core.model.CardInfo
 import java.io.File
 import java.util.zip.ZipFile
 
@@ -16,14 +17,12 @@ class CardManager(private val context: Context) {
         private const val PREFS_NAME = "janus_config"
         private const val KEY_CARDS = "cards_config"
         private const val KEY_MASTER_ENABLED = "cards_master_enabled"
-        private const val KEY_MUSIC_LYRIC_PATCH = "music_lyric_patch"
         private const val MAX_SLOTS = 20
         private const val CARDS_DIR = "cards"
 
         val CARDS_CONFIG_FLAG_PATH = JanusPaths.CARDS_CONFIG
         private val CARDS_DEPLOY_DIR = JanusPaths.CARDS_DIR
         private val DEPLOY_BASE = JanusPaths.TEMPLATES_DIR
-        private val MUSIC_LYRIC_PATCH_FLAG = "${JanusPaths.CONFIG_DIR}/music_lyric_patch"
     }
 
     private val prefs: SharedPreferences = try {
@@ -66,7 +65,8 @@ class CardManager(private val context: Context) {
                     val entry = zip.getEntry("manifest.xml") ?: return null
                     parseCardName(zip.getInputStream(entry).bufferedReader().readText())
                 }
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                android.util.Log.w("Janus-CardMgr", "addCard: invalid ZIP", e)
                 return null
             }
 
@@ -91,7 +91,8 @@ class CardManager(private val context: Context) {
             cards.add(card)
             saveCards(cards)
             return card
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.w("Janus-CardMgr", "addCard failed", e)
             tmpFile.delete()
             return null
         }
@@ -136,7 +137,7 @@ class CardManager(private val context: Context) {
     // ── Sync & Deploy ───────────────────────────────────────────
 
     /** Write the full card config as a JSON flag file for the Hook side. */
-    fun syncConfig() {
+    fun syncConfig(): Boolean {
         JanusPaths.ensureAllDirs()
         val config = JSONObject().apply {
             put("master_enabled", isMasterEnabled())
@@ -154,53 +155,57 @@ class CardManager(private val context: Context) {
 
         val tmp = File(context.cacheDir, "cards_cfg_tmp.json")
         tmp.writeText(config.toString())
-        RootUtils.exec(
+        val ok = RootUtils.exec(
             "cp ${tmp.absolutePath} $CARDS_CONFIG_FLAG_PATH && chmod 644 $CARDS_CONFIG_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $CARDS_CONFIG_FLAG_PATH"
         )
         tmp.delete()
+        return ok
     }
 
     /** Deploy a card's ZIP template to the system smart_assistant path.
      *  The template path in p2.a.d points directly to the ZIP file,
      *  NOT a directory containing it. */
-    fun deployCard(card: CardInfo) {
+    fun deployCard(card: CardInfo): Boolean {
         val zipFile = File(cardsDir, "${card.slot}.zip")
         if (!zipFile.exists()) {
             android.util.Log.e("Janus-CardMgr", "deployCard: ${zipFile.absolutePath} not found")
-            return
+            return false
         }
         JanusPaths.ensureAllDirs()
         val tmp = File(context.cacheDir, "card_deploy_${card.slot}.zip")
         zipFile.copyTo(tmp, overwrite = true)
-        android.util.Log.d("Janus-CardMgr", "deployCard: copied ${zipFile.absolutePath} (${zipFile.length()}) to ${tmp.absolutePath} (${tmp.length()})")
         val dest = "$DEPLOY_BASE/${card.businessName}"
         val cmd = "rm -rf $dest && cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest"
-        val result = RootUtils.exec(cmd)
-        android.util.Log.d("Janus-CardMgr", "deployCard: exec result=$result dest=$dest")
+        val ok = RootUtils.exec(cmd)
+        android.util.Log.d("Janus-CardMgr", "deployCard: result=$ok dest=$dest")
         tmp.delete()
+        return ok
     }
 
     /** Remove a card's deployed template from the system path. */
     fun undeployCard(slot: Int) {
-        val business = if (slot == 0) "weather" else "janus_card_$slot"
+        val business = "janus_card_$slot"
         RootUtils.exec("rm -f $DEPLOY_BASE/$business")
     }
 
     /** Deploy card ZIPs to theme_magic config/cards/ so Hook can read them.
      *  subscreencenter can't read Janus app-private dir (SELinux MCS). */
-    fun prepareCardsForHook() {
+    fun prepareCardsForHook(): Boolean {
         JanusPaths.ensureAllDirs()
+        var allOk = true
         getCards().filter { it.enabled }.forEach { card ->
             val src = File(cardsDir, "${card.slot}.zip")
             if (!src.exists()) return@forEach
             val tmp = File(context.cacheDir, "card_hook_${card.slot}.zip")
             src.copyTo(tmp, overwrite = true)
             val dest = "$CARDS_DEPLOY_DIR/${card.slot}.zip"
-            RootUtils.exec(
+            val ok = RootUtils.exec(
                 "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest"
             )
+            if (!ok) allOk = false
             tmp.delete()
         }
+        return allOk
     }
 
     // ── System Card Override (generic) ────────────────────────────
@@ -217,7 +222,7 @@ class CardManager(private val context: Context) {
                     val entry = zip.getEntry("manifest.xml") ?: return null
                     parseCardName(zip.getInputStream(entry).bufferedReader().readText())
                 }
-            } catch (_: Exception) { return null }
+            } catch (e: Exception) { android.util.Log.w("Janus-CardMgr", "importSystemCardOverride: invalid ZIP", e); return null }
 
             val localFile = File(cardsDir, card.customFileName)
             tmpFile.copyTo(localFile, overwrite = true)
@@ -237,7 +242,8 @@ class CardManager(private val context: Context) {
             prefs.edit().putString(card.overridePrefsKey, displayName).commit()
             makePrefsWorldReadable()
             return displayName
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            android.util.Log.w("Janus-CardMgr", "importSystemCardOverride failed", e)
             tmpFile.delete()
             return null
         }
@@ -272,22 +278,11 @@ class CardManager(private val context: Context) {
 
     // ── Music Override (wrappers + lyric-specific) ──────────────────
 
+    // ── Music Override ───────────────────────────────────────────
+
     fun importMusicOverride(uri: Uri): String? = importSystemCardOverride(SystemCard.MUSIC, uri)
     fun removeMusicOverride() = removeSystemCardOverride(SystemCard.MUSIC)
     fun getMusicOverrideName(): String? = getSystemCardOverrideName(SystemCard.MUSIC)
-
-    fun isMusicLyricPatch(): Boolean = prefs.getBoolean(KEY_MUSIC_LYRIC_PATCH, true)
-
-    fun setMusicLyricPatch(enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_MUSIC_LYRIC_PATCH, enabled).commit()
-        makePrefsWorldReadable()
-        JanusPaths.ensureAllDirs()
-        if (enabled) {
-            RootUtils.exec("touch '$MUSIC_LYRIC_PATCH_FLAG' && chmod 644 '$MUSIC_LYRIC_PATCH_FLAG' && chcon u:object_r:theme_data_file:s0 '$MUSIC_LYRIC_PATCH_FLAG'")
-        } else {
-            RootUtils.exec("rm -f '$MUSIC_LYRIC_PATCH_FLAG'")
-        }
-    }
 
     // ── Slot Management ─────────────────────────────────────────
 

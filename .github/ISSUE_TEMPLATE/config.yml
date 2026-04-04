@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 讨论区 | Discussions
+    url: https://github.com/penguinyzsh/janus/discussions
+    about: 提问、想法交流、使用分享 | Ask questions, share ideas, and show off your setup
+  - name: 📖 文档 | Documentation
+    url: https://github.com/penguinyzsh/janus/blob/main/README_CN.md
+    about: 先查看文档，也许能找到答案 | Check the docs first, you might find your answer there

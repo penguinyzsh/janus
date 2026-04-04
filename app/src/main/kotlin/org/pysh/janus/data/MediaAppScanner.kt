@@ -37,8 +37,8 @@ class MediaAppScanner(private val context: Context) {
             candidates.add(resolveInfo.serviceInfo.packageName)
         }
 
+        candidates.addAll(BUILTIN_WHITELIST)
         candidates.remove(context.packageName)
-        candidates.removeAll(BUILTIN_WHITELIST)
 
         return candidates.mapNotNull { pkg ->
             toMediaAppInfo(pm, pkg, isMediaApp = true)

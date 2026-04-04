@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.pysh.janus.R
+import org.pysh.janus.core.model.CardInfo
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.data.HookStatusManager
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -78,7 +79,7 @@ fun HomePage(
     val isPreview = LocalInspectionMode.current
     val hookStatusManager = remember { HookStatusManager(context) }
     val cardManager = remember { CardManager(context) }
-    var cards by remember { mutableStateOf(if (!isPreview) cardManager.getCards() else emptyList<org.pysh.janus.data.CardInfo>()) }
+    var cards by remember { mutableStateOf(if (!isPreview) cardManager.getCards() else emptyList<CardInfo>()) }
     if (!isPreview) {
         DisposableEffect(hookStatusManager) {
             hookStatusManager.register()

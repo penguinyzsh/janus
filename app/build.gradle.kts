@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("io.gitlab.arturbosch.detekt")
 }
 
 android {
@@ -77,6 +79,10 @@ android {
 }
 
 dependencies {
+    // Project modules
+    implementation(project(":core"))
+    implementation(project(":hook"))
+
     // MIUIX UI (Android-specific artifacts)
     implementation("top.yukonga.miuix.kmp:miuix-android:0.8.8")
     implementation("top.yukonga.miuix.kmp:miuix-icons-android:0.8.8")
@@ -132,4 +138,36 @@ tasks.register<Exec>("testBehavior") {
     group = "verification"
     description = "Run ADB-based behavioral correctness tests"
     commandLine("bash", "${rootProject.projectDir}/_scripts/test_behavior.sh")
+}
+
+// — Code quality —
+
+ktlint {
+    android = true
+    verbose = true
+    outputToConsole = true
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.SARIF)
+    }
+    filter {
+        exclude("**/generated/**")
+    }
+}
+
+detekt {
+    config.setFrom("${rootProject.projectDir}/config/detekt/detekt.yml")
+    buildUponDefaultConfig = true
+    allRules = false
+    // Uncomment after first run to generate baseline:
+    // baseline = file("detekt-baseline.xml")
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "17"
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        sarif.required.set(true)
+    }
 }

@@ -68,7 +68,6 @@ sealed interface Screen : NavKey {
     data object SystemCards : Screen
     data object Other : Screen
     data object Casting : Screen
-    data object HookRules : Screen
 }
 
 private class MainPagerState(
@@ -309,7 +308,6 @@ fun MainScreen(isModuleActive: Boolean) {
                                     bottomPadding = paddingValues.calculateBottomPadding(),
                                     onWallpaperClick = { backStack.add(Screen.Wallpaper) },
                                     onCastingClick = { backStack.add(Screen.Casting) },
-                                    onHookRulesClick = { backStack.add(Screen.HookRules) },
                                 )
                                 3 -> CardsPage(
                                     bottomPadding = paddingValues.calculateBottomPadding(),
@@ -344,9 +342,6 @@ fun MainScreen(isModuleActive: Boolean) {
                         onDpiChanged = { currentDpi = it },
                         onBack = { backStack.removeLastOrNull() },
                     )
-                }
-                Screen.HookRules -> NavEntry(key) {
-                    HookRulesPage(onBack = { backStack.removeLastOrNull() })
                 }
                 Screen.SystemCards -> NavEntry(key) {
                     SystemCardsPage(

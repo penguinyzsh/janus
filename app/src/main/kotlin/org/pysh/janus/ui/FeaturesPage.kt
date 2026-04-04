@@ -59,7 +59,6 @@ fun FeaturesPage(
     bottomPadding: Dp,
     onWallpaperClick: () -> Unit,
     onCastingClick: () -> Unit,
-    onHookRulesClick: () -> Unit = {},
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -132,10 +131,6 @@ fun FeaturesPage(
                     SuperArrow(
                         title = stringResource(R.string.section_casting),
                         onClick = onCastingClick,
-                    )
-                    SuperArrow(
-                        title = stringResource(R.string.section_hook_rules),
-                        onClick = onHookRulesClick,
                     )
                 }
             }

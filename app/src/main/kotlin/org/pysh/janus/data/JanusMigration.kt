@@ -1,7 +1,7 @@
 package org.pysh.janus.data
 
-import org.pysh.janus.util.JanusPaths
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.JanusPaths
+import org.pysh.janus.core.util.RootUtils
 
 /**
  * Versioned storage migration.
@@ -63,8 +63,6 @@ object JanusMigration {
         "janus_tracking_disabled" to "tracking_disabled",
         "janus_wallpaper_keep_alive" to "wallpaper_keep_alive",
         "janus_wallpaper_lock" to "wallpaper_lock",
-        "janus_lyric_fade" to "lyric_fade",
-        "janus_lyric_threshold" to "lyric_threshold",
         "janus_cards_config" to "cards_config",
     )
 

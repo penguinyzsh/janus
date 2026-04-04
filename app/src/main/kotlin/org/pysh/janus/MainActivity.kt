@@ -9,8 +9,6 @@ import org.pysh.janus.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
 
-    fun isModuleActive(): Boolean = JanusApplication.instance?.xposedService != null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

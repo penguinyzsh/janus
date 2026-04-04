@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
+import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.hook.HookStatusReporter
 import org.pysh.janus.hook.engine.HookEnginePlugin
 import org.pysh.janus.hook.engine.HookRule
@@ -28,7 +29,7 @@ class WhitelistEngine : HookEnginePlugin {
 
     companion object {
         private const val TAG = "Janus-Whitelist"
-        private const val WHITELIST_FLAG_PATH = "/data/system/theme_magic/users/0/subscreencenter/janus/config/whitelist"
+        private val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
     }
 
     override fun install(

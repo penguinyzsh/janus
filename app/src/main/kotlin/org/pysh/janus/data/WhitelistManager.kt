@@ -3,6 +3,7 @@ package org.pysh.janus.data
 import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
+import io.github.libxposed.service.XposedService
 import org.pysh.janus.JanusApplication
 import org.pysh.janus.util.JanusPaths
 import java.io.File
@@ -154,25 +155,55 @@ class WhitelistManager(private val context: Context) {
     }
 
     fun saveWhitelist(packages: Set<String>) {
+        val oldWhitelist = getWhitelist()
         prefs.edit()
             .putString(KEY_WHITELIST, packages.joinToString(","))
             .commit()
         makePrefsWorldReadable()
+        JanusPaths.ensureAllDirs()
         syncWhitelistFlag(packages)
-        syncRemoteWhitelist(packages)
+        syncAllToRemotePrefs()
+        syncWhitelistScope(oldWhitelist, packages)
     }
 
     private fun syncWhitelistFlag(packages: Set<String>) {
         if (packages.isEmpty()) {
             org.pysh.janus.util.RootUtils.exec("rm -f $WHITELIST_FLAG_PATH")
         } else {
-            // Write to app-private tmp then root-copy to system path (avoids shell escaping)
-            val tmp = File(context.cacheDir, "wl_tmp.txt")
-            tmp.writeText(packages.joinToString(","))
-            org.pysh.janus.util.RootUtils.exec(
-                "cp ${tmp.absolutePath} $WHITELIST_FLAG_PATH && chmod 644 $WHITELIST_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $WHITELIST_FLAG_PATH"
-            )
-            tmp.delete()
+            // Use printf to write content directly via shell, avoids app-private file access issues
+            val content = packages.joinToString(",")
+            val cmd = "printf '%s' '$content' > $WHITELIST_FLAG_PATH && chmod 644 $WHITELIST_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $WHITELIST_FLAG_PATH"
+            org.pysh.janus.util.RootUtils.exec(cmd)
+        }
+    }
+
+    /**
+     * Sync whitelist scope changes to LSPosed — requestScope for added packages,
+     * removeScope for removed packages. This makes LSPosed prompt the user to approve
+     * the scope expansion, after which the hook will be loaded in that app.
+     */
+    private fun syncWhitelistScope(oldWhitelist: Set<String>, newWhitelist: Set<String>) {
+        val added = newWhitelist - oldWhitelist
+        val removed = oldWhitelist - newWhitelist
+        if (added.isEmpty() && removed.isEmpty()) return
+
+        val service = JanusApplication.instance?.xposedService ?: return
+        try {
+            if (added.isNotEmpty()) {
+                service.requestScope(added.toList(), object : XposedService.OnScopeEventListener {
+                    override fun onScopeRequestApproved(approved: List<String>) {
+                        Log.i(TAG, "Scope request approved: $approved")
+                    }
+                    override fun onScopeRequestFailed(message: String) {
+                        Log.w(TAG, "Scope request failed: $message")
+                    }
+                })
+            }
+            if (removed.isNotEmpty()) {
+                service.removeScope(removed.toList())
+            }
+        } catch (e: Throwable) {
+            Log.w(TAG, "Failed to sync scope: ${e.message}")
         }
     }
 
@@ -221,33 +252,6 @@ class WhitelistManager(private val context: Context) {
                 ?.getRemotePreferences("janus_config")
                 ?.edit()?.putBoolean(key, value)?.commit()
         } catch (_: Throwable) { /* RemotePrefs not available yet */ }
-    }
-
-    /** Sync a single int config to RemotePreferences. */
-    private fun syncRemoteInt(key: String, value: Int) {
-        try {
-            JanusApplication.instance?.xposedService
-                ?.getRemotePreferences("janus_config")
-                ?.edit()?.putInt(key, value)?.commit()
-        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
-    }
-
-    /** Sync whitelist string to RemotePreferences. */
-    private fun syncRemoteWhitelist(packages: Set<String>) {
-        try {
-            JanusApplication.instance?.xposedService
-                ?.getRemotePreferences("janus_config")
-                ?.edit()?.putString("whitelist", packages.joinToString(","))?.commit()
-        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
-    }
-
-    private fun syncContentFlag(path: String, value: Int) {
-        val tmp = File(context.cacheDir, "flag_tmp.txt")
-        tmp.writeText(value.toString())
-        org.pysh.janus.util.RootUtils.exec(
-            "cp ${tmp.absolutePath} $path && chmod 644 $path && chcon u:object_r:theme_data_file:s0 $path"
-        )
-        tmp.delete()
     }
 
     private fun syncBooleanFlag(path: String, enabled: Boolean) {

@@ -5,8 +5,6 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
 import org.pysh.janus.hook.HookStatusReporter
-import org.pysh.janus.hook.LyricInjector
-import org.pysh.janus.hook.LyricParser
 import org.pysh.janus.hook.ReflectUtils
 import java.io.File
 
@@ -66,7 +64,6 @@ object ActionExecutor {
         "field_set" -> fieldSet(hookId, action, config, rule.configFlag)
         "path_redirect" -> pathRedirect(hookId, action)
         "force_arg" -> forceArg(hookId, action, config, rule.configFlag)
-        "lyric_extract" -> lyricExtract(hookId, action)
         else -> throw IllegalArgumentException("Unknown action type: ${action.type}")
     }
 
@@ -205,31 +202,6 @@ object ActionExecutor {
             put("forced", action.value)
         })
         chain.proceed(args)
-    }
-
-    private fun lyricExtract(hookId: String, action: HookAction) = XposedInterface.Hooker { chain ->
-        val sourceParam = action.paramIndex ?: 0
-        val source = chain.args[sourceParam] as? String
-        if (source != null) {
-            try {
-                val (lines, translations) = when (action.format) {
-                    "ttml" -> LyricParser.parseTtml(source)
-                    "lrc" -> LyricParser.parseLrc(source)
-                    else -> null to null
-                }
-                if (lines != null) {
-                    LyricInjector.setLyrics(lines, translations ?: emptyMap())
-                    HookStatusReporter.reportBehavior(hookId, JSONObject().apply {
-                        put("action", "lyric_extract")
-                        put("lines", lines.size)
-                        put("format", action.format)
-                    })
-                }
-            } catch (e: Throwable) {
-                Log.w(TAG, "Lyric extraction failed: ${e.message}")
-            }
-        }
-        chain.proceed()
     }
 
     private fun getDataSource(source: String?, config: SharedPreferences): Set<String> {
