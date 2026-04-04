@@ -208,20 +208,7 @@
     <string name="cast_tile_active">Casting</string>
     <string name="cast_tile_failed">Failed</string>
 
-    <!-- Hook Rules -->
-    <string name="section_hook_rules">Hook Rules</string>
-    <string name="hook_rules_title">Hook Rules</string>
-    <string name="hook_rules_import">Import Rule</string>
-    <string name="hook_rules_builtin">Built-in</string>
-    <string name="hook_rules_custom">Custom</string>
-    <string name="hook_rules_target">Target: %s</string>
-    <string name="hook_rules_hooks_count">%d hooks</string>
-    <string name="hook_rules_engine">Engine: %s</string>
-    <string name="hook_rules_delete_confirm">Delete rule \"%s\"?</string>
-    <string name="hook_rules_import_success">Rule imported: %s</string>
-    <string name="hook_rules_import_failed">Failed to import rule</string>
-    <string name="hook_rules_empty">No rules loaded</string>
-    <string name="hook_rules_restart_hint">Restart subscreencenter to apply changes</string>
+
 
     <!-- Apps -->
     <string name="search_apps">Search apps…</string>

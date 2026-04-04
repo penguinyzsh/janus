@@ -29,7 +29,6 @@ class FeaturesPageTest {
     private fun content(
         onWallpaperClick: () -> Unit = {},
         onCastingClick: () -> Unit = {},
-        onHookRulesClick: () -> Unit = {},
     ) {
         rule.setContent {
             MiuixTheme {
@@ -37,7 +36,6 @@ class FeaturesPageTest {
                     bottomPadding = 0.dp,
                     onWallpaperClick = onWallpaperClick,
                     onCastingClick = onCastingClick,
-                    onHookRulesClick = onHookRulesClick,
                 )
             }
         }
@@ -85,12 +83,7 @@ class FeaturesPageTest {
         rule.onNodeWithText(s(R.string.section_casting)).assertIsDisplayed()
     }
 
-    // TC-FEAT-NAV3: Hook Rules 导航入口展示
-    @Test
-    fun featuresPage_showsHookRulesEntry() {
-        content()
-        rule.onNodeWithText(s(R.string.section_hook_rules)).assertIsDisplayed()
-    }
+
 
     // TC-FEAT-NAV1: 点击壁纸触发回调
     @Test
@@ -110,12 +103,5 @@ class FeaturesPageTest {
         assertTrue(clicked)
     }
 
-    // TC-FEAT-NAV3: 点击 Hook Rules 触发回调
-    @Test
-    fun featuresPage_clickHookRules_triggersCallback() {
-        var clicked = false
-        content(onHookRulesClick = { clicked = true })
-        rule.onNodeWithText(s(R.string.section_hook_rules)).performClick()
-        assertTrue(clicked)
-    }
+
 }
