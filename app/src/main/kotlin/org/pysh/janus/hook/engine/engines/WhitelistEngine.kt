@@ -28,6 +28,7 @@ class WhitelistEngine : HookEnginePlugin {
 
     companion object {
         private const val TAG = "Janus-Whitelist"
+        private const val WHITELIST_FLAG_PATH = "/data/system/theme_magic/users/0/subscreencenter/janus/config/whitelist"
     }
 
     override fun install(
@@ -165,10 +166,19 @@ class WhitelistEngine : HookEnginePlugin {
     }
 
     private fun getCustomWhitelist(config: SharedPreferences): Set<String> {
+        // Read from file flag first (written by app side), fall back to RemotePreferences
         return try {
-            val raw = config.getString("whitelist", "") ?: ""
-            if (raw.isEmpty()) emptySet()
-            else raw.split(",").filter { it.isNotBlank() }.toSet()
+            val flagFile = java.io.File(WHITELIST_FLAG_PATH)
+            if (flagFile.exists()) {
+                val raw = flagFile.readText().trim()
+                if (raw.isEmpty()) emptySet()
+                else raw.split(",").filter { it.isNotBlank() }.toSet()
+            } else {
+                // Fall back to RemotePreferences
+                val raw = config.getString("whitelist", "") ?: ""
+                if (raw.isEmpty()) emptySet()
+                else raw.split(",").filter { it.isNotBlank() }.toSet()
+            }
         } catch (e: Throwable) {
             Log.e(TAG, "Failed to read whitelist: ${e.message}")
             emptySet()
