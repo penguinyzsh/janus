@@ -1,6 +1,5 @@
 # Build outputs
-/build/
-/app/build/
+build/
 *.apk
 *.aab
 
@@ -27,11 +26,7 @@ signing.properties
 .DS_Store
 Thumbs.db
 
-# Local directories
-_*/
-openspec/
-docs/
-
-# Claude
+# AI & Local Scratch
 .claude/
 CLAUDE.md
+_*/

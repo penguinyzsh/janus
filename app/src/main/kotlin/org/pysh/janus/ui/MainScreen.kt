@@ -157,11 +157,6 @@ fun MainScreen(isModuleActive: Boolean) {
         var mediaApps by remember { mutableStateOf(emptyList<MediaAppInfo>()) }
         var allApps by remember { mutableStateOf(emptyList<MediaAppInfo>()) }
         var appsLoading by remember { mutableStateOf(false) }
-        var showUpdateDialog by remember {
-            mutableStateOf(
-                BuildConfig.DEBUG || whitelistManager.getLastSeenVersion() < BuildConfig.VERSION_CODE
-            )
-        }
 
         LaunchedEffect(Unit) {
             hasRoot = withContext(Dispatchers.IO) { RootUtils.hasRoot() }
@@ -278,13 +273,6 @@ fun MainScreen(isModuleActive: Boolean) {
                                     isModuleActive = isModuleActive,
                                     hasRoot = hasRoot,
                                     isVisible = pagerState.currentPage == 0,
-                                    showUpdateDialog = showUpdateDialog,
-                                    onDismissUpdateDialog = {
-                                        showUpdateDialog = false
-                                        if (!BuildConfig.DEBUG) {
-                                            whitelistManager.setLastSeenVersion(BuildConfig.VERSION_CODE)
-                                        }
-                                    },
                                 )
                                 1 -> AppsPage(
                                     bottomPadding = paddingValues.calculateBottomPadding(),

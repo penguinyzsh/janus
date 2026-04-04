@@ -273,10 +273,4 @@
     <string name="about_qq_group_number">119655862</string>
     <string name="qq_group_copied">Group number copied</string>
 
-    <!-- Update Dialog -->
-    <string name="update_title">What\'s New in v%s</string>
-    <string name="update_changelog">Lyric hook rules managed per app\nImport, enable/disable, and delete lyric rules\nHook Rules page now shows built-in rules only</string>
-    <string name="update_join_group">Join QQ Group</string>
-    <string name="update_support">Support on Afdian</string>
-    <string name="update_dismiss">Got it</string>
 </resources>

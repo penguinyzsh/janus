@@ -25,7 +25,6 @@ class WhitelistManager(private val context: Context) {
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_HIDE_TIME_TIP = "hide_time_tip"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
-        const val KEY_LAST_SEEN_VERSION = "last_seen_version"
         val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
         val TRACKING_FLAG_PATH = JanusPaths.TRACKING_DISABLED
         val WALLPAPER_KEEP_ALIVE_FLAG_PATH = JanusPaths.WALLPAPER_KEEP_ALIVE
@@ -144,14 +143,6 @@ class WhitelistManager(private val context: Context) {
 
     fun setWallpaperLoop(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOOP, enabled).commit()
-    }
-
-    fun getLastSeenVersion(): Int {
-        return prefs.getInt(KEY_LAST_SEEN_VERSION, 0)
-    }
-
-    fun setLastSeenVersion(versionCode: Int) {
-        prefs.edit().putInt(KEY_LAST_SEEN_VERSION, versionCode).commit()
     }
 
     fun saveWhitelist(packages: Set<String>) {

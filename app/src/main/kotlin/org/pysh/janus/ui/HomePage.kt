@@ -69,8 +69,6 @@ fun HomePage(
     isModuleActive: Boolean,
     hasRoot: Boolean?,
     isVisible: Boolean = true,
-    showUpdateDialog: Boolean = false,
-    onDismissUpdateDialog: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scrollBehavior = MiuixScrollBehavior()
@@ -195,68 +193,6 @@ fun HomePage(
         }
     }
 
-    SuperDialog(
-        show = showUpdateDialog,
-        title = stringResource(R.string.update_title, org.pysh.janus.BuildConfig.VERSION_NAME),
-        summary = stringResource(R.string.update_changelog),
-        onDismissRequest = onDismissUpdateDialog,
-    ) {
-        val qqGroupCopiedText = stringResource(R.string.qq_group_copied)
-        Card(modifier = Modifier.padding(bottom = 12.dp)) {
-            @OptIn(ExperimentalFoundationApi::class)
-            Box(
-                modifier = Modifier.combinedClickable(
-                    onClick = {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://qm.qq.com/q/UJBp9bNnIQ"))
-                        )
-                    },
-                    onLongClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("qq_group", "119655862"))
-                        Toast.makeText(context, qqGroupCopiedText, Toast.LENGTH_SHORT).show()
-                    },
-                ),
-            ) {
-                SuperArrow(
-                    title = stringResource(R.string.update_join_group),
-                    endActions = {
-                        Text(
-                            text = stringResource(R.string.about_qq_group_number),
-                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
-                        )
-                    },
-                )
-            }
-        }
-        Card(modifier = Modifier.padding(bottom = 12.dp)) {
-            SuperArrow(
-                title = stringResource(R.string.update_support),
-                endActions = {
-                    Text(
-                        text = "ifdian.net/a/janus",
-                        color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
-                    )
-                },
-                onClick = {
-                    context.startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse("https://ifdian.net/a/janus"))
-                    )
-                },
-            )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            TextButton(
-                text = stringResource(R.string.update_dismiss),
-                onClick = onDismissUpdateDialog,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
-        }
-    }
 }
 
 // ── Hook Status Section ────────────────────────────────────────

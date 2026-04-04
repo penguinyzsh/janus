@@ -268,10 +268,4 @@
     <string name="about_qq_group_number">119655862</string>
     <string name="qq_group_copied">群号已复制</string>
 
-    <!-- 更新通告 -->
-    <string name="update_title">v%s 更新内容</string>
-    <string name="update_changelog">歌词 Hook 规则按应用管理\n支持导入、启用/禁用、删除歌词规则\nHook 规则页仅展示内置规则</string>
-    <string name="update_join_group">加入 QQ 群</string>
-    <string name="update_support">爱发电支持</string>
-    <string name="update_dismiss">知道了</string>
 </resources>
