@@ -27,6 +27,9 @@ miuix = "0.8.8"
 # Reorderable
 reorderable = "2.4.3"
 
+# JSON
+orgJson = "20240303"
+
 # Testing
 junit = "4.13.2"
 junitJupiter = "5.10.2"
@@ -70,6 +73,9 @@ miuix-navigation3 = { module = "top.yukonga.miuix.kmp:miuix-navigation3-ui-andro
 # Reorderable
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
+# JSON
+org-json = { module = "org.json:json", version.ref = "orgJson" }
+
 # Testing (JVM)
 junit4 = { module = "junit:junit", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
@@ -82,5 +88,6 @@ androidx-test-runner = { module = "androidx.test:runner", version.ref = "android
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

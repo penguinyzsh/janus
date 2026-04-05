@@ -5,6 +5,7 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.hook.HookStatusReporter
+import org.pysh.janus.hookapi.HookRule
 
 /**
  * Core hook rule engine. Loads rules and dispatches to ActionExecutor (simple rules)

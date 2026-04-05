@@ -36,7 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.pysh.janus.R
-import org.pysh.janus.core.model.CardInfo
+import org.pysh.janus.hookapi.CardInfo
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.data.HookStatusManager
 import top.yukonga.miuix.kmp.basic.BasicComponent

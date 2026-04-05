@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.util.Log
 import org.json.JSONObject
+import org.pysh.janus.hookapi.HookRule
 
 /**
  * Loads hook rules from bundled assets and user-imported RemotePreferences.

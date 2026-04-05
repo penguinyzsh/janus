@@ -12,7 +12,7 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.pysh.janus.hook.HookStatusReporter
 import org.pysh.janus.hook.engine.HookEnginePlugin
-import org.pysh.janus.hook.engine.HookRule
+import org.pysh.janus.hookapi.HookRule
 import org.pysh.janus.hook.engine.RuleEngine
 import org.pysh.janus.hook.lyric.LyricParser
 import org.pysh.janus.hook.lyric.TimedLine

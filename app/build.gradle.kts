@@ -82,6 +82,7 @@ dependencies {
     // Project modules
     implementation(project(":core"))
     implementation(project(":hook"))
+    implementation(project(":hook-api"))
 
     // MIUIX UI
     implementation(libs.miuix.android)

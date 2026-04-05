@@ -18,3 +18,4 @@ rootProject.name = "Janus"
 include(":app")
 include(":core")
 include(":hook")
+include(":hook-api")

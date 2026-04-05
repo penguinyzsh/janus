@@ -1,4 +1,4 @@
-package org.pysh.janus.core.model
+package org.pysh.janus.hookapi
 
 import org.json.JSONArray
 import org.json.JSONObject

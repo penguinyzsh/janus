@@ -2,6 +2,7 @@ package org.pysh.janus.hook.engine
 
 import android.content.SharedPreferences
 import io.github.libxposed.api.XposedInterface
+import org.pysh.janus.hookapi.HookRule
 
 /**
  * Interface for complex hook engine plugins.

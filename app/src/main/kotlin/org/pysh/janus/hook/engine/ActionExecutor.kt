@@ -5,6 +5,9 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
 import org.pysh.janus.hook.HookStatusReporter
+import org.pysh.janus.hookapi.HookAction
+import org.pysh.janus.hookapi.HookRule
+import org.pysh.janus.hookapi.HookTarget
 import org.pysh.janus.hook.ReflectUtils
 import java.io.File
 

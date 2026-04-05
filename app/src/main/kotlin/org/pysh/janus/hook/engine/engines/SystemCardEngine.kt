@@ -9,7 +9,7 @@ import org.json.JSONObject
 import org.pysh.janus.hook.HookStatusReporter
 import org.pysh.janus.hook.ReflectUtils
 import org.pysh.janus.hook.engine.HookEnginePlugin
-import org.pysh.janus.hook.engine.HookRule
+import org.pysh.janus.hookapi.HookRule
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 

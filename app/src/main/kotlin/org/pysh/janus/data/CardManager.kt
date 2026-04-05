@@ -7,7 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.core.util.RootUtils
-import org.pysh.janus.core.model.CardInfo
+import org.pysh.janus.hookapi.CardInfo
 import java.io.File
 import java.util.zip.ZipFile
 
