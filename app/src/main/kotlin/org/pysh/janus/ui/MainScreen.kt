@@ -66,6 +66,12 @@ sealed interface Screen : NavKey {
 
     data object Wallpaper : Screen
 
+    data object Themes : Screen
+
+    data class ThemeDetail(
+        val themeId: String,
+    ) : Screen
+
     data class AppFeature(
         val packageName: String,
     ) : Screen
@@ -319,6 +325,7 @@ fun MainScreen(isModuleActive: Boolean) {
                                                 bottomPadding = paddingValues.calculateBottomPadding(),
                                                 onWallpaperClick = { backStack.add(Screen.Wallpaper) },
                                                 onCastingClick = { backStack.add(Screen.Casting) },
+                                                onThemesClick = { backStack.add(Screen.Themes) },
                                             )
                                         3 ->
                                             CardsPage(
@@ -350,6 +357,20 @@ fun MainScreen(isModuleActive: Boolean) {
                 Screen.Wallpaper ->
                     NavEntry(key) {
                         WallpaperPage(onBack = { backStack.removeLastOrNull() })
+                    }
+                Screen.Themes ->
+                    NavEntry(key) {
+                        ThemesPage(
+                            onBack = { backStack.removeLastOrNull() },
+                            onThemeClick = { themeId -> backStack.add(Screen.ThemeDetail(themeId)) },
+                        )
+                    }
+                is Screen.ThemeDetail ->
+                    NavEntry(key) {
+                        ThemeDetailPage(
+                            themeId = key.themeId,
+                            onBack = { backStack.removeLastOrNull() },
+                        )
                     }
                 Screen.Casting ->
                     NavEntry(key) {

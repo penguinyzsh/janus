@@ -39,7 +39,12 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 @Composable
 private fun FeaturesPagePreview() {
     MiuixTheme {
-        FeaturesPage(bottomPadding = 0.dp, onWallpaperClick = {}, onCastingClick = {})
+        FeaturesPage(
+            bottomPadding = 0.dp,
+            onWallpaperClick = {},
+            onCastingClick = {},
+            onThemesClick = {},
+        )
     }
 }
 
@@ -48,6 +53,7 @@ fun FeaturesPage(
     bottomPadding: Dp,
     onWallpaperClick: () -> Unit,
     onCastingClick: () -> Unit,
+    onThemesClick: () -> Unit,
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -129,6 +135,11 @@ fun FeaturesPage(
                         title = stringResource(R.string.section_wallpaper),
                         summary = stringResource(R.string.wp_gallery_title),
                         onClick = onWallpaperClick,
+                    )
+                    SuperArrow(
+                        title = stringResource(R.string.themes_title),
+                        summary = stringResource(R.string.themes_empty_hint),
+                        onClick = onThemesClick,
                     )
                     SuperArrow(
                         title = stringResource(R.string.section_casting),
