@@ -279,4 +279,35 @@
     <string name="about_qq_group_number">119655862</string>
     <string name="qq_group_copied">群号已复制</string>
 
+    <!-- 主题 -->
+    <string name="themes_title">主题</string>
+    <string name="nav_themes">主题</string>
+    <string name="themes_empty_title">还没有主题</string>
+    <string name="themes_empty_hint">点击右上角导入 .mrc 或 .mtz 文件</string>
+    <string name="theme_import">导入</string>
+    <string name="theme_importing">正在导入…</string>
+    <string name="theme_import_success">已导入：%1$s</string>
+    <string name="theme_import_failed">导入失败：%1$s</string>
+    <string name="theme_active_badge">已应用</string>
+    <string name="theme_apply">应用主题</string>
+    <string name="theme_deactivate">取消应用</string>
+    <string name="theme_delete">删除主题</string>
+    <string name="theme_delete_confirm_title">删除主题？</string>
+    <string name="theme_delete_confirm_message">\"%1$s\" 将从 Janus 中移除，此操作无法撤销。</string>
+    <string name="theme_apply_success">主题已应用</string>
+    <string name="theme_apply_failed">主题应用失败（需要 Root 权限）</string>
+    <string name="theme_deactivated">已取消应用</string>
+    <string name="theme_detail_title">主题详情</string>
+    <string name="theme_detail_author">作者</string>
+    <string name="theme_detail_description">描述</string>
+    <string name="theme_detail_file_size">文件大小</string>
+    <string name="theme_detail_maml_version">MAML 版本</string>
+    <string name="theme_detail_source">源文件</string>
+    <string name="theme_auto_restart_title">自动重启背屏</string>
+    <string name="theme_auto_restart_summary">应用主题后强制重启背屏中心，使其立即重新加载</string>
+    <string name="theme_clear_root_title">清理主题部署数据</string>
+    <string name="theme_clear_root_summary">删除所有 Janus 部署到系统目录的主题文件（保留本地导入副本）</string>
+    <string name="theme_clear_root_confirm">确定移除所有已部署的主题文件吗？</string>
+    <string name="theme_clear_root_done">主题部署数据已清理</string>
+
 </resources>
