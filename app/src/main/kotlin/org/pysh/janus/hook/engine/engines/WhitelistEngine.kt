@@ -28,6 +28,7 @@ import org.pysh.janus.hook.engine.HookRule
 class WhitelistEngine : HookEnginePlugin {
 
     companion object {
+        const val ENGINE_NAME = "whitelist"
         private const val TAG = "Janus-Whitelist"
         private val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
     }

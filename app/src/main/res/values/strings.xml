@@ -99,6 +99,30 @@
     <string name="wp_restore">Restore Original</string>
     <string name="wp_restore_success">Original wallpaper restored, rear screen restarting</string>
 
+    <!-- Wallpaper Gallery -->
+    <string name="wp_gallery_title">Wallpaper Gallery</string>
+    <string name="wp_add">Add Wallpaper</string>
+    <string name="wp_applied">Applied</string>
+    <string name="wp_apply">Apply</string>
+    <string name="wp_rename">Rename</string>
+    <string name="wp_delete">Delete</string>
+    <string name="wp_delete_confirm">Delete this wallpaper?</string>
+    <string name="wp_replace_video">Replace Video</string>
+    <string name="wp_edit_mode">Edit</string>
+    <string name="wp_edit_done">Done</string>
+    <string name="wp_empty">No wallpapers yet</string>
+    <string name="wp_count">%d wallpapers</string>
+    <string name="wp_apply_success">Wallpaper applied, rear screen restarting</string>
+    <string name="wp_delete_success">Wallpaper deleted</string>
+    <string name="wp_name_default">Wallpaper %d</string>
+    <string name="wp_import_failed">Failed to import wallpaper</string>
+    <string name="wp_rename_title">Rename Wallpaper</string>
+    <string name="wp_settings">Wallpaper Settings</string>
+    <string name="wp_auto_rotate">Auto Rotate Wallpaper</string>
+    <string name="wp_auto_rotate_desc">Automatically change wallpaper periodically</string>
+    <string name="wp_auto_rotate_interval">Rotation Interval (Seconds)</string>
+    <string name="wp_auto_rotate_interval_summary">Every %1$d seconds</string>
+
     <string name="section_weather">Weather</string>
     <string name="weather_refresh_interval">Refresh Interval</string>
     <string name="weather_refresh_interval_value">%d min</string>

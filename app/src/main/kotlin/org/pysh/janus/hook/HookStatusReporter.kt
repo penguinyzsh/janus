@@ -1,13 +1,11 @@
 package org.pysh.janus.hook
 
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
-import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
 import java.util.concurrent.ConcurrentHashMap
 
@@ -48,22 +46,21 @@ object HookStatusReporter {
     /**
      * Initialise the reporter for this process.
      * Call once per process before installing any hooks.
+     *
+     * NOTE: This no longer hooks Application.onCreate() directly.
+     * Use [AppLifecycleHook] to drive [onAppCreated] instead.
      */
-    fun init(module: XposedInterface, packageName: String) {
+    fun init(packageName: String) {
         processName = packageName
-        try {
-            val onCreateMethod = Application::class.java.getDeclaredMethod("onCreate")
-            module.hook(onCreateMethod).intercept(XposedInterface.Hooker { chain ->
-                val result = chain.proceed()
-                val app = chain.thisObject as? Application
-                if (app != null) {
-                    registerReceiver(app.applicationContext)
-                }
-                result
-            })
-        } catch (e: Throwable) {
-            Log.e(TAG, "Failed to hook Application.onCreate: ${e.message}")
-        }
+    }
+
+    /**
+     * Called by [AppLifecycleHook] when Application.onCreate() fires.
+     * Registers the broadcast receiver for status queries.
+     */
+    fun onAppCreated(context: android.content.Context, packageName: String) {
+        processName = packageName
+        registerReceiver(context)
     }
 
     /** Record a hook as succeeded or failed. */

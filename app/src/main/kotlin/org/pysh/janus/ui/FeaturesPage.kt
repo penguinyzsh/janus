@@ -126,6 +126,7 @@ fun FeaturesPage(
                 Card(modifier = Modifier.padding(bottom = 12.dp)) {
                     SuperArrow(
                         title = stringResource(R.string.section_wallpaper),
+                        summary = stringResource(R.string.wp_gallery_title),
                         onClick = onWallpaperClick,
                     )
                     SuperArrow(

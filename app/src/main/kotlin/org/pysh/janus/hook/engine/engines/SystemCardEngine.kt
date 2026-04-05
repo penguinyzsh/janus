@@ -11,6 +11,7 @@ import org.pysh.janus.hook.ReflectUtils
 import org.pysh.janus.hook.engine.HookEnginePlugin
 import org.pysh.janus.hook.engine.HookRule
 import java.io.File
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Engine plugin for patching non-music system card templates.
@@ -30,6 +31,7 @@ import java.io.File
 class SystemCardEngine : HookEnginePlugin {
 
     companion object {
+        const val ENGINE_NAME = "system_card"
         private const val TAG = "Janus-SystemCardPatch"
 
         // Non-music system card business names (must match p2.a.d keys)
@@ -44,8 +46,7 @@ class SystemCardEngine : HookEnginePlugin {
             "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates"
     }
 
-    @Volatile
-    private var templatePatched = false
+    private val templatePatched = AtomicBoolean(false)
 
     override fun install(
         module: XposedInterface,
@@ -124,8 +125,7 @@ class SystemCardEngine : HookEnginePlugin {
             val method = mgrCls.getDeclaredMethod(targets["manager_init_method"]!!, Context::class.java)
             module.hook(method).intercept(XposedInterface.Hooker { chain ->
                 val result = chain.proceed()
-                if (!templatePatched) {
-                    templatePatched = true
+                if (templatePatched.compareAndSet(false, true)) {
                     deployOverrides(overrides)
                     HookStatusReporter.reportBehavior("system_card_deploy", JSONObject().apply {
                         put("action", "deploy_templates")

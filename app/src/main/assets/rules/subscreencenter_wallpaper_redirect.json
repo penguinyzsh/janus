@@ -15,6 +15,7 @@
       "paramTypes": [],
       "action": {
         "type": "path_redirect",
+        "source": "active_wallpaper_path",
         "value": "/data/system/theme/rearScreenWhite/janus/custom.mrc"
       }
     }

@@ -3,6 +3,7 @@ package org.pysh.janus.hook.engine
 import android.content.SharedPreferences
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
+import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.hook.HookStatusReporter
 
 /**
@@ -22,6 +23,8 @@ class RuleEngine(
     fun registerEngine(name: String, engine: HookEnginePlugin) {
         engines[name] = engine
     }
+
+    fun engineNames(): Set<String> = engines.keys
 
     /**
      * Install all hooks defined by the given rules.
@@ -60,8 +63,6 @@ class RuleEngine(
     companion object {
         private const val TAG = "Janus-Engine"
 
-        private const val CONFIG_DIR = "/data/system/theme_magic/users/0/subscreencenter/janus/config"
-
         /**
          * Check if a config flag is enabled.
          *
@@ -72,7 +73,7 @@ class RuleEngine(
         fun isConfigEnabled(config: SharedPreferences, flag: String): Boolean {
             // File flag takes precedence when present
             try {
-                val flagFile = java.io.File("$CONFIG_DIR/$flag")
+                val flagFile = java.io.File("${JanusPaths.CONFIG_DIR}/$flag")
                 if (flagFile.exists()) {
                     val content = flagFile.readText().trim()
                     return content != "0" && content != "false"

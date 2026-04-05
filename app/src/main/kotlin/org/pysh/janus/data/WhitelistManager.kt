@@ -25,6 +25,8 @@ class WhitelistManager(private val context: Context) {
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_HIDE_TIME_TIP = "hide_time_tip"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
+        const val KEY_AUTO_ROTATE = "auto_rotate"
+        const val KEY_AUTO_ROTATE_INTERVAL = "auto_rotate_interval"
         val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
         val TRACKING_FLAG_PATH = JanusPaths.TRACKING_DISABLED
         val WALLPAPER_KEEP_ALIVE_FLAG_PATH = JanusPaths.WALLPAPER_KEEP_ALIVE
@@ -145,6 +147,46 @@ class WhitelistManager(private val context: Context) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOOP, enabled).commit()
     }
 
+    fun isAutoRotateEnabled(): Boolean {
+        return prefs.getBoolean(KEY_AUTO_ROTATE, false)
+    }
+
+    fun setAutoRotateEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_AUTO_ROTATE, enabled).commit()
+    }
+
+    fun getAutoRotateInterval(): Int {
+        // Default to 30 minutes
+        return prefs.getInt(KEY_AUTO_ROTATE_INTERVAL, 30)
+    }
+
+    fun setAutoRotateInterval(minutes: Int) {
+        prefs.edit().putInt(KEY_AUTO_ROTATE_INTERVAL, minutes).commit()
+    }
+
+    fun setActiveWallpaperPath(path: String) {
+        prefs.edit().putString("active_wallpaper_path", path).commit()
+        makePrefsWorldReadable()
+        syncRemoteString("active_wallpaper_path", path)
+        syncActiveWallpaperFlag(path)
+    }
+
+    private fun syncActiveWallpaperFlag(path: String) {
+        org.pysh.janus.util.JanusPaths.ensureAllDirs()
+        val flagPath = "${org.pysh.janus.util.JanusPaths.WALLPAPER_DIR}/active_wallpaper_path.txt"
+        val cmd = "printf '%s' '$path' > '$flagPath' && chmod 644 '$flagPath' && chcon u:object_r:theme_data_file:s0 '$flagPath'"
+        org.pysh.janus.util.RootUtils.exec(cmd)
+    }
+
+    /** Sync a single string config to RemotePreferences. */
+    private fun syncRemoteString(key: String, value: String) {
+        try {
+            JanusApplication.instance?.xposedService
+                ?.getRemotePreferences("janus_config")
+                ?.edit()?.putString(key, value)?.commit()
+        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
+    }
+
     fun saveWhitelist(packages: Set<String>) {
         val oldWhitelist = getWhitelist()
         prefs.edit()
@@ -206,6 +248,10 @@ class WhitelistManager(private val context: Context) {
         syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, isWallpaperKeepAlive())
         syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, isWallpaperLocked())
         syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, isTimeTipHidden())
+        val currentWpPath = prefs.getString("active_wallpaper_path", null)
+        if (currentWpPath != null) {
+            syncActiveWallpaperFlag(currentWpPath)
+        }
         // Card config is synced by CardManager.syncConfig()
         syncAllToRemotePrefs()
     }

@@ -1,7 +1,6 @@
 package org.pysh.janus.hook
 
 import android.app.Activity
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,7 +10,6 @@ import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
-import io.github.libxposed.api.XposedInterface
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -33,21 +31,23 @@ object ViewStateObserver {
 
     private var processName: String? = null
 
-    fun init(module: XposedInterface, packageName: String) {
+    /**
+     * Initialise the observer for this process.
+     *
+     * NOTE: This no longer hooks Application.onCreate() directly.
+     * Use [AppLifecycleHook] to drive [onAppCreated] instead.
+     */
+    fun init(packageName: String) {
         processName = packageName
-        try {
-            val onCreateMethod = Application::class.java.getDeclaredMethod("onCreate")
-            module.hook(onCreateMethod).intercept(XposedInterface.Hooker { chain ->
-                val result = chain.proceed()
-                val app = chain.thisObject as? Application
-                if (app != null) {
-                    registerReceiver(app.applicationContext)
-                }
-                result
-            })
-        } catch (e: Throwable) {
-            Log.e(TAG, "Failed to hook Application.onCreate: ${e.message}")
-        }
+    }
+
+    /**
+     * Called by [AppLifecycleHook] when Application.onCreate() fires.
+     * Registers the broadcast receiver for view state queries.
+     */
+    fun onAppCreated(context: android.content.Context, packageName: String) {
+        processName = packageName
+        registerReceiver(context)
     }
 
     private fun registerReceiver(context: Context) {

@@ -27,6 +27,9 @@ signing.properties
 Thumbs.db
 
 # AI & Local Scratch
+.agent
+.codex
 .claude/
+openspec/
 CLAUDE.md
 _*/

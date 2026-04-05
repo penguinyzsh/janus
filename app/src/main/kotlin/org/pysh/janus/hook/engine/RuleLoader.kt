@@ -38,23 +38,23 @@ object RuleLoader {
 
     private fun loadBundledRules(moduleAppInfo: ApplicationInfo): List<HookRule> {
         return try {
-            val appFile = java.util.zip.ZipFile(moduleAppInfo.sourceDir)
-            val rules = mutableListOf<HookRule>()
-            for (entry in appFile.entries()) {
-                if (entry.name.startsWith("assets/rules/") && entry.name.endsWith(".json")) {
-                    try {
-                        val json = appFile.getInputStream(entry).bufferedReader().readText()
-                        val rule = HookRule.fromJson(JSONObject(json), builtin = true)
-                        if (rule.schema == HookRule.SCHEMA_V1) {
-                            rules.add(rule)
+            java.util.zip.ZipFile(moduleAppInfo.sourceDir).use { appFile ->
+                val rules = mutableListOf<HookRule>()
+                for (entry in appFile.entries()) {
+                    if (entry.name.startsWith("assets/rules/") && entry.name.endsWith(".json")) {
+                        try {
+                            val json = appFile.getInputStream(entry).bufferedReader().readText()
+                            val rule = HookRule.fromJson(JSONObject(json), builtin = true)
+                            if (rule.schema == HookRule.SCHEMA_V1) {
+                                rules.add(rule)
+                            }
+                        } catch (e: Throwable) {
+                            Log.w(TAG, "Failed to parse rule ${entry.name}: ${e.message}")
                         }
-                    } catch (e: Throwable) {
-                        Log.w(TAG, "Failed to parse rule ${entry.name}: ${e.message}")
                     }
                 }
+                rules
             }
-            appFile.close()
-            rules
         } catch (e: Throwable) {
             Log.e(TAG, "Failed to load bundled rules: ${e.message}")
             emptyList()

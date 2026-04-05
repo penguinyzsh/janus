@@ -5,7 +5,7 @@ object RootUtils {
     fun hasRoot(): Boolean = exec("id")
 
     fun restartBackScreen(): Boolean =
-        exec("am force-stop com.xiaomi.subscreencenter")
+        exec("am broadcast -a org.pysh.janus.action.SMOOTH_REFRESH")
 
     fun exec(command: String): Boolean {
         return try {

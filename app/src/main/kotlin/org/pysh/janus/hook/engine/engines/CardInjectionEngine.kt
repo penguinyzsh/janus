@@ -50,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap
 class CardInjectionEngine : HookEnginePlugin {
 
     companion object {
+        const val ENGINE_NAME = "card_injection"
         private const val TAG = "Janus-Card"
         private const val JANUS_PKG = "org.pysh.janus"
         private const val BASE_NOTIF_ID = 19990
@@ -62,8 +63,8 @@ class CardInjectionEngine : HookEnginePlugin {
             "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates"
     }
 
-    private var manager: Any? = null
-    private var mainHandler: Handler? = null
+    @Volatile private var manager: Any? = null
+    @Volatile private var mainHandler: Handler? = null
     private val uiHandler = Handler(Looper.getMainLooper())
     @Volatile private var initialized = false
 
@@ -132,12 +133,14 @@ class CardInjectionEngine : HookEnginePlugin {
                 HashMap(origC).apply { put(JANUS_PKG, activeBusinesses) })
 
             // field d — business -> template path: only active businesses
+            val userId = Process.myUid() / 100_000
             @Suppress("UNCHECKED_CAST")
             val origD = ReflectUtils.getStaticField(cls, fieldD) as Map<String, String>
             ReflectUtils.setStaticField(cls, fieldD,
                 HashMap(origD).apply {
                     for (biz in activeBusinesses) {
-                        put(biz, "$TEMPLATE_BASE/$biz")
+                        val resolvedPath = TEMPLATE_BASE.replace("\$user_id", userId.toString()) + "/$biz"
+                        put(biz, resolvedPath)
                     }
                 })
 

@@ -73,7 +73,7 @@ object ActionExecutor {
         "merge_set" -> mergeSet(hookId, action, config)
         "merge_list" -> mergeList(hookId, action, config)
         "field_set" -> fieldSet(hookId, action, config, rule.configFlag)
-        "path_redirect" -> pathRedirect(hookId, action)
+        "path_redirect" -> pathRedirect(hookId, action, config)
         "force_arg" -> forceArg(hookId, action, config, rule.configFlag)
         else -> throw IllegalArgumentException("Unknown action type: ${action.type}")
     }
@@ -181,9 +181,20 @@ object ActionExecutor {
         result
     }
 
-    private fun pathRedirect(hookId: String, action: HookAction) = XposedInterface.Hooker { chain ->
+    private fun pathRedirect(hookId: String, action: HookAction, config: SharedPreferences) = XposedInterface.Hooker { chain ->
         val original = chain.proceed() as? String ?: return@Hooker null
-        val targetPath = action.value as? String ?: return@Hooker original
+        val defaultPath = action.value as? String
+        val targetPath = if (action.source == "active_wallpaper_path") {
+            try {
+                val flagFile = java.io.File("/data/system/theme/rearScreenWhite/janus/active_wallpaper_path.txt")
+                if (flagFile.exists()) flagFile.readText().trim() else defaultPath
+            } catch (e: Exception) { defaultPath }
+        } else if (!action.source.isNullOrEmpty()) {
+            config.getString(action.source, defaultPath) ?: defaultPath
+        } else {
+            defaultPath
+        } ?: return@Hooker original
+
         val exists = File(targetPath).exists()
         val redirected = exists && original != targetPath
         HookStatusReporter.reportBehavior(hookId, JSONObject().apply {

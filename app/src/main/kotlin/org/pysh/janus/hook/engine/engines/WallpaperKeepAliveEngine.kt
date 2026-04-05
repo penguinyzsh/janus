@@ -26,6 +26,7 @@ import org.pysh.janus.hook.engine.RuleEngine
 class WallpaperKeepAliveEngine : HookEnginePlugin {
 
     companion object {
+        const val ENGINE_NAME = "wallpaper_keep_alive"
         private const val TAG = "Janus-KeepAlive"
     }
 

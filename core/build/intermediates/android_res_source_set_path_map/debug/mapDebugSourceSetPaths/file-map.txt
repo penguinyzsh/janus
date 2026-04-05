@@ -1,8 +1,0 @@
-org.pysh.janus.core-pngs-0 /Volumes/APFS/Project/Github/janus/core/build/generated/res/pngs/debug
-org.pysh.janus.core-updated_navigation_xml-1 /Volumes/APFS/Project/Github/janus/core/build/generated/updated_navigation_xml/debug
-org.pysh.janus.core-mergeDebugResources-2 /Volumes/APFS/Project/Github/janus/core/build/intermediates/incremental/debug/mergeDebugResources/merged.dir
-org.pysh.janus.core-mergeDebugResources-3 /Volumes/APFS/Project/Github/janus/core/build/intermediates/incremental/debug/mergeDebugResources/stripped.dir
-org.pysh.janus.core-debug-4 /Volumes/APFS/Project/Github/janus/core/build/intermediates/merged_res/debug/mergeDebugResources
-org.pysh.janus.core-debug-5 /Volumes/APFS/Project/Github/janus/core/build/intermediates/packaged_res/debug/packageDebugResources
-org.pysh.janus.core-debug-6 /Volumes/APFS/Project/Github/janus/core/src/debug/res
-org.pysh.janus.core-main-7 /Volumes/APFS/Project/Github/janus/core/src/main/res

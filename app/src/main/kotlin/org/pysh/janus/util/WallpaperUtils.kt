@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Base64
 import org.json.JSONArray
 import org.json.JSONObject
+import org.pysh.janus.data.WhitelistManager
 import java.io.File
 import java.io.FileOutputStream
 import java.util.zip.CRC32
@@ -59,7 +60,7 @@ object WallpaperUtils {
         }
     }
 
-    fun replaceVideo(context: Context, videoUri: Uri, enableLoop: Boolean): Boolean {
+    fun replaceVideo(context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null): Boolean {
         val paths = detectWallpaper() ?: return false
         val cacheDir = ensureCacheDir(context)
 
@@ -78,6 +79,14 @@ object WallpaperUtils {
 
             if (!writeBack(resultZip, paths)) return false
             saveToJanusPath(resultZip.absolutePath)
+            if (wpId != null) {
+                JanusPaths.ensureWallpaperDir()
+                val destPath = "${JanusPaths.WALLPAPER_DIR}/wp_$wpId.mrc"
+                RootUtils.exec("cp '${resultZip.absolutePath}' '$destPath'")
+                fixOwnership(destPath)
+                WhitelistManager(context).setActiveWallpaperPath(destPath)
+            }
+            RootUtils.restartBackScreen()
             return true
         } finally {
             cacheDir.deleteRecursively()
@@ -139,7 +148,7 @@ object WallpaperUtils {
      * 从模板创建全新的 AI 动态壁纸并注入系统。
      * 当设备没有 AI 壁纸时使用。
      */
-    fun createAiWallpaper(context: Context, videoUri: Uri, enableLoop: Boolean): Boolean {
+    fun createAiWallpaper(context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null): Boolean {
         val cacheDir = ensureCacheDir(context)
         try {
             val userVideo = File(cacheDir, "user_video.mp4")
@@ -193,10 +202,40 @@ object WallpaperUtils {
             arr.put(aiEntry)
             if (!writeRuntimeJson(arr)) return false
 
-            // 保存到 Janus 专用路径（Hook 重定向目标）
             saveToJanusPath(mrcFile.absolutePath)
+            if (wpId != null) {
+                JanusPaths.ensureWallpaperDir()
+                val destPath = "${JanusPaths.WALLPAPER_DIR}/wp_$wpId.mrc"
+                RootUtils.exec("cp '${mrcFile.absolutePath}' '$destPath'")
+                fixOwnership(destPath)
+                WhitelistManager(context).setActiveWallpaperPath(destPath)
+            }
             RootUtils.restartBackScreen()
             return true
+        } finally {
+            cacheDir.deleteRecursively()
+        }
+    }
+
+    /**
+     * 将 .mrc 编译缓存直接拷贝到特定的动态 Janus 缓存目录，
+     * 用于通过 Hook 规则直接重定向。
+     */
+    fun applyDynamicWallpaper(context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String): String? {
+        val cacheDir = ensureCacheDir(context)
+        try {
+            val userVideo = File(cacheDir, "user_video.mp4")
+            context.contentResolver.openInputStream(videoUri)?.use { input ->
+                userVideo.outputStream().use { output -> input.copyTo(output) }
+            } ?: return null
+
+            val mrcFile = buildMrcFromTemplate(context, userVideo, enableLoop) ?: return null
+
+            JanusPaths.ensureWallpaperDir()
+            val destPath = "${JanusPaths.WALLPAPER_DIR}/wp_$wpId.mrc"
+            RootUtils.exec("cp '${mrcFile.absolutePath}' '$destPath'")
+            fixOwnership(destPath)
+            return destPath
         } finally {
             cacheDir.deleteRecursively()
         }

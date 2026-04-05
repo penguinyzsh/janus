@@ -37,7 +37,15 @@ object ActionExecutor {
                 val method = if (paramClasses != null) {
                     clazz.getDeclaredMethod(target.methodName, *paramClasses)
                 } else {
-                    clazz.declaredMethods.first { it.name == target.methodName }
+                    val candidates = clazz.declaredMethods.filter { it.name == target.methodName }
+                    if (candidates.isEmpty()) {
+                        throw NoSuchMethodException("${target.methodName} not found in ${target.className}")
+                    }
+                    if (candidates.size > 1) {
+                        Log.w(TAG, "Multiple methods named ${target.methodName} in ${target.className}, " +
+                            "specify paramTypes to disambiguate. Using first match.")
+                    }
+                    candidates.first()
                 }
                 val hooker = createHooker(target.id, target.action, rule, config)
                 module.hook(method).intercept(hooker)
@@ -81,17 +89,11 @@ object ActionExecutor {
         if (!enabled) {
             chain.proceed()
         } else {
-            val result = when (value) {
-                is Boolean -> value
-                is Number -> value
-                is String -> value
-                else -> value
-            }
             HookStatusReporter.reportBehavior(hookId, JSONObject().apply {
                 put("action", "return_constant")
-                put("returned", result)
+                put("returned", value)
             })
-            result
+            value
         }
     }
 
@@ -191,11 +193,7 @@ object ActionExecutor {
         }
         val index = action.paramIndex ?: 0
         val args = chain.args.toTypedArray()
-        args[index] = when (val v = action.value) {
-            is Boolean -> v
-            is Number -> v
-            else -> v
-        }
+        args[index] = action.value
         HookStatusReporter.reportBehavior(hookId, JSONObject().apply {
             put("action", "force_arg")
             put("index", index)

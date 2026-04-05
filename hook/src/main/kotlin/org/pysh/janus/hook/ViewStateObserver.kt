@@ -54,10 +54,27 @@ object ViewStateObserver {
         try {
             val receiver = object : BroadcastReceiver() {
                 override fun onReceive(ctx: Context, intent: Intent) {
-                    sendViewStateReport(ctx)
+                    if (intent.action == ACTION_QUERY) {
+                        sendViewStateReport(ctx)
+                    } else if (intent.action == "org.pysh.janus.action.SMOOTH_REFRESH") {
+                        try {
+                            val activity = getCurrentActivity()
+                            if (activity != null) {
+                                Log.i(TAG, "Smooth refresh triggered: recreating ${activity.javaClass.name}")
+                                activity.runOnUiThread {
+                                    activity.recreate()
+                                }
+                            } else {
+                                Log.w(TAG, "Smooth refresh ignored: no current activity found")
+                            }
+                        } catch (e: Throwable) {
+                            Log.e(TAG, "Smooth refresh failed: ${e.message}")
+                        }
+                    }
                 }
             }
             val filter = IntentFilter(ACTION_QUERY)
+            filter.addAction("org.pysh.janus.action.SMOOTH_REFRESH")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 context.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
             } else {

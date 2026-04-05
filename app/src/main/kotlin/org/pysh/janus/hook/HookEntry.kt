@@ -6,6 +6,7 @@ import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
 import org.pysh.janus.hook.engine.RuleEngine
 import org.pysh.janus.hook.engine.RuleLoader
+import org.pysh.janus.hook.engine.engines.AppleMusicLyricEngine
 import org.pysh.janus.hook.engine.engines.CardInjectionEngine
 import org.pysh.janus.hook.engine.engines.SystemCardEngine
 import org.pysh.janus.hook.engine.engines.WallpaperKeepAliveEngine
@@ -26,8 +27,10 @@ class HookEntry : XposedModule() {
         Log.d(TAG, "onPackageLoaded: $packageName")
 
         // Infrastructure: status reporter + view state observer (always active)
-        HookStatusReporter.init(this, packageName)
-        ViewStateObserver.init(this, packageName)
+        // Uses unified Application.onCreate hook to avoid double-hooking
+        HookStatusReporter.init(packageName)
+        ViewStateObserver.init(packageName)
+        AppLifecycleHook.init(this, packageName)
 
         // Load config from RemotePreferences (with file-flag fallback)
         val config = try {
@@ -60,10 +63,13 @@ class HookEntry : XposedModule() {
             module = this,
             config = config ?: EmptyPreferences,
         )
-        engine.registerEngine("whitelist", WhitelistEngine())
-        engine.registerEngine("system_card", SystemCardEngine())
-        engine.registerEngine("card_injection", CardInjectionEngine())
-        engine.registerEngine("wallpaper_keep_alive", WallpaperKeepAliveEngine())
+        engine.registerEngine(WhitelistEngine.ENGINE_NAME, WhitelistEngine())
+        engine.registerEngine(SystemCardEngine.ENGINE_NAME, SystemCardEngine())
+        engine.registerEngine(CardInjectionEngine.ENGINE_NAME, CardInjectionEngine())
+        engine.registerEngine(WallpaperKeepAliveEngine.ENGINE_NAME, WallpaperKeepAliveEngine())
+        engine.registerEngine(AppleMusicLyricEngine.ENGINE_NAME, AppleMusicLyricEngine())
+
+        Log.i(TAG, "=== Janus v1.1.2-lyric code loaded for $packageName, engines: ${engine.engineNames()} ===")
 
         engine.install(rules, classLoader)
     }

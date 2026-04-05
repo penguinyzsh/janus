@@ -98,6 +98,30 @@
     <string name="wp_restore">恢复原始壁纸</string>
     <string name="wp_restore_success">已恢复原始壁纸，背屏正在重启</string>
 
+    <!-- 壁纸库 -->
+    <string name="wp_gallery_title">壁纸库</string>
+    <string name="wp_add">添加壁纸</string>
+    <string name="wp_applied">已应用</string>
+    <string name="wp_apply">使用</string>
+    <string name="wp_rename">重命名</string>
+    <string name="wp_delete">删除</string>
+    <string name="wp_delete_confirm">确认删除此壁纸？</string>
+    <string name="wp_replace_video">替换视频</string>
+    <string name="wp_edit_mode">编辑</string>
+    <string name="wp_edit_done">完成</string>
+    <string name="wp_empty">暂无壁纸</string>
+    <string name="wp_count">%d 个壁纸</string>
+    <string name="wp_apply_success">壁纸已应用，背屏正在重启</string>
+    <string name="wp_delete_success">壁纸已删除</string>
+    <string name="wp_name_default">壁纸 %d</string>
+    <string name="wp_import_failed">导入壁纸失败</string>
+    <string name="wp_rename_title">重命名壁纸</string>
+    <string name="wp_settings">壁纸设置</string>
+    <string name="wp_auto_rotate">自动轮换壁纸</string>
+    <string name="wp_auto_rotate_desc">按指定间隔时间自动切换到下一张壁纸</string>
+    <string name="wp_auto_rotate_interval">定时切换间隔 (秒)</string>
+    <string name="wp_auto_rotate_interval_summary">每 %1$d 秒</string>
+
     <string name="section_weather">天气</string>
     <string name="weather_refresh_interval">刷新间隔</string>
     <string name="weather_refresh_interval_value">%d 分钟</string>
