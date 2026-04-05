@@ -1,7 +1,7 @@
 package org.pysh.janus.hook.engine.engines
 
 import android.content.Context
-import android.content.SharedPreferences
+import org.pysh.janus.hookapi.ConfigSource
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -75,7 +75,7 @@ class CardInjectionEngine : HookEnginePlugin {
         module: XposedInterface,
         rule: HookRule,
         classLoader: ClassLoader,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         targets = rule.targets!!
 

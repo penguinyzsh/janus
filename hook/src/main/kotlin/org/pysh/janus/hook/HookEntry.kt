@@ -4,7 +4,10 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
+import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.hook.BuildConfig
+import org.pysh.janus.hook.config.FileFlagConfigSource
+import org.pysh.janus.hook.config.SharedPreferencesConfigSource
 import org.pysh.janus.hook.engine.RuleEngine
 import org.pysh.janus.hook.engine.RuleLoader
 import org.pysh.janus.hook.engine.engines.AppleMusicLyricEngine
@@ -12,14 +15,11 @@ import org.pysh.janus.hook.engine.engines.CardInjectionEngine
 import org.pysh.janus.hook.engine.engines.SystemCardEngine
 import org.pysh.janus.hook.engine.engines.WallpaperKeepAliveEngine
 import org.pysh.janus.hook.engine.engines.WhitelistEngine
+import org.pysh.janus.hookapi.ConfigSource
+import java.io.File
 
 @android.annotation.SuppressLint("NewApi")
 class HookEntry : XposedModule() {
-
-    companion object {
-        private const val TAG = "Janus"
-        private const val TARGET_PACKAGE = "com.xiaomi.subscreencenter"
-    }
 
     override fun onPackageLoaded(param: PackageLoadedParam) {
         val packageName = param.packageName
@@ -27,21 +27,19 @@ class HookEntry : XposedModule() {
 
         Log.d(TAG, "onPackageLoaded: $packageName")
 
-        // Infrastructure: status reporter + view state observer (always active)
-        // Uses unified Application.onCreate hook to avoid double-hooking
+        // Infrastructure: status reporter + view state observer (always active).
+        // Uses unified Application.onCreate hook to avoid double-hooking.
         HookStatusReporter.init(packageName)
         ViewStateObserver.init(packageName)
         AppLifecycleHook.init(this, packageName)
 
-        // Load config from RemotePreferences (with file-flag fallback)
-        val config = try {
-            getRemotePreferences("janus_config")
-        } catch (e: Throwable) {
-            Log.w(TAG, "RemotePreferences not available, using empty config: ${e.message}")
-            null
-        }
+        // Build the engine-facing config store: file-flag overrides layered
+        // over RemotePreferences (or the Empty sentinel when unavailable).
+        val config: ConfigSource = buildConfigSource()
 
-        // Load rules for this package
+        // Load rules for this package. `rulesPrefs` is a separate remote store
+        // that persists user-imported custom rules; it is not the same as the
+        // engine config above and still talks to SharedPreferences directly.
         val rulesPrefs = try {
             getRemotePreferences("janus_rules")
         } catch (_: Throwable) {
@@ -59,11 +57,7 @@ class HookEntry : XposedModule() {
             return
         }
 
-        // Create engine and install rules
-        val engine = RuleEngine(
-            module = this,
-            config = config ?: EmptyPreferences,
-        )
+        val engine = RuleEngine(module = this, config = config)
         engine.registerEngine(WhitelistEngine.ENGINE_NAME, WhitelistEngine())
         engine.registerEngine(SystemCardEngine.ENGINE_NAME, SystemCardEngine())
         engine.registerEngine(CardInjectionEngine.ENGINE_NAME, CardInjectionEngine())
@@ -80,20 +74,21 @@ class HookEntry : XposedModule() {
         engine.install(rules, classLoader)
     }
 
-    /**
-     * Empty SharedPreferences fallback when RemotePreferences is unavailable.
-     */
-    private object EmptyPreferences : android.content.SharedPreferences {
-        override fun getAll(): MutableMap<String, *> = mutableMapOf<String, Any>()
-        override fun getString(key: String?, defValue: String?): String? = defValue
-        override fun getStringSet(key: String?, defValues: MutableSet<String>?): MutableSet<String>? = defValues
-        override fun getInt(key: String?, defValue: Int): Int = defValue
-        override fun getLong(key: String?, defValue: Long): Long = defValue
-        override fun getFloat(key: String?, defValue: Float): Float = defValue
-        override fun getBoolean(key: String?, defValue: Boolean): Boolean = defValue
-        override fun contains(key: String?): Boolean = false
-        override fun edit(): android.content.SharedPreferences.Editor = throw UnsupportedOperationException()
-        override fun registerOnSharedPreferenceChangeListener(listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener?) {}
-        override fun unregisterOnSharedPreferenceChangeListener(listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener?) {}
+    private fun buildConfigSource(): ConfigSource {
+        val remote: ConfigSource =
+            try {
+                SharedPreferencesConfigSource(getRemotePreferences("janus_config"))
+            } catch (e: Throwable) {
+                Log.w(TAG, "RemotePreferences unavailable, using Empty fallback: ${e.message}")
+                ConfigSource.Empty
+            }
+        return FileFlagConfigSource(
+            flagsDir = File(JanusPaths.CONFIG_DIR),
+            delegate = remote,
+        )
+    }
+
+    private companion object {
+        const val TAG = "Janus"
     }
 }

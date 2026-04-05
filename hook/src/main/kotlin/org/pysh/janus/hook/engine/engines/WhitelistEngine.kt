@@ -1,6 +1,6 @@
 package org.pysh.janus.hook.engine.engines
 
-import android.content.SharedPreferences
+import org.pysh.janus.hookapi.ConfigSource
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
@@ -37,7 +37,7 @@ class WhitelistEngine : HookEnginePlugin {
         module: XposedInterface,
         rule: HookRule,
         classLoader: ClassLoader,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         val targets = rule.targets!!
         val whitelistClassName = targets["whitelist_class"]!!
@@ -70,7 +70,7 @@ class WhitelistEngine : HookEnginePlugin {
         module: XposedInterface,
         targetClass: Class<*>,
         methodName: String,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         try {
             val method = targetClass.getDeclaredMethod(methodName, String::class.java)
@@ -102,7 +102,7 @@ class WhitelistEngine : HookEnginePlugin {
         module: XposedInterface,
         targetClass: Class<*>,
         methodName: String,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         try {
             val method = targetClass.getDeclaredMethod(methodName)
@@ -139,7 +139,7 @@ class WhitelistEngine : HookEnginePlugin {
         classLoader: ClassLoader,
         className: String,
         methodName: String,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         try {
             val cls = classLoader.loadClass(className)
@@ -167,7 +167,7 @@ class WhitelistEngine : HookEnginePlugin {
         }
     }
 
-    private fun getCustomWhitelist(config: SharedPreferences): Set<String> {
+    private fun getCustomWhitelist(config: ConfigSource): Set<String> {
         // Read from file flag first (written by app side), fall back to RemotePreferences
         return try {
             val flagFile = java.io.File(WHITELIST_FLAG_PATH)

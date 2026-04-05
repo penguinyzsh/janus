@@ -1,6 +1,6 @@
 package org.pysh.janus.hook.engine
 
-import android.content.SharedPreferences
+import org.pysh.janus.hookapi.ConfigSource
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
@@ -24,7 +24,7 @@ object ActionExecutor {
         target: HookTarget,
         classLoader: ClassLoader,
         rule: HookRule,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         try {
             val clazz = classLoader.loadClass(target.className)
@@ -65,7 +65,7 @@ object ActionExecutor {
         hookId: String,
         action: HookAction,
         rule: HookRule,
-        config: SharedPreferences,
+        config: ConfigSource,
     ): XposedInterface.Hooker = when (action.type) {
         "block_method" -> blockMethod(hookId, config, rule.configFlag)
         "return_constant" -> returnConstant(hookId, action.value, config, rule.configFlag)
@@ -78,8 +78,8 @@ object ActionExecutor {
         else -> throw IllegalArgumentException("Unknown action type: ${action.type}")
     }
 
-    private fun blockMethod(hookId: String, config: SharedPreferences, flag: String?) = XposedInterface.Hooker { chain ->
-        val blocked = flag == null || RuleEngine.isConfigEnabled(config, flag)
+    private fun blockMethod(hookId: String, config: ConfigSource, flag: String?) = XposedInterface.Hooker { chain ->
+        val blocked = flag == null || config.getBoolean(flag, false)
         HookStatusReporter.reportBehavior(hookId, JSONObject().apply {
             put("action", "block_method")
             put("blocked", blocked)
@@ -87,8 +87,8 @@ object ActionExecutor {
         if (blocked) null else chain.proceed()
     }
 
-    private fun returnConstant(hookId: String, value: Any?, config: SharedPreferences, flag: String?) = XposedInterface.Hooker { chain ->
-        val enabled = flag == null || RuleEngine.isConfigEnabled(config, flag)
+    private fun returnConstant(hookId: String, value: Any?, config: ConfigSource, flag: String?) = XposedInterface.Hooker { chain ->
+        val enabled = flag == null || config.getBoolean(flag, false)
         if (!enabled) {
             chain.proceed()
         } else {
@@ -101,7 +101,7 @@ object ActionExecutor {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun checkInSet(hookId: String, action: HookAction, config: SharedPreferences) = XposedInterface.Hooker { chain ->
+    private fun checkInSet(hookId: String, action: HookAction, config: ConfigSource) = XposedInterface.Hooker { chain ->
         val result = chain.proceed()
         if (result == true) return@Hooker result
         val arg = chain.args[action.paramIndex ?: 0] as? String ?: return@Hooker result
@@ -116,7 +116,7 @@ object ActionExecutor {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun mergeSet(hookId: String, action: HookAction, config: SharedPreferences) = XposedInterface.Hooker { chain ->
+    private fun mergeSet(hookId: String, action: HookAction, config: ConfigSource) = XposedInterface.Hooker { chain ->
         val result = chain.proceed()
         val customSet = getDataSource(action.source, config)
         if (customSet.isEmpty()) return@Hooker result
@@ -138,7 +138,7 @@ object ActionExecutor {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun mergeList(hookId: String, action: HookAction, config: SharedPreferences) = XposedInterface.Hooker { chain ->
+    private fun mergeList(hookId: String, action: HookAction, config: ConfigSource) = XposedInterface.Hooker { chain ->
         val list = chain.args[action.paramIndex ?: 0] as? MutableList<String>
         var mergedCount = 0
         if (list != null) {
@@ -157,9 +157,9 @@ object ActionExecutor {
         chain.proceed()
     }
 
-    private fun fieldSet(hookId: String, action: HookAction, config: SharedPreferences, flag: String?) = XposedInterface.Hooker { chain ->
+    private fun fieldSet(hookId: String, action: HookAction, config: ConfigSource, flag: String?) = XposedInterface.Hooker { chain ->
         val result = chain.proceed()
-        if (flag != null && !RuleEngine.isConfigEnabled(config, flag)) return@Hooker result
+        if (flag != null && !config.getBoolean(flag, false)) return@Hooker result
         val obj = chain.thisObject ?: return@Hooker result
         val fieldName = action.field ?: return@Hooker result
         when (val value = action.value) {
@@ -190,8 +190,8 @@ object ActionExecutor {
         if (redirected) targetPath else original
     }
 
-    private fun forceArg(hookId: String, action: HookAction, config: SharedPreferences, flag: String?) = XposedInterface.Hooker { chain ->
-        if (flag != null && !RuleEngine.isConfigEnabled(config, flag)) {
+    private fun forceArg(hookId: String, action: HookAction, config: ConfigSource, flag: String?) = XposedInterface.Hooker { chain ->
+        if (flag != null && !config.getBoolean(flag, false)) {
             return@Hooker chain.proceed()
         }
         val index = action.paramIndex ?: 0
@@ -205,7 +205,7 @@ object ActionExecutor {
         chain.proceed(args)
     }
 
-    private fun getDataSource(source: String?, config: SharedPreferences): Set<String> {
+    private fun getDataSource(source: String?, config: ConfigSource): Set<String> {
         if (source == null) return emptySet()
         return when (source) {
             "whitelist" -> {

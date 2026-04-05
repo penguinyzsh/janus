@@ -1,7 +1,7 @@
 package org.pysh.janus.hook.engine.engines
 
 import android.annotation.SuppressLint
-import android.content.SharedPreferences
+import org.pysh.janus.hookapi.ConfigSource
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
@@ -35,7 +35,7 @@ class WallpaperKeepAliveEngine : HookEnginePlugin {
         module: XposedInterface,
         rule: HookRule,
         classLoader: ClassLoader,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         val targets = rule.targets!!
         val launcherClassName = targets["launcher_class"]!!
@@ -50,7 +50,7 @@ class WallpaperKeepAliveEngine : HookEnginePlugin {
             // -> ScreenElementRoot destroyed -> animation restarts from 0 on resume.
             // By skipping onPause body, widgets stay alive and animation continues.
             module.hook(onPauseMethod).intercept(XposedInterface.Hooker { chain ->
-                if (!RuleEngine.isConfigEnabled(config, "wallpaper_keep_alive")) {
+                if (!config.getBoolean("wallpaper_keep_alive", false)) {
                     return@Hooker chain.proceed()
                 }
 

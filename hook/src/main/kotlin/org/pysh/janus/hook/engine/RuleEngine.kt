@@ -1,10 +1,8 @@
 package org.pysh.janus.hook.engine
 
-import android.content.SharedPreferences
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
-import org.pysh.janus.core.util.JanusPaths
-import org.pysh.janus.hook.HookStatusReporter
+import org.pysh.janus.hookapi.ConfigSource
 import org.pysh.janus.hookapi.HookRule
 
 /**
@@ -17,7 +15,7 @@ import org.pysh.janus.hookapi.HookRule
  */
 class RuleEngine(
     private val module: XposedInterface,
-    private val config: SharedPreferences,
+    private val config: ConfigSource,
 ) {
     private val engines = mutableMapOf<String, HookEnginePlugin>()
 
@@ -61,31 +59,7 @@ class RuleEngine(
         engine.install(module, rule, classLoader, config)
     }
 
-    companion object {
-        private const val TAG = "Janus-Engine"
-
-        /**
-         * Check if a config flag is enabled.
-         *
-         * Priority: file flag (if present) > RemotePreferences.
-         * File flag content: "0"/"false" = disabled, anything else (including empty) = enabled.
-         * This allows the test infrastructure to override RemotePreferences reliably.
-         */
-        fun isConfigEnabled(config: SharedPreferences, flag: String): Boolean {
-            // File flag takes precedence when present
-            try {
-                val flagFile = java.io.File("${JanusPaths.CONFIG_DIR}/$flag")
-                if (flagFile.exists()) {
-                    val content = flagFile.readText().trim()
-                    return content != "0" && content != "false"
-                }
-            } catch (_: Throwable) { }
-            // Fall back to RemotePreferences
-            return try {
-                config.getBoolean(flag, false)
-            } catch (_: Throwable) {
-                false
-            }
-        }
+    private companion object {
+        const val TAG = "Janus-Engine"
     }
 }

@@ -1,6 +1,6 @@
 package org.pysh.janus.hook.engine.engines
 
-import android.content.SharedPreferences
+import org.pysh.janus.hookapi.ConfigSource
 import android.media.MediaMetadata
 import android.media.session.MediaSession
 import android.media.session.PlaybackState
@@ -68,7 +68,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
         module: XposedInterface,
         rule: HookRule,
         classLoader: ClassLoader,
-        config: SharedPreferences,
+        config: ConfigSource,
     ) {
         // Initialize handlers
         mainHandler = Handler(Looper.getMainLooper())
@@ -108,14 +108,14 @@ class AppleMusicLyricEngine : HookEnginePlugin {
 
     private fun hookPlaybackState(
         module: XposedInterface,
-        config: SharedPreferences,
+        config: ConfigSource,
         configFlag: String?,
     ) {
         try {
             for (ctor in PlaybackState::class.java.declaredConstructors) {
                 module.hook(ctor).intercept(XposedInterface.Hooker { chain ->
                     val result = chain.proceed()
-                    if (configFlag == null || RuleEngine.isConfigEnabled(config, configFlag)) {
+                    if (configFlag == null || config.getBoolean(configFlag, false)) {
                         playbackState = chain.thisObject as? PlaybackState
                     }
                     result
@@ -134,7 +134,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
 
     private fun hookMediaSessionSetMetadata(
         module: XposedInterface,
-        config: SharedPreferences,
+        config: ConfigSource,
         configFlag: String?,
     ) {
         try {
@@ -142,7 +142,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
                 "setMetadata", MediaMetadata::class.java
             )
             module.hook(method).intercept(XposedInterface.Hooker { chain ->
-                if (configFlag != null && !RuleEngine.isConfigEnabled(config, configFlag)) {
+                if (configFlag != null && !config.getBoolean(configFlag, false)) {
                     return@Hooker chain.proceed()
                 }
 
@@ -189,7 +189,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
 
     private fun hookMediaSessionSetPlaybackState(
         module: XposedInterface,
-        config: SharedPreferences,
+        config: ConfigSource,
         configFlag: String?,
     ) {
         try {
@@ -197,7 +197,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
                 "setPlaybackState", PlaybackState::class.java
             )
             module.hook(method).intercept(XposedInterface.Hooker { chain ->
-                if (configFlag != null && !RuleEngine.isConfigEnabled(config, configFlag)) {
+                if (configFlag != null && !config.getBoolean(configFlag, false)) {
                     return@Hooker chain.proceed()
                 }
 
@@ -235,7 +235,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
         module: XposedInterface,
         classLoader: ClassLoader,
         className: String,
-        config: SharedPreferences,
+        config: ConfigSource,
         configFlag: String?,
     ): Boolean {
         return try {
@@ -247,7 +247,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
             }
 
             module.hook(method).intercept(XposedInterface.Hooker { chain ->
-                if (configFlag != null && !RuleEngine.isConfigEnabled(config, configFlag)) {
+                if (configFlag != null && !config.getBoolean(configFlag, false)) {
                     return@Hooker chain.proceed()
                 }
 
@@ -355,7 +355,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
         module: XposedInterface,
         classLoader: ClassLoader,
         className: String,
-        config: SharedPreferences,
+        config: ConfigSource,
         configFlag: String?,
     ) {
         try {
@@ -373,7 +373,7 @@ class AppleMusicLyricEngine : HookEnginePlugin {
             }
 
             module.hook(method).intercept(XposedInterface.Hooker { chain ->
-                if (configFlag != null && !RuleEngine.isConfigEnabled(config, configFlag)) {
+                if (configFlag != null && !config.getBoolean(configFlag, false)) {
                     return@Hooker chain.proceed()
                 }
 

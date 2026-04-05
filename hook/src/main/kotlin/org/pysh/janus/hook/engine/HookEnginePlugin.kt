@@ -1,6 +1,6 @@
 package org.pysh.janus.hook.engine
 
-import android.content.SharedPreferences
+import org.pysh.janus.hookapi.ConfigSource
 import io.github.libxposed.api.XposedInterface
 import org.pysh.janus.hookapi.HookRule
 
@@ -23,6 +23,6 @@ interface HookEnginePlugin {
         module: XposedInterface,
         rule: HookRule,
         classLoader: ClassLoader,
-        config: SharedPreferences,
+        config: ConfigSource,
     )
 }
