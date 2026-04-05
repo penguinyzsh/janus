@@ -24,8 +24,9 @@ import java.util.UUID
  *             video.mp4
  *             thumb.jpg
  */
-class WallpaperManager(private val context: Context) {
-
+class WallpaperManager(
+    private val context: Context,
+) {
     data class WallpaperEntry(
         val id: String,
         val name: String,
@@ -48,7 +49,8 @@ class WallpaperManager(private val context: Context) {
         if (!metaFile.exists()) return emptyList()
         return try {
             val arr = JSONArray(metaFile.readText())
-            (0 until arr.length()).map { parseEntry(arr.getJSONObject(it)) }
+            (0 until arr.length())
+                .map { parseEntry(arr.getJSONObject(it)) }
                 .sortedBy { it.order }
         } catch (_: Exception) {
             emptyList()
@@ -85,7 +87,7 @@ class WallpaperManager(private val context: Context) {
 
         val existing = getWallpapers()
         val nextOrder = (existing.maxOfOrNull { it.order } ?: -1) + 1
-        
+
         var originalName: String? = null
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
@@ -95,20 +97,23 @@ class WallpaperManager(private val context: Context) {
                 }
             }
         }
-        
-        val defaultName = originalName.takeIf { !it.isNullOrBlank() } ?: context.getString(
-            org.pysh.janus.R.string.wp_name_default, existing.size + 1
-        )
 
-        val entry = WallpaperEntry(
-            id = id,
-            name = defaultName,
-            videoPath = videoFile.absolutePath,
-            thumbnailPath = if (thumbFile.exists()) thumbFile.absolutePath else "",
-            order = nextOrder,
-            isApplied = false,
-            addedAt = System.currentTimeMillis(),
-        )
+        val defaultName =
+            originalName.takeIf { !it.isNullOrBlank() } ?: context.getString(
+                org.pysh.janus.R.string.wp_name_default,
+                existing.size + 1,
+            )
+
+        val entry =
+            WallpaperEntry(
+                id = id,
+                name = defaultName,
+                videoPath = videoFile.absolutePath,
+                thumbnailPath = if (thumbFile.exists()) thumbFile.absolutePath else "",
+                order = nextOrder,
+                isApplied = false,
+                addedAt = System.currentTimeMillis(),
+            )
 
         saveEntries(existing + entry)
         return entry
@@ -131,23 +136,26 @@ class WallpaperManager(private val context: Context) {
      * The caller is responsible for actually deploying the video via [WallpaperUtils].
      */
     fun markApplied(id: String) {
-        val entries = getWallpapers().map {
-            it.copy(isApplied = it.id == id)
-        }
+        val entries =
+            getWallpapers().map {
+                it.copy(isApplied = it.id == id)
+            }
         saveEntries(entries)
     }
 
     /** Returns the video file path for the given wallpaper entry. */
-    fun getVideoPath(id: String): String? {
-        return getWallpapers().find { it.id == id }?.videoPath
-    }
+    fun getVideoPath(id: String): String? = getWallpapers().find { it.id == id }?.videoPath
 
     // ── Rename ───────────────────────────────────────────────────
 
-    fun renameWallpaper(id: String, newName: String) {
-        val entries = getWallpapers().map {
-            if (it.id == id) it.copy(name = newName) else it
-        }
+    fun renameWallpaper(
+        id: String,
+        newName: String,
+    ) {
+        val entries =
+            getWallpapers().map {
+                if (it.id == id) it.copy(name = newName) else it
+            }
         saveEntries(entries)
     }
 
@@ -155,18 +163,24 @@ class WallpaperManager(private val context: Context) {
 
     fun reorderWallpapers(orderedIds: List<String>) {
         val entries = getWallpapers().associateBy { it.id }
-        val reordered = orderedIds.mapIndexedNotNull { index, id ->
-            entries[id]?.copy(order = index)
-        }
+        val reordered =
+            orderedIds.mapIndexedNotNull { index, id ->
+                entries[id]?.copy(order = index)
+            }
         // Keep any entries not in orderedIds at the end
-        val remaining = entries.values.filter { it.id !in orderedIds }
-            .mapIndexed { index, entry -> entry.copy(order = orderedIds.size + index) }
+        val remaining =
+            entries.values
+                .filter { it.id !in orderedIds }
+                .mapIndexed { index, entry -> entry.copy(order = orderedIds.size + index) }
         saveEntries(reordered + remaining)
     }
 
     // ── Replace video ────────────────────────────────────────────
 
-    fun replaceVideo(id: String, uri: Uri): Boolean {
+    fun replaceVideo(
+        id: String,
+        uri: Uri,
+    ): Boolean {
         val entryDir = File(wallpapersDir, id)
         if (!entryDir.exists()) return false
 
@@ -195,8 +209,8 @@ class WallpaperManager(private val context: Context) {
 
     // ── Thumbnail generation ─────────────────────────────────────
 
-    private fun generateThumbnail(videoPath: String): Bitmap? {
-        return try {
+    private fun generateThumbnail(videoPath: String): Bitmap? =
+        try {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(videoPath)
             val frame = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
@@ -205,7 +219,6 @@ class WallpaperManager(private val context: Context) {
         } catch (_: Exception) {
             null
         }
-    }
 
     // ── Persistence ──────────────────────────────────────────────
 
@@ -217,8 +230,8 @@ class WallpaperManager(private val context: Context) {
         metaFile.writeText(arr.toString(2))
     }
 
-    private fun entryToJson(entry: WallpaperEntry): JSONObject {
-        return JSONObject().apply {
+    private fun entryToJson(entry: WallpaperEntry): JSONObject =
+        JSONObject().apply {
             put("id", entry.id)
             put("name", entry.name)
             put("videoPath", entry.videoPath)
@@ -227,10 +240,9 @@ class WallpaperManager(private val context: Context) {
             put("isApplied", entry.isApplied)
             put("addedAt", entry.addedAt)
         }
-    }
 
-    private fun parseEntry(json: JSONObject): WallpaperEntry {
-        return WallpaperEntry(
+    private fun parseEntry(json: JSONObject): WallpaperEntry =
+        WallpaperEntry(
             id = json.getString("id"),
             name = json.optString("name", ""),
             videoPath = json.optString("videoPath", ""),
@@ -239,5 +251,4 @@ class WallpaperManager(private val context: Context) {
             isApplied = json.optBoolean("isApplied", false),
             addedAt = json.optLong("addedAt", 0L),
         )
-    }
 }

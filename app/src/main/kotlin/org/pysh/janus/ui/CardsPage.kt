@@ -39,10 +39,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.pysh.janus.R
-import org.pysh.janus.hookapi.CardInfo
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.util.RootUtils
-import top.yukonga.miuix.kmp.extra.SuperArrow
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import top.yukonga.miuix.kmp.basic.Card
@@ -54,6 +52,7 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
@@ -91,46 +90,48 @@ fun CardsPage(
         }
     }
 
-    val cardPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val result = withContext(Dispatchers.IO) { cardManager?.addCard(uri) }
-            if (result != null) {
-                cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
-                onCardsChanged()
-                withContext(Dispatchers.IO) {
-                    cardManager?.syncConfig()
-                    cardManager?.prepareCardsForHook()
-                    RootUtils.restartBackScreen()
-                }
-                Toast.makeText(context, context.getString(R.string.cards_import_success, result.name), Toast.LENGTH_SHORT).show()
-            } else {
-                if (cardManager?.getNextAvailableSlot() == null) {
-                    Toast.makeText(context, context.getString(R.string.cards_no_slot), Toast.LENGTH_SHORT).show()
+    val cardPicker =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val result = withContext(Dispatchers.IO) { cardManager?.addCard(uri) }
+                if (result != null) {
+                    cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
+                    onCardsChanged()
+                    withContext(Dispatchers.IO) {
+                        cardManager?.syncConfig()
+                        cardManager?.prepareCardsForHook()
+                        RootUtils.restartBackScreen()
+                    }
+                    Toast.makeText(context, context.getString(R.string.cards_import_success, result.name), Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(context, context.getString(R.string.cards_import_failed), Toast.LENGTH_SHORT).show()
+                    if (cardManager?.getNextAvailableSlot() == null) {
+                        Toast.makeText(context, context.getString(R.string.cards_no_slot), Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(context, context.getString(R.string.cards_import_failed), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
-    }
 
     val scrollBehavior = MiuixScrollBehavior()
     val title = stringResource(R.string.nav_cards)
 
     val lazyListState = rememberLazyListState()
-    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
-        val fromSlot = from.key as? Int ?: return@rememberReorderableLazyListState
-        val toSlot = to.key as? Int ?: return@rememberReorderableLazyListState
-        val mutableCards = cards.toMutableList()
-        val fromIndex = mutableCards.indexOfFirst { it.slot == fromSlot }
-        val toIndex = mutableCards.indexOfFirst { it.slot == toSlot }
-        if (fromIndex != -1 && toIndex != -1) {
-            mutableCards.add(toIndex, mutableCards.removeAt(fromIndex))
-            cards = mutableCards
+    val reorderableState =
+        rememberReorderableLazyListState(lazyListState) { from, to ->
+            val fromSlot = from.key as? Int ?: return@rememberReorderableLazyListState
+            val toSlot = to.key as? Int ?: return@rememberReorderableLazyListState
+            val mutableCards = cards.toMutableList()
+            val fromIndex = mutableCards.indexOfFirst { it.slot == fromSlot }
+            val toIndex = mutableCards.indexOfFirst { it.slot == toSlot }
+            if (fromIndex != -1 && toIndex != -1) {
+                mutableCards.add(toIndex, mutableCards.removeAt(fromIndex))
+                cards = mutableCards
+            }
         }
-    }
 
     Scaffold(
         topBar = {
@@ -144,15 +145,17 @@ fun CardsPage(
     ) { innerPadding ->
         LazyColumn(
             state = lazyListState,
-            modifier = Modifier
-                .fillMaxHeight()
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(horizontal = 12.dp),
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding(),
-                bottom = bottomPadding,
-            ),
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(horizontal = 12.dp),
+            contentPadding =
+                PaddingValues(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = bottomPadding,
+                ),
             overscrollEffect = null,
         ) {
             // Master toggle
@@ -170,7 +173,12 @@ fun CardsPage(
                                     cardManager?.syncConfig()
                                     RootUtils.restartBackScreen()
                                 }
-                                Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
+                                Toast
+                                    .makeText(
+                                        context,
+                                        context.getString(if (it) R.string.enabled else R.string.disabled),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                         },
                     )
@@ -198,9 +206,10 @@ fun CardsPage(
                 item(key = "empty_state") {
                     Card(modifier = Modifier.padding(bottom = 8.dp)) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 14.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 14.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
@@ -216,37 +225,40 @@ fun CardsPage(
                     ReorderableItem(reorderableState, key = card.slot) { isDragging ->
                         val elevation by animateDpAsState(if (isDragging) 8.dp else 0.dp, label = "drag_elevation")
                         Card(
-                            modifier = Modifier
-                                .padding(bottom = 8.dp)
-                                .shadow(elevation),
+                            modifier =
+                                Modifier
+                                    .padding(bottom = 8.dp)
+                                    .shadow(elevation),
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onCardClick(card.slot) }
-                                    .padding(horizontal = 12.dp, vertical = 14.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable { onCardClick(card.slot) }
+                                        .padding(horizontal = 12.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 // Drag handle
                                 Icon(
                                     imageVector = MiuixIcons.More,
                                     contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .longPressDraggableHandle(
-                                            onDragStopped = {
-                                                val reordered = cards.toList()
-                                                scope.launch {
-                                                    withContext(Dispatchers.IO) {
-                                                        cardManager?.reorderCards(reordered)
-                                                        cardManager?.syncConfig()
-                                                        cardManager?.prepareCardsForHook()
-                                                        RootUtils.restartBackScreen()
+                                    modifier =
+                                        Modifier
+                                            .size(24.dp)
+                                            .longPressDraggableHandle(
+                                                onDragStopped = {
+                                                    val reordered = cards.toList()
+                                                    scope.launch {
+                                                        withContext(Dispatchers.IO) {
+                                                            cardManager?.reorderCards(reordered)
+                                                            cardManager?.syncConfig()
+                                                            cardManager?.prepareCardsForHook()
+                                                            RootUtils.restartBackScreen()
+                                                        }
+                                                        cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
                                                     }
-                                                    cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()
-                                                }
-                                            },
-                                        ),
+                                                },
+                                            ),
                                     tint = MiuixTheme.colorScheme.onSurfaceVariantActions,
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -288,9 +300,10 @@ fun CardsPage(
                 TextButton(
                     text = stringResource(R.string.cards_import),
                     onClick = { cardPicker.launch(arrayOf("application/zip", "application/octet-stream")) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp, bottom = 12.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp, bottom = 12.dp),
                 )
             }
         }

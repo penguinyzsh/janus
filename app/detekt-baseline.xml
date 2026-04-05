@@ -1,0 +1,175 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:CardsPage.kt$@Composable fun CardsPage( bottomPadding: Dp, cardsVersion: Int = 0, onCardClick: (Int) -&gt; Unit, onSystemCardsClick: () -&gt; Unit, onCardsChanged: () -&gt; Unit = {}, )</ID>
+    <ID>CyclomaticComplexMethod:CastingPage.kt$@Composable fun CastingPage( currentDpi: Int?, onDpiChanged: (Int?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:MainScreen.kt$@Composable fun MainScreen(isModuleActive: Boolean)</ID>
+    <ID>CyclomaticComplexMethod:SystemCardsPage.kt$@Composable fun SystemCardsPage(onBack: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:WallpaperPage.kt$@Composable fun WallpaperPage(onBack: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:WallpaperUtils.kt$WallpaperUtils$fun createAiWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null, ): Boolean</ID>
+    <ID>FunctionNaming:AboutPage.kt$@Composable fun AboutPage(onBack: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:AboutPage.kt$@Preview(showBackground = true) @Composable private fun AboutPagePreview()</ID>
+    <ID>FunctionNaming:ActivationPage.kt$@Composable fun ActivationPage( isModuleActive: Boolean, hasRoot: Boolean, )</ID>
+    <ID>FunctionNaming:ActivationPage.kt$@Preview(showBackground = true) @Composable private fun ActivationPagePreview()</ID>
+    <ID>FunctionNaming:AppFeaturePage.kt$@Composable fun AppFeaturePage( packageName: String, onBack: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:AppFeaturePage.kt$@Preview(showBackground = true) @Composable private fun AppFeaturePagePreview()</ID>
+    <ID>FunctionNaming:AppsPage.kt$@Composable fun AppsPage( bottomPadding: Dp, whitelistVersion: Int, allApps: List&lt;MediaAppInfo&gt;, mediaApps: List&lt;MediaAppInfo&gt;, isRefreshing: Boolean, onRefresh: () -&gt; Unit, onAppClick: (MediaAppInfo) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:AppsPage.kt$@Composable internal fun AppIcon( drawable: Drawable, size: Int = 40, contentDescription: String, )</ID>
+    <ID>FunctionNaming:AppsPage.kt$@Composable internal fun MediaTag()</ID>
+    <ID>FunctionNaming:AppsPage.kt$@Composable private fun AppListItem( appName: String, packageName: String, icon: Drawable, isMediaApp: Boolean, onClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:AppsPage.kt$@Preview(showBackground = true) @Composable private fun AppsPagePreview()</ID>
+    <ID>FunctionNaming:CardDetailPage.kt$@Composable fun CardDetailPage( slot: Int, onBack: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:CardDetailPage.kt$@Preview(showBackground = true) @Composable private fun CardDetailPagePreview()</ID>
+    <ID>FunctionNaming:CardsPage.kt$@Composable fun CardsPage( bottomPadding: Dp, cardsVersion: Int = 0, onCardClick: (Int) -&gt; Unit, onSystemCardsClick: () -&gt; Unit, onCardsChanged: () -&gt; Unit = {}, )</ID>
+    <ID>FunctionNaming:CardsPage.kt$@Preview(showBackground = true) @Composable private fun CardsPagePreview()</ID>
+    <ID>FunctionNaming:CastingPage.kt$@Composable fun CastingPage( currentDpi: Int?, onDpiChanged: (Int?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:CastingPage.kt$@Preview(showBackground = true) @Composable private fun CastingPagePreview()</ID>
+    <ID>FunctionNaming:FeaturesPage.kt$@Composable fun FeaturesPage( bottomPadding: Dp, onWallpaperClick: () -&gt; Unit, onCastingClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:FeaturesPage.kt$@Preview(showBackground = true) @Composable private fun FeaturesPagePreview()</ID>
+    <ID>FunctionNaming:HomePage.kt$@Composable fun HomePage( bottomPadding: Dp, isModuleActive: Boolean, hasRoot: Boolean?, isVisible: Boolean = true, )</ID>
+    <ID>FunctionNaming:HomePage.kt$@Composable private fun HookStatusSection( statuses: Map&lt;String, Map&lt;String, HookStatusManager.HookStatus&gt;&gt;, isQuerying: Boolean, onRefresh: () -&gt; Unit, cardNames: List&lt;String&gt;, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:HomePage.kt$@Composable private fun ProcessInfoCard( process: String, hooks: Map&lt;String, HookStatusManager.HookStatus&gt;, cardNames: List&lt;String&gt;, )</ID>
+    <ID>FunctionNaming:HomePage.kt$@Preview(showBackground = true) @Composable private fun HomePagePreview()</ID>
+    <ID>FunctionNaming:MainScreen.kt$@Composable fun MainScreen(isModuleActive: Boolean)</ID>
+    <ID>FunctionNaming:MainScreen.kt$@Composable private fun PagerBackHandler( mainPagerState: MainPagerState, backStack: List&lt;NavKey&gt;, )</ID>
+    <ID>FunctionNaming:OtherPage.kt$@Composable fun OtherPage(onBack: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:OtherPage.kt$@Preview(showBackground = true) @Composable private fun OtherPagePreview()</ID>
+    <ID>FunctionNaming:SettingsPage.kt$@Composable fun SettingsPage( bottomPadding: Dp, onAboutClick: () -&gt; Unit, onOtherClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:SettingsPage.kt$@Preview(showBackground = true) @Composable private fun SettingsPagePreview()</ID>
+    <ID>FunctionNaming:StatusCard.kt$@Composable fun StatusCard( isModuleActive: Boolean, hasRoot: Boolean?, modifier: Modifier = Modifier, )</ID>
+    <ID>FunctionNaming:SystemCardsPage.kt$@Composable fun SystemCardsPage(onBack: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:SystemCardsPage.kt$@Preview(showBackground = true) @Composable private fun SystemCardsPagePreview()</ID>
+    <ID>FunctionNaming:WallpaperPage.kt$@Composable fun WallpaperPage(onBack: () -&gt; Unit)</ID>
+    <ID>FunctionNaming:WallpaperPage.kt$@Preview(showBackground = true) @Composable private fun WallpaperPagePreview()</ID>
+    <ID>LongMethod:AboutPage.kt$@Composable fun AboutPage(onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:AppFeaturePage.kt$@Composable fun AppFeaturePage( packageName: String, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:AppsPage.kt$@Composable fun AppsPage( bottomPadding: Dp, whitelistVersion: Int, allApps: List&lt;MediaAppInfo&gt;, mediaApps: List&lt;MediaAppInfo&gt;, isRefreshing: Boolean, onRefresh: () -&gt; Unit, onAppClick: (MediaAppInfo) -&gt; Unit, )</ID>
+    <ID>LongMethod:CardDetailPage.kt$@Composable fun CardDetailPage( slot: Int, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:CardsPage.kt$@Composable fun CardsPage( bottomPadding: Dp, cardsVersion: Int = 0, onCardClick: (Int) -&gt; Unit, onSystemCardsClick: () -&gt; Unit, onCardsChanged: () -&gt; Unit = {}, )</ID>
+    <ID>LongMethod:CastingPage.kt$@Composable fun CastingPage( currentDpi: Int?, onDpiChanged: (Int?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:FeaturesPage.kt$@Composable fun FeaturesPage( bottomPadding: Dp, onWallpaperClick: () -&gt; Unit, onCastingClick: () -&gt; Unit, )</ID>
+    <ID>LongMethod:HomePage.kt$@Composable fun HomePage( bottomPadding: Dp, isModuleActive: Boolean, hasRoot: Boolean?, isVisible: Boolean = true, )</ID>
+    <ID>LongMethod:MainScreen.kt$@Composable fun MainScreen(isModuleActive: Boolean)</ID>
+    <ID>LongMethod:OtherPage.kt$@Composable fun OtherPage(onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:SettingsPage.kt$@Composable fun SettingsPage( bottomPadding: Dp, onAboutClick: () -&gt; Unit, onOtherClick: () -&gt; Unit, )</ID>
+    <ID>LongMethod:StatusCard.kt$@Composable fun StatusCard( isModuleActive: Boolean, hasRoot: Boolean?, modifier: Modifier = Modifier, )</ID>
+    <ID>LongMethod:SystemCardsPage.kt$@Composable fun SystemCardsPage(onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:WallpaperPage.kt$@Composable fun WallpaperPage(onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:WallpaperUtils.kt$WallpaperUtils$fun createAiWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null, ): Boolean</ID>
+    <ID>LongParameterList:AppsPage.kt$( bottomPadding: Dp, whitelistVersion: Int, allApps: List&lt;MediaAppInfo&gt;, mediaApps: List&lt;MediaAppInfo&gt;, isRefreshing: Boolean, onRefresh: () -&gt; Unit, onAppClick: (MediaAppInfo) -&gt; Unit, )</ID>
+    <ID>LongParameterList:WallpaperUtils.kt$WallpaperUtils$( signatureEntry: JSONObject?, resId: String, applyId: String, snapshotPath: String, entryDir: String, metaSnapshotPath: String, )</ID>
+    <ID>LoopWithTooManyJumpStatements:WallpaperUtils.kt$WallpaperUtils$for</ID>
+    <ID>MagicNumber:AboutPage.kt$96</ID>
+    <ID>MagicNumber:AppFeaturePage.kt$48</ID>
+    <ID>MagicNumber:CardDetailPage.kt$100f</ID>
+    <ID>MagicNumber:CardDetailPage.kt$30f</ID>
+    <ID>MagicNumber:CastingPage.kt$10f</ID>
+    <ID>MagicNumber:CastingPage.kt$3</ID>
+    <ID>MagicNumber:CastingPage.kt$320f</ID>
+    <ID>MagicNumber:HookStatusManager.kt$HookStatusManager$2_000</ID>
+    <ID>MagicNumber:JanusMigration.kt$JanusMigration$19</ID>
+    <ID>MagicNumber:JanusPaths.kt$JanusPaths$19</ID>
+    <ID>MagicNumber:MainScreen.kt$3</ID>
+    <ID>MagicNumber:MainScreen.kt$4</ID>
+    <ID>MagicNumber:MainScreen.kt$MainPagerState$100</ID>
+    <ID>MagicNumber:ScreenKeepAliveService.kt$ScreenKeepAliveService$1000L</ID>
+    <ID>MagicNumber:StatusCard.kt$0xFF1A3825</ID>
+    <ID>MagicNumber:StatusCard.kt$0xFF36D167</ID>
+    <ID>MagicNumber:StatusCard.kt$0xFF3B1010</ID>
+    <ID>MagicNumber:StatusCard.kt$0xFFDFFAE4</ID>
+    <ID>MagicNumber:StatusCard.kt$0xFFF72727</ID>
+    <ID>MagicNumber:StatusCard.kt$0xFFF8E2E2</ID>
+    <ID>MagicNumber:SwitchToRearTileService.kt$SwitchToRearTileService$2000</ID>
+    <ID>MagicNumber:WallpaperManager.kt$WallpaperManager$85</ID>
+    <ID>MagicNumber:WallpaperPage.kt$0.8f</ID>
+    <ID>MagicNumber:WallpaperPage.kt$0x66000000</ID>
+    <ID>MagicNumber:WallpaperPage.kt$30</ID>
+    <ID>MagicNumber:WallpaperRotationReceiver.kt$WallpaperRotationReceiver.Companion$1000L</ID>
+    <ID>MagicNumber:WallpaperUtils.kt$WallpaperUtils$8192</ID>
+    <ID>MagicNumber:WhitelistManager.kt$WhitelistManager$10</ID>
+    <ID>MagicNumber:WhitelistManager.kt$WhitelistManager$30</ID>
+    <ID>MatchingDeclarationName:MainScreen.kt$Screen : NavKey</ID>
+    <ID>MaxLineLength:CardManager.kt$CardManager$"cp ${tmp.absolutePath} $CARDS_CONFIG_FLAG_PATH &amp;&amp; chmod 644 $CARDS_CONFIG_FLAG_PATH &amp;&amp; chcon u:object_r:theme_data_file:s0 $CARDS_CONFIG_FLAG_PATH"</ID>
+    <ID>MaxLineLength:CardManager.kt$CardManager$"cp ${tmp.absolutePath} $deployDest &amp;&amp; chmod 644 $deployDest &amp;&amp; chcon u:object_r:theme_data_file:s0 $deployDest"</ID>
+    <ID>MaxLineLength:CardManager.kt$CardManager$val cmd = "rm -rf $dest &amp;&amp; cp ${tmp.absolutePath} $dest &amp;&amp; chmod 644 $dest &amp;&amp; chcon u:object_r:theme_data_file:s0 $dest"</ID>
+    <ID>MaxLineLength:CardsPage.kt$Toast.makeText(context, context.getString(R.string.cards_import_failed), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:CardsPage.kt$Toast.makeText(context, context.getString(R.string.cards_import_success, result.name), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:CardsPage.kt$cards = cardManager?.getCards()?.sortedByDescending { it.priority } ?: emptyList()</ID>
+    <ID>MaxLineLength:CardsPage.kt$summary = stringResource(if (masterEnabled) R.string.cards_master_on else R.string.cards_master_off)</ID>
+    <ID>MaxLineLength:CastingPage.kt$colors = if (castRotation == 0) ButtonDefaults.textButtonColorsPrimary() else ButtonDefaults.textButtonColors()</ID>
+    <ID>MaxLineLength:CastingPage.kt$colors = if (castRotation == 1) ButtonDefaults.textButtonColorsPrimary() else ButtonDefaults.textButtonColors()</ID>
+    <ID>MaxLineLength:CastingPage.kt$colors = if (castRotation == 3) ButtonDefaults.textButtonColorsPrimary() else ButtonDefaults.textButtonColors()</ID>
+    <ID>MaxLineLength:CastingPage.kt$summary = stringResource(if (castKeepAlive) R.string.cast_keep_alive_on else R.string.cast_keep_alive_off)</ID>
+    <ID>MaxLineLength:CastingPage.kt$val seconds = dialogInput.toIntOrNull()?.coerceIn(KEEP_ALIVE_MIN_SECONDS, KEEP_ALIVE_MAX_SECONDS)</ID>
+    <ID>MaxLineLength:CastingPage.kt$var keepAlive by remember { mutableStateOf(if (!isInPreview) (whitelistManager?.isKeepAliveEnabled() ?: false) else false) }</ID>
+    <ID>MaxLineLength:FeaturesPage.kt$summary = stringResource(if (disableTracking) R.string.disable_tracking_on else R.string.disable_tracking_off)</ID>
+    <ID>MaxLineLength:FeaturesPage.kt$summary = stringResource(if (hideTimeTip) R.string.hide_time_tip_on else R.string.hide_time_tip_off)</ID>
+    <ID>MaxLineLength:JanusMigration.kt$JanusMigration$"echo '$version' &gt; '$VERSION_FILE' &amp;&amp; chmod 644 '$VERSION_FILE' &amp;&amp; chcon u:object_r:theme_data_file:s0 '$VERSION_FILE'"</ID>
+    <ID>MaxLineLength:MainScreen.kt$onAppClick = { app -&gt; backStack.add(Screen.AppFeature(app.packageName)) }</ID>
+    <ID>MaxLineLength:SwitchToRearTileService.kt$SwitchToRearTileService$subtitle = if (success) getString(R.string.cast_tile_active) else getString(R.string.cast_tile_failed)</ID>
+    <ID>MaxLineLength:SwitchToRearTileService.kt$SwitchToRearTileService$val success = mainTaskId != null &amp;&amp; DisplayUtils.moveTaskToDisplay(mainTaskId, DisplayUtils.BACK_DISPLAY)</ID>
+    <ID>MaxLineLength:SystemCardsPage.kt$Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:SystemCardsPage.kt$Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:SystemCardsPage.kt$Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$Box(modifier = Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surfaceContainerHigh))</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$Toast.makeText(context, context.getString(R.string.set_failed), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$Toast.makeText(context, context.getString(R.string.wp_apply_success), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$context.getString(if (success) R.string.wp_loop_applied else R.string.set_failed)</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$context.registerReceiver(receiver, android.content.IntentFilter("org.pysh.janus.ACTION_WALLPAPER_CHANGED"))</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$if (wallpaperKeepAlive) R.string.wallpaper_keep_alive_on else R.string.wallpaper_keep_alive_off</ID>
+    <ID>MaxLineLength:WallpaperPage.kt$summary = stringResource(if (wallpaperLock) R.string.wallpaper_lock_on else R.string.wallpaper_lock_off)</ID>
+    <ID>MaxLineLength:WhitelistManager.kt$WhitelistManager$val cmd = "printf '%s' '$path' &gt; '$flagPath' &amp;&amp; chmod 644 '$flagPath' &amp;&amp; chcon u:object_r:theme_data_file:s0 '$flagPath'"</ID>
+    <ID>NestedBlockDepth:DisplayUtils.kt$DisplayUtils$fun getForegroundTaskId(displayId: Int): Int?</ID>
+    <ID>NestedBlockDepth:WallpaperUtils.kt$WallpaperUtils$private fun buildMrcFromTemplate( context: Context, videoFile: File, enableLoop: Boolean, ): File?</ID>
+    <ID>NestedBlockDepth:WallpaperUtils.kt$WallpaperUtils$private fun rebuildZip( source: File, dest: File, newVideo: File, enableLoop: Boolean, )</ID>
+    <ID>NestedBlockDepth:WallpaperUtils.kt$WallpaperUtils$private fun rebuildZipLoopOnly( source: File, dest: File, enableLoop: Boolean, )</ID>
+    <ID>ReturnCount:CardManager.kt$CardManager$fun addCard(uri: Uri): CardInfo?</ID>
+    <ID>ReturnCount:CardManager.kt$CardManager$fun importSystemCardOverride( card: SystemCard, uri: Uri, ): String?</ID>
+    <ID>ReturnCount:DisplayUtils.kt$DisplayUtils$fun getForegroundTaskId(displayId: Int): Int?</ID>
+    <ID>ReturnCount:DisplayUtils.kt$DisplayUtils$fun getRearDpi(): Int?</ID>
+    <ID>ReturnCount:JanusCleanup.kt$JanusCleanup$private fun cleanRuntimeEntries(): Boolean</ID>
+    <ID>ReturnCount:JanusCleanup.kt$JanusCleanup$private fun writeRuntimeJson(arr: JSONArray): Boolean</ID>
+    <ID>ReturnCount:WallpaperManager.kt$WallpaperManager$fun addWallpaper(uri: Uri): WallpaperEntry?</ID>
+    <ID>ReturnCount:WallpaperManager.kt$WallpaperManager$fun replaceVideo( id: String, uri: Uri, ): Boolean</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun applyDynamicWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String, ): String?</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun createAiWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null, ): Boolean</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun detectWallpaper(): WallpaperPaths?</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun isLoopEnabled(context: Context): Boolean?</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun replaceVideo( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null, ): Boolean</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun restoreBackup(): Boolean</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun setLoop( context: Context, enabled: Boolean, ): Boolean</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$private fun copyToCache( context: Context, remotePath: String, name: String, ): File?</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$private fun findBackup(snapshotPath: String): String?</ID>
+    <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$private fun writeRuntimeJson(arr: JSONArray): Boolean</ID>
+    <ID>SwallowedException:WallpaperRotationReceiver.kt$WallpaperRotationReceiver.Companion$e: SecurityException</ID>
+    <ID>TooGenericExceptionCaught:CardManager.kt$CardManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:JanusApplication.kt$JanusApplication$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:RootUtils.kt$RootUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WallpaperPage.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WallpaperRotationReceiver.kt$WallpaperRotationReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:WhitelistManager.kt$WhitelistManager$e: Throwable</ID>
+    <ID>TooManyFunctions:CardManager.kt$CardManager</ID>
+    <ID>TooManyFunctions:WallpaperManager.kt$WallpaperManager</ID>
+    <ID>TooManyFunctions:WallpaperUtils.kt$WallpaperUtils</ID>
+    <ID>TooManyFunctions:WhitelistManager.kt$WhitelistManager</ID>
+    <ID>UnusedParameter:HomePage.kt$onRefresh: () -&gt; Unit</ID>
+    <ID>UnusedParameter:HomePage.kt$process: String</ID>
+    <ID>UnusedPrivateMember:AboutPage.kt$@Preview(showBackground = true) @Composable private fun AboutPagePreview()</ID>
+    <ID>UnusedPrivateMember:ActivationPage.kt$@Preview(showBackground = true) @Composable private fun ActivationPagePreview()</ID>
+    <ID>UnusedPrivateMember:AppFeaturePage.kt$@Preview(showBackground = true) @Composable private fun AppFeaturePagePreview()</ID>
+    <ID>UnusedPrivateMember:AppsPage.kt$@Preview(showBackground = true) @Composable private fun AppsPagePreview()</ID>
+    <ID>UnusedPrivateMember:CardDetailPage.kt$@Preview(showBackground = true) @Composable private fun CardDetailPagePreview()</ID>
+    <ID>UnusedPrivateMember:CardsPage.kt$@Preview(showBackground = true) @Composable private fun CardsPagePreview()</ID>
+    <ID>UnusedPrivateMember:CastingPage.kt$@Preview(showBackground = true) @Composable private fun CastingPagePreview()</ID>
+    <ID>UnusedPrivateMember:FeaturesPage.kt$@Preview(showBackground = true) @Composable private fun FeaturesPagePreview()</ID>
+    <ID>UnusedPrivateMember:HomePage.kt$@Composable private fun processDisplayName(process: String): String</ID>
+    <ID>UnusedPrivateMember:HomePage.kt$@Preview(showBackground = true) @Composable private fun HomePagePreview()</ID>
+    <ID>UnusedPrivateMember:OtherPage.kt$@Preview(showBackground = true) @Composable private fun OtherPagePreview()</ID>
+    <ID>UnusedPrivateMember:SettingsPage.kt$@Preview(showBackground = true) @Composable private fun SettingsPagePreview()</ID>
+    <ID>UnusedPrivateMember:SystemCardsPage.kt$@Preview(showBackground = true) @Composable private fun SystemCardsPagePreview()</ID>
+    <ID>UnusedPrivateMember:WallpaperPage.kt$@Preview(showBackground = true) @Composable private fun WallpaperPagePreview()</ID>
+    <ID>UnusedPrivateProperty:WallpaperPage.kt$var replaceTargetId by remember { mutableStateOf&lt;String?&gt;(null) }</ID>
+    <ID>VariableNaming:WhitelistManager.kt$WhitelistManager$private val TAG = "Janus-Config"</ID>
+  </CurrentIssues>
+</SmellBaseline>

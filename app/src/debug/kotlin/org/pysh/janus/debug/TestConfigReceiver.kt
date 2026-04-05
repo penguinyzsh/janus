@@ -22,8 +22,10 @@ import org.pysh.janus.data.WhitelistManager
  * app/src/debug/AndroidManifest.xml which is not included in release.
  */
 class TestConfigReceiver : BroadcastReceiver() {
-
-    override fun onReceive(context: Context, intent: Intent) {
+    override fun onReceive(
+        context: Context,
+        intent: Intent,
+    ) {
         if (!BuildConfig.DEBUG) return
 
         val key = intent.getStringExtra("key") ?: return

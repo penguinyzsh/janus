@@ -19,14 +19,15 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
-import org.pysh.janus.R
-import org.pysh.janus.data.WhitelistManager
-import org.pysh.janus.util.RootUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.pysh.janus.R
+import org.pysh.janus.data.WhitelistManager
+import org.pysh.janus.util.RootUtils
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -37,7 +38,6 @@ import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import androidx.compose.ui.tooling.preview.Preview
 
 @Preview(showBackground = true)
 @Composable
@@ -61,21 +61,24 @@ fun AppFeaturePage(
     }
 
     val pm = context.packageManager
-    val appInfo = remember {
-        try {
-            pm.getApplicationInfo(packageName, 0)
-        } catch (_: PackageManager.NameNotFoundException) {
-            null
+    val appInfo =
+        remember {
+            try {
+                pm.getApplicationInfo(packageName, 0)
+            } catch (_: PackageManager.NameNotFoundException) {
+                null
+            }
         }
-    }
     val appName = remember { appInfo?.let { pm.getApplicationLabel(it).toString() } ?: packageName }
-    val iconBitmap = remember {
-        val density = context.resources.displayMetrics.density
-        val sizePx = (48 * density).toInt()
-        val drawable = appInfo?.let { pm.getApplicationIcon(it) }
-            ?: pm.defaultActivityIcon
-        drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
-    }
+    val iconBitmap =
+        remember {
+            val density = context.resources.displayMetrics.density
+            val sizePx = (48 * density).toInt()
+            val drawable =
+                appInfo?.let { pm.getApplicationIcon(it) }
+                    ?: pm.defaultActivityIcon
+            drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
+        }
 
     Scaffold(
         topBar = {
@@ -93,12 +96,13 @@ fun AppFeaturePage(
         },
     ) { innerPadding ->
         LazyColumn(
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + 12.dp,
-                bottom = 12.dp,
-                start = 12.dp,
-                end = 12.dp,
-            ),
+            contentPadding =
+                PaddingValues(
+                    top = innerPadding.calculateTopPadding() + 12.dp,
+                    bottom = 12.dp,
+                    start = 12.dp,
+                    end = 12.dp,
+                ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item {
@@ -127,8 +131,9 @@ fun AppFeaturePage(
                             isWhitelisted = checked
                             scope.launch {
                                 withContext(Dispatchers.IO) {
-                                    val whitelist = whitelistManager?.getWhitelist()?.toMutableSet()
-                                        ?: mutableSetOf()
+                                    val whitelist =
+                                        whitelistManager?.getWhitelist()?.toMutableSet()
+                                            ?: mutableSetOf()
                                     if (checked) {
                                         whitelist.add(packageName)
                                     } else {
@@ -137,11 +142,18 @@ fun AppFeaturePage(
                                     whitelistManager?.saveWhitelist(whitelist)
                                     RootUtils.restartBackScreen()
                                 }
-                                Toast.makeText(
-                                    context,
-                                    if (checked) context.getString(R.string.whitelist_added) else context.getString(R.string.whitelist_removed),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                Toast
+                                    .makeText(
+                                        context,
+                                        if (checked) {
+                                            context.getString(
+                                                R.string.whitelist_added,
+                                            )
+                                        } else {
+                                            context.getString(R.string.whitelist_removed)
+                                        },
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                         },
                     )

@@ -14,11 +14,11 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 object WallpaperUtils {
-
     private val RUNTIME_JSON = JanusPaths.RUNTIME_JSON
     private val RUNTIME_DIR = JanusPaths.RUNTIME_DIR
     private val REAR_SCREEN_WHITE = JanusPaths.REAR_SCREEN_WHITE
     private const val TEMPLATE_DIR = "wallpaper_template"
+
     // Janus 专用路径，不覆盖系统文件
     private val JANUS_MRC = JanusPaths.CUSTOM_MRC
     private val JANUS_WALLPAPER_DIR = JanusPaths.WALLPAPER_DIR
@@ -60,7 +60,12 @@ object WallpaperUtils {
         }
     }
 
-    fun replaceVideo(context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null): Boolean {
+    fun replaceVideo(
+        context: Context,
+        videoUri: Uri,
+        enableLoop: Boolean,
+        wpId: String? = null,
+    ): Boolean {
         val paths = detectWallpaper() ?: return false
         val cacheDir = ensureCacheDir(context)
 
@@ -93,7 +98,10 @@ object WallpaperUtils {
         }
     }
 
-    fun setLoop(context: Context, enabled: Boolean): Boolean {
+    fun setLoop(
+        context: Context,
+        enabled: Boolean,
+    ): Boolean {
         val paths = detectWallpaper() ?: return false
         val cacheDir = ensureCacheDir(context)
 
@@ -112,8 +120,9 @@ object WallpaperUtils {
     fun restoreBackup(): Boolean {
         val paths = detectWallpaper() ?: return false
         val backup = findBackup(paths.snapshotPath) ?: return false
-        val ok = RootUtils.exec("cp '$backup' '${paths.snapshotPath}'") &&
-            RootUtils.exec("cp '$backup' '${paths.localPath}'")
+        val ok =
+            RootUtils.exec("cp '$backup' '${paths.snapshotPath}'") &&
+                RootUtils.exec("cp '$backup' '${paths.localPath}'")
         if (ok) {
             fixOwnership(paths.snapshotPath)
             fixOwnership(paths.localPath)
@@ -148,7 +157,12 @@ object WallpaperUtils {
      * 从模板创建全新的 AI 动态壁纸并注入系统。
      * 当设备没有 AI 壁纸时使用。
      */
-    fun createAiWallpaper(context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null): Boolean {
+    fun createAiWallpaper(
+        context: Context,
+        videoUri: Uri,
+        enableLoop: Boolean,
+        wpId: String? = null,
+    ): Boolean {
         val cacheDir = ensureCacheDir(context)
         try {
             val userVideo = File(cacheDir, "user_video.mp4")
@@ -159,7 +173,12 @@ object WallpaperUtils {
             val mrcFile = buildMrcFromTemplate(context, userVideo, enableLoop) ?: return false
 
             val json = RootUtils.execWithOutput("cat '$RUNTIME_JSON'") ?: return false
-            val arr = try { JSONArray(json) } catch (_: Exception) { return false }
+            val arr =
+                try {
+                    JSONArray(json)
+                } catch (_: Exception) {
+                    return false
+                }
 
             // 找 signature 条目作为克隆源
             var signatureEntry: JSONObject? = null
@@ -174,7 +193,7 @@ object WallpaperUtils {
             val applyId = System.currentTimeMillis().toString()
             // Always use janus- prefix so cleanup can identify Janus-created entries
             val resId = "janus-${java.util.UUID.randomUUID()}"
-            val snapshotPath = "$REAR_SCREEN_WHITE/rearscreen_${resId}_${applyId}.mrc"
+            val snapshotPath = "$REAR_SCREEN_WHITE/rearscreen_${resId}_$applyId.mrc"
 
             if (!RootUtils.exec("cp '${mrcFile.absolutePath}' '$snapshotPath'")) return false
             fixOwnership(snapshotPath)
@@ -221,7 +240,12 @@ object WallpaperUtils {
      * 将 .mrc 编译缓存直接拷贝到特定的动态 Janus 缓存目录，
      * 用于通过 Hook 规则直接重定向。
      */
-    fun applyDynamicWallpaper(context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String): String? {
+    fun applyDynamicWallpaper(
+        context: Context,
+        videoUri: Uri,
+        enableLoop: Boolean,
+        wpId: String,
+    ): String? {
         val cacheDir = ensureCacheDir(context)
         try {
             val userVideo = File(cacheDir, "user_video.mp4")
@@ -241,19 +265,29 @@ object WallpaperUtils {
         }
     }
 
-    private fun buildMrcFromTemplate(context: Context, videoFile: File, enableLoop: Boolean): File? {
+    private fun buildMrcFromTemplate(
+        context: Context,
+        videoFile: File,
+        enableLoop: Boolean,
+    ): File? {
         val cacheDir = ensureCacheDir(context)
         val resultMrc = File(cacheDir, "new_wallpaper.mrc")
         val assets = context.assets
         try {
             ZipOutputStream(FileOutputStream(resultMrc)).use { zos ->
-                fun addAsset(assetPath: String, zipPath: String) {
+                fun addAsset(
+                    assetPath: String,
+                    zipPath: String,
+                ) {
                     val children = assets.list(assetPath) ?: return
                     if (children.isEmpty()) {
                         // 空目录（如 etc/）跳过，不尝试 open
-                        val content = try {
-                            assets.open(assetPath).use { it.readBytes() }
-                        } catch (_: Exception) { return }
+                        val content =
+                            try {
+                                assets.open(assetPath).use { it.readBytes() }
+                            } catch (_: Exception) {
+                                return
+                            }
                         if (zipPath == MANIFEST_ENTRY) {
                             val modified = modifyLoop(String(content), enableLoop)
                             zos.putNextEntry(ZipEntry(zipPath))
@@ -269,8 +303,10 @@ object WallpaperUtils {
                             zos.closeEntry()
                         }
                         for (child in children) {
-                            addAsset("$assetPath/$child",
-                                if (zipPath.isEmpty()) child else "$zipPath/$child")
+                            addAsset(
+                                "$assetPath/$child",
+                                if (zipPath.isEmpty()) child else "$zipPath/$child",
+                            )
                         }
                     }
                 }
@@ -287,8 +323,12 @@ object WallpaperUtils {
     }
 
     private fun buildAiEntry(
-        signatureEntry: JSONObject?, resId: String, applyId: String,
-        snapshotPath: String, entryDir: String, metaSnapshotPath: String,
+        signatureEntry: JSONObject?,
+        resId: String,
+        applyId: String,
+        snapshotPath: String,
+        entryDir: String,
+        metaSnapshotPath: String,
     ): JSONObject {
         val now = System.currentTimeMillis()
         return if (signatureEntry != null) {
@@ -331,10 +371,13 @@ object WallpaperUtils {
                 put("isThirdParties", false)
                 put("supportAon", false)
                 put("priority", Int.MAX_VALUE)
-                put("onlineInfo", JSONObject().apply {
-                    put("isOnlineResource", false)
-                    put("onlineId", "")
-                })
+                put(
+                    "onlineInfo",
+                    JSONObject().apply {
+                        put("isOnlineResource", false)
+                        put("onlineId", "")
+                    },
+                )
             }
         }
     }
@@ -356,7 +399,11 @@ object WallpaperUtils {
         return dir
     }
 
-    private fun copyToCache(context: Context, remotePath: String, name: String): File? {
+    private fun copyToCache(
+        context: Context,
+        remotePath: String,
+        name: String,
+    ): File? {
         val cacheFile = File(ensureCacheDir(context), name)
         if (!RootUtils.exec("cp '$remotePath' '${cacheFile.absolutePath}'")) return null
         if (!RootUtils.exec("chmod 644 '${cacheFile.absolutePath}'")) return null
@@ -373,7 +420,10 @@ object WallpaperUtils {
         fixOwnership(backup)
     }
 
-    private fun writeBack(resultZip: File, paths: WallpaperPaths): Boolean {
+    private fun writeBack(
+        resultZip: File,
+        paths: WallpaperPaths,
+    ): Boolean {
         val src = resultZip.absolutePath
         if (!RootUtils.exec("cp '$src' '${paths.snapshotPath}'")) return false
         fixOwnership(paths.snapshotPath)
@@ -405,7 +455,10 @@ object WallpaperUtils {
     }
 
     /** 创建 STORED（不压缩）的 ZipEntry，需要预计算 size 和 CRC32 */
-    private fun storedEntry(name: String, file: File): ZipEntry {
+    private fun storedEntry(
+        name: String,
+        file: File,
+    ): ZipEntry {
         val crc = CRC32()
         file.inputStream().use { input ->
             val buf = ByteArray(8192)
@@ -424,7 +477,11 @@ object WallpaperUtils {
 
     private fun readManifestLoop(zipFile: File): Boolean {
         val zip = ZipFile(zipFile)
-        val entry = zip.getEntry(MANIFEST_ENTRY) ?: run { zip.close(); return false }
+        val entry =
+            zip.getEntry(MANIFEST_ENTRY) ?: run {
+                zip.close()
+                return false
+            }
         val content = zip.getInputStream(entry).bufferedReader().readText()
         zip.close()
         val regex = Regex("""loop="(\d+)"""")
@@ -432,7 +489,10 @@ object WallpaperUtils {
         return lastMatch?.groupValues?.get(1) == "1"
     }
 
-    private fun modifyLoop(content: String, enabled: Boolean): String {
+    private fun modifyLoop(
+        content: String,
+        enabled: Boolean,
+    ): String {
         val target = if (enabled) """loop="0"""" else """loop="1""""
         val replacement = if (enabled) """loop="1"""" else """loop="0""""
         val lastIndex = content.lastIndexOf(target)
@@ -477,7 +537,11 @@ object WallpaperUtils {
         zip.close()
     }
 
-    private fun rebuildZipLoopOnly(source: File, dest: File, enableLoop: Boolean) {
+    private fun rebuildZipLoopOnly(
+        source: File,
+        dest: File,
+        enableLoop: Boolean,
+    ) {
         val zip = ZipFile(source)
         ZipOutputStream(FileOutputStream(dest)).use { zos ->
             for (entry in zip.entries()) {

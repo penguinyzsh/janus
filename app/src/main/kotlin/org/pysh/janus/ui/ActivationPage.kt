@@ -43,10 +43,11 @@ fun ActivationPage(
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding())
-                .padding(horizontal = 12.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .padding(horizontal = 12.dp),
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 

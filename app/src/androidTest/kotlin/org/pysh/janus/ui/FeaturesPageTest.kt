@@ -19,12 +19,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class FeaturesPageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     private fun content(
         onWallpaperClick: () -> Unit = {},
@@ -83,8 +81,6 @@ class FeaturesPageTest {
         rule.onNodeWithText(s(R.string.section_casting)).assertIsDisplayed()
     }
 
-
-
     // TC-FEAT-NAV1: 点击壁纸触发回调
     @Test
     fun featuresPage_clickWallpaper_triggersCallback() {
@@ -102,6 +98,4 @@ class FeaturesPageTest {
         rule.onNodeWithText(s(R.string.section_casting)).performClick()
         assertTrue(clicked)
     }
-
-
 }

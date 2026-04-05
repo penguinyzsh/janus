@@ -1,14 +1,12 @@
 package org.pysh.janus.util
 
 object RootUtils {
-
     fun hasRoot(): Boolean = exec("id")
 
-    fun restartBackScreen(): Boolean =
-        exec("am broadcast -a org.pysh.janus.action.SMOOTH_REFRESH")
+    fun restartBackScreen(): Boolean = exec("am broadcast -a org.pysh.janus.action.SMOOTH_REFRESH")
 
-    fun exec(command: String): Boolean {
-        return try {
+    fun exec(command: String): Boolean =
+        try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
             val stderr = process.errorStream.bufferedReader().use { it.readText() }
             val exitCode = process.waitFor()
@@ -20,7 +18,6 @@ object RootUtils {
             android.util.Log.e("Janus-Root", "exec exception: $command", e)
             false
         }
-    }
 
     fun ensureDir(path: String): Boolean {
         if (!exec("mkdir -p '$path' && chmod 777 '$path'")) return false
@@ -31,8 +28,8 @@ object RootUtils {
         return true
     }
 
-    fun execWithOutput(command: String): String? {
-        return try {
+    fun execWithOutput(command: String): String? =
+        try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
             // 先读完 stdout 再 waitFor，避免缓冲区满导致死锁
             val output = process.inputStream.bufferedReader().use { it.readText().trim() }
@@ -41,5 +38,4 @@ object RootUtils {
         } catch (_: Exception) {
             null
         }
-    }
 }

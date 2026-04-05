@@ -23,14 +23,14 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.WhitelistManager
 import org.pysh.janus.service.ScreenKeepAliveService
 import org.pysh.janus.util.DisplayUtils
 import org.pysh.janus.util.RootUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -96,162 +96,194 @@ fun CastingPage(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-                .padding(horizontal = 12.dp),
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(innerPadding)
+                    .padding(horizontal = 12.dp),
         ) {
-                Card(modifier = Modifier.padding(top = 12.dp, bottom = 12.dp)) {
-                    // 投屏旋转 + 投屏时常亮
-                    SuperArrow(
-                        title = stringResource(R.string.cast_rotation),
-                        summary = stringResource(
+            Card(modifier = Modifier.padding(top = 12.dp, bottom = 12.dp)) {
+                // 投屏旋转 + 投屏时常亮
+                SuperArrow(
+                    title = stringResource(R.string.cast_rotation),
+                    summary =
+                        stringResource(
                             when (castRotation) {
                                 1 -> R.string.cast_rotation_left
                                 3 -> R.string.cast_rotation_right
                                 else -> R.string.cast_rotation_none
-                            }
+                            },
                         ),
-                        onClick = { showRotationDialog = true },
-                    )
-                    SuperSwitch(
-                        title = stringResource(R.string.cast_keep_alive),
-                        summary = stringResource(if (castKeepAlive) R.string.cast_keep_alive_on else R.string.cast_keep_alive_off),
-                        checked = castKeepAlive,
-                        onCheckedChange = {
-                            castKeepAlive = it
-                            whitelistManager?.setCastKeepAlive(it)
-                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
-                        },
-                    )
-                    // 背屏常亮
-                    SuperSwitch(
-                        title = stringResource(R.string.keep_alive),
-                        summary = stringResource(if (keepAlive) R.string.keep_alive_on else R.string.keep_alive_off),
-                        checked = keepAlive,
-                        onCheckedChange = {
-                            keepAlive = it
-                            whitelistManager?.setKeepAliveEnabled(it)
-                            if (it) {
-                                ScreenKeepAliveService.start(context, intervalValue.toInt())
-                            } else {
-                                ScreenKeepAliveService.stop(context)
-                            }
-                            Toast.makeText(context, context.getString(if (it) R.string.enabled else R.string.disabled), Toast.LENGTH_SHORT).show()
-                        },
-                    )
-                    SuperArrow(
-                        title = stringResource(R.string.keep_alive_interval),
-                        summary = stringResource(R.string.keep_alive_interval_value, intervalValue.toInt()),
-                        onClick = {
-                            dialogInput = intervalValue.toInt().toString()
-                            showIntervalDialog = true
-                        },
-                        bottomAction = {
-                            Slider(
-                                value = intervalValue,
-                                onValueChange = { intervalValue = it },
-                                valueRange = KEEP_ALIVE_MIN_SECONDS.toFloat()..KEEP_ALIVE_MAX_SECONDS.toFloat(),
-                                onValueChangeFinished = {
-                                    whitelistManager?.setKeepAliveInterval(intervalValue.toInt())
-                                    if (keepAlive) {
-                                        ScreenKeepAliveService.start(context, intervalValue.toInt())
-                                    }
-                                },
-                            )
-                        },
-                    )
-                    Row(
-                        modifier = Modifier
+                    onClick = { showRotationDialog = true },
+                )
+                SuperSwitch(
+                    title = stringResource(R.string.cast_keep_alive),
+                    summary = stringResource(if (castKeepAlive) R.string.cast_keep_alive_on else R.string.cast_keep_alive_off),
+                    checked = castKeepAlive,
+                    onCheckedChange = {
+                        castKeepAlive = it
+                        whitelistManager?.setCastKeepAlive(it)
+                        Toast
+                            .makeText(
+                                context,
+                                context.getString(if (it) R.string.enabled else R.string.disabled),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                    },
+                )
+                // 背屏常亮
+                SuperSwitch(
+                    title = stringResource(R.string.keep_alive),
+                    summary = stringResource(if (keepAlive) R.string.keep_alive_on else R.string.keep_alive_off),
+                    checked = keepAlive,
+                    onCheckedChange = {
+                        keepAlive = it
+                        whitelistManager?.setKeepAliveEnabled(it)
+                        if (it) {
+                            ScreenKeepAliveService.start(context, intervalValue.toInt())
+                        } else {
+                            ScreenKeepAliveService.stop(context)
+                        }
+                        Toast
+                            .makeText(
+                                context,
+                                context.getString(if (it) R.string.enabled else R.string.disabled),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                    },
+                )
+                SuperArrow(
+                    title = stringResource(R.string.keep_alive_interval),
+                    summary = stringResource(R.string.keep_alive_interval_value, intervalValue.toInt()),
+                    onClick = {
+                        dialogInput = intervalValue.toInt().toString()
+                        showIntervalDialog = true
+                    },
+                    bottomAction = {
+                        Slider(
+                            value = intervalValue,
+                            onValueChange = { intervalValue = it },
+                            valueRange = KEEP_ALIVE_MIN_SECONDS.toFloat()..KEEP_ALIVE_MAX_SECONDS.toFloat(),
+                            onValueChangeFinished = {
+                                whitelistManager?.setKeepAliveInterval(intervalValue.toInt())
+                                if (keepAlive) {
+                                    ScreenKeepAliveService.start(context, intervalValue.toInt())
+                                }
+                            },
+                        )
+                    },
+                )
+                Row(
+                    modifier =
+                        Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp)
                             .padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        TextButton(
-                            text = stringResource(R.string.reset_default),
-                            onClick = {
-                                intervalValue = ScreenKeepAliveService.DEFAULT_INTERVAL.toFloat()
-                                whitelistManager?.setKeepAliveInterval(ScreenKeepAliveService.DEFAULT_INTERVAL)
-                                if (keepAlive) {
-                                    ScreenKeepAliveService.start(context, ScreenKeepAliveService.DEFAULT_INTERVAL)
-                                }
-                                Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                    // 背屏 DPI
-                    SuperArrow(
-                        title = stringResource(R.string.rear_dpi),
-                        summary = when (currentDpi) {
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    TextButton(
+                        text = stringResource(R.string.reset_default),
+                        onClick = {
+                            intervalValue = ScreenKeepAliveService.DEFAULT_INTERVAL.toFloat()
+                            whitelistManager?.setKeepAliveInterval(ScreenKeepAliveService.DEFAULT_INTERVAL)
+                            if (keepAlive) {
+                                ScreenKeepAliveService.start(context, ScreenKeepAliveService.DEFAULT_INTERVAL)
+                            }
+                            Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                // 背屏 DPI
+                SuperArrow(
+                    title = stringResource(R.string.rear_dpi),
+                    summary =
+                        when (currentDpi) {
                             null -> stringResource(R.string.loading)
                             else -> stringResource(R.string.rear_dpi_current, currentDpi)
                         },
-                        onClick = {
-                            dialogInput = (currentDpi ?: 320).toString()
-                            showDpiDialog = true
-                        },
-                        bottomAction = {
-                            Slider(
-                                value = dpiSliderValue,
-                                onValueChange = { dpiSliderValue = it },
-                                valueRange = DPI_MIN.toFloat()..DPI_MAX.toFloat(),
-                            )
-                        },
-                    )
-                    Row(
-                        modifier = Modifier
+                    onClick = {
+                        dialogInput = (currentDpi ?: 320).toString()
+                        showDpiDialog = true
+                    },
+                    bottomAction = {
+                        Slider(
+                            value = dpiSliderValue,
+                            onValueChange = { dpiSliderValue = it },
+                            valueRange = DPI_MIN.toFloat()..DPI_MAX.toFloat(),
+                        )
+                    },
+                )
+                Row(
+                    modifier =
+                        Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp)
                             .padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        TextButton(
-                            text = stringResource(R.string.set_dpi),
-                            onClick = {
-                                val dpi = dpiSliderValue.toInt()
-                                scope.launch {
-                                    val (success, newDpi) = withContext(Dispatchers.IO) {
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    TextButton(
+                        text = stringResource(R.string.set_dpi),
+                        onClick = {
+                            val dpi = dpiSliderValue.toInt()
+                            scope.launch {
+                                val (success, newDpi) =
+                                    withContext(Dispatchers.IO) {
                                         val ok = DisplayUtils.setRearDpi(dpi)
                                         if (ok) RootUtils.restartBackScreen()
                                         ok to DisplayUtils.getRearDpi()
                                     }
-                                    onDpiChanged(newDpi)
-                                    if (newDpi != null) dpiSliderValue = newDpi.toFloat()
-                                    Toast.makeText(
+                                onDpiChanged(newDpi)
+                                if (newDpi != null) dpiSliderValue = newDpi.toFloat()
+                                Toast
+                                    .makeText(
                                         context,
-                                        if (success) context.getString(R.string.dpi_set_success, dpi) else context.getString(R.string.set_failed),
+                                        if (success) {
+                                            context.getString(
+                                                R.string.dpi_set_success,
+                                                dpi,
+                                            )
+                                        } else {
+                                            context.getString(R.string.set_failed)
+                                        },
                                         Toast.LENGTH_SHORT,
                                     ).show()
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.textButtonColorsPrimary(),
-                        )
-                        TextButton(
-                            text = stringResource(R.string.reset),
-                            onClick = {
-                                scope.launch {
-                                    val (success, newDpi) = withContext(Dispatchers.IO) {
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.textButtonColorsPrimary(),
+                    )
+                    TextButton(
+                        text = stringResource(R.string.reset),
+                        onClick = {
+                            scope.launch {
+                                val (success, newDpi) =
+                                    withContext(Dispatchers.IO) {
                                         val ok = DisplayUtils.resetRearDpi()
                                         if (ok) RootUtils.restartBackScreen()
                                         ok to DisplayUtils.getRearDpi()
                                     }
-                                    onDpiChanged(newDpi)
-                                    if (newDpi != null) dpiSliderValue = newDpi.toFloat()
-                                    Toast.makeText(
+                                onDpiChanged(newDpi)
+                                if (newDpi != null) dpiSliderValue = newDpi.toFloat()
+                                Toast
+                                    .makeText(
                                         context,
-                                        if (success) context.getString(R.string.dpi_reset_success) else context.getString(R.string.reset_failed),
+                                        if (success) {
+                                            context.getString(
+                                                R.string.dpi_reset_success,
+                                            )
+                                        } else {
+                                            context.getString(R.string.reset_failed)
+                                        },
                                         Toast.LENGTH_SHORT,
                                     ).show()
-                                }
-                            },
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
                 }
+            }
         }
 
         SuperDialog(

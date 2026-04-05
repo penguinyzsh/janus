@@ -17,15 +17,15 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class CastingPageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
-    private fun s(id: Int, vararg args: Any): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
+    private fun s(
+        id: Int,
+        vararg args: Any,
+    ): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
 
     private fun content(currentDpi: Int? = 320) {
         rule.setContent {

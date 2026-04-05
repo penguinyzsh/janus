@@ -8,7 +8,6 @@ import androidx.compose.runtime.getValue
 import org.pysh.janus.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

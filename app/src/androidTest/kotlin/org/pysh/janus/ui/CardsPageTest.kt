@@ -19,12 +19,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class CardsPageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     // TC-CARD-001: 主开关展示
     @Test

@@ -10,7 +10,6 @@ import org.pysh.janus.core.util.RootUtils
  * Call before uninstalling the app.
  */
 object JanusCleanup {
-
     fun cleanAll(): Boolean {
         var ok = true
         // 1. Remove janus/ under subscreencenter (config + cards + templates)
@@ -32,7 +31,12 @@ object JanusCleanup {
      */
     private fun cleanRuntimeEntries(): Boolean {
         val json = RootUtils.execWithOutput("cat '${JanusPaths.RUNTIME_JSON}'") ?: return true
-        val arr = try { JSONArray(json) } catch (_: Exception) { return true }
+        val arr =
+            try {
+                JSONArray(json)
+            } catch (_: Exception) {
+                return true
+            }
 
         val filtered = JSONArray()
         var modified = false

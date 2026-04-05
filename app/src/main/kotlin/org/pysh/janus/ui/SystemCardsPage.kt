@@ -40,7 +40,6 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.extra.SuperDialog
-import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -68,47 +67,54 @@ fun SystemCardsPage(onBack: () -> Unit) {
     // Non-music system cards state
     var systemCardOverrides by remember {
         mutableStateOf(
-            SystemCard.nonMusic.associateWith { cardManager?.getSystemCardOverrideName(it) }
+            SystemCard.nonMusic.associateWith { cardManager?.getSystemCardOverrideName(it) },
         )
     }
     var pendingSystemCard by remember { mutableStateOf<SystemCard?>(null) }
     var showSystemCardRemoveDialog by remember { mutableStateOf<SystemCard?>(null) }
 
     // File pickers
-    val musicPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        scope.launch {
-            val name = withContext(Dispatchers.IO) { cardManager?.importMusicOverride(uri) }
-            if (name != null) {
-                musicOverrideName = name
-                Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()
-                withContext(Dispatchers.IO) { RootUtils.restartBackScreen() }
-            } else {
-                Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
+    val musicPicker =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            scope.launch {
+                val name = withContext(Dispatchers.IO) { cardManager?.importMusicOverride(uri) }
+                if (name != null) {
+                    musicOverrideName = name
+                    Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()
+                    withContext(Dispatchers.IO) { RootUtils.restartBackScreen() }
+                } else {
+                    Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
+                }
             }
         }
-    }
 
-    val systemCardPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        val card = pendingSystemCard ?: return@rememberLauncherForActivityResult
-        scope.launch {
-            val name = withContext(Dispatchers.IO) { cardManager?.importSystemCardOverride(card, uri) }
-            if (name != null) {
-                systemCardOverrides = systemCardOverrides.toMutableMap().apply { put(card, name) }
-                val label = context.getString(card.labelResId)
-                Toast.makeText(context, context.getString(R.string.system_card_override_import_success, label, name), Toast.LENGTH_SHORT).show()
-                withContext(Dispatchers.IO) { RootUtils.restartBackScreen() }
-            } else {
-                Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
+    val systemCardPicker =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            val card = pendingSystemCard ?: return@rememberLauncherForActivityResult
+            scope.launch {
+                val name = withContext(Dispatchers.IO) { cardManager?.importSystemCardOverride(card, uri) }
+                if (name != null) {
+                    systemCardOverrides = systemCardOverrides.toMutableMap().apply { put(card, name) }
+                    val label = context.getString(card.labelResId)
+                    Toast
+                        .makeText(
+                            context,
+                            context.getString(R.string.system_card_override_import_success, label, name),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    withContext(Dispatchers.IO) { RootUtils.restartBackScreen() }
+                } else {
+                    Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
+                }
+                pendingSystemCard = null
             }
-            pendingSystemCard = null
         }
-    }
 
     val scrollBehavior = MiuixScrollBehavior()
     val title = stringResource(R.string.section_system_cards)
@@ -132,15 +138,17 @@ fun SystemCardsPage(onBack: () -> Unit) {
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxHeight()
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(horizontal = 12.dp),
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding(),
-                bottom = 12.dp,
-            ),
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(horizontal = 12.dp),
+            contentPadding =
+                PaddingValues(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = 12.dp,
+                ),
             overscrollEffect = null,
         ) {
             // Music section
@@ -151,21 +159,23 @@ fun SystemCardsPage(onBack: () -> Unit) {
                 Card(modifier = Modifier.padding(bottom = if (musicOverrideName != null) 0.dp else 12.dp)) {
                     SuperArrow(
                         title = stringResource(R.string.music_override_title),
-                        summary = if (musicOverrideName != null) {
-                            stringResource(R.string.music_override_set, musicOverrideName!!)
-                        } else {
-                            stringResource(R.string.music_override_none)
-                        },
+                        summary =
+                            if (musicOverrideName != null) {
+                                stringResource(R.string.music_override_set, musicOverrideName!!)
+                            } else {
+                                stringResource(R.string.music_override_none)
+                            },
                         onClick = {
                             musicPicker.launch(arrayOf("application/zip", "application/octet-stream"))
                         },
                     )
                     if (musicOverrideName != null) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp)
-                                .padding(bottom = 12.dp),
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp)
+                                    .padding(bottom = 12.dp),
                         ) {
                             TextButton(
                                 text = stringResource(R.string.music_override_remove),
@@ -186,11 +196,12 @@ fun SystemCardsPage(onBack: () -> Unit) {
                         val overrideName = systemCardOverrides[card]
                         SuperArrow(
                             title = stringResource(card.labelResId),
-                            summary = if (overrideName != null) {
-                                stringResource(R.string.music_override_set, overrideName)
-                            } else {
-                                stringResource(R.string.music_override_none)
-                            },
+                            summary =
+                                if (overrideName != null) {
+                                    stringResource(R.string.music_override_set, overrideName)
+                                } else {
+                                    stringResource(R.string.music_override_none)
+                                },
                             onClick = {
                                 pendingSystemCard = card
                                 systemCardPicker.launch(arrayOf("application/zip", "application/octet-stream"))
@@ -198,10 +209,11 @@ fun SystemCardsPage(onBack: () -> Unit) {
                         )
                         if (overrideName != null) {
                             Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp)
-                                    .padding(bottom = 12.dp),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp)
+                                        .padding(bottom = 12.dp),
                             ) {
                                 TextButton(
                                     text = stringResource(R.string.music_override_remove),
@@ -279,10 +291,16 @@ fun SystemCardsPage(onBack: () -> Unit) {
                                     cardManager?.removeSystemCardOverride(systemCardToRemove)
                                     RootUtils.restartBackScreen()
                                 }
-                                systemCardOverrides = systemCardOverrides.toMutableMap().apply {
-                                    put(systemCardToRemove, null)
-                                }
-                                Toast.makeText(context, context.getString(R.string.system_card_override_removed, removeLabel), Toast.LENGTH_SHORT).show()
+                                systemCardOverrides =
+                                    systemCardOverrides.toMutableMap().apply {
+                                        put(systemCardToRemove, null)
+                                    }
+                                Toast
+                                    .makeText(
+                                        context,
+                                        context.getString(R.string.system_card_override_removed, removeLabel),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                         },
                         modifier = Modifier.weight(1f),

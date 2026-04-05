@@ -5,10 +5,10 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.pysh.janus.R
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.pysh.janus.R
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -16,12 +16,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class ActivationPageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     // TC-ACT-003 + TC-ACT-005: 模块和 Root 都就绪
     @Test

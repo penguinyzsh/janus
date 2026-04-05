@@ -69,10 +69,11 @@ fun OtherPage(onBack: () -> Unit) {
         },
     ) { innerPadding ->
         Card(
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-                .padding(horizontal = 12.dp, vertical = 12.dp),
+            modifier =
+                Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(innerPadding)
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
         ) {
             SuperArrow(
                 title = stringResource(R.string.resync),
@@ -121,11 +122,12 @@ fun OtherPage(onBack: () -> Unit) {
                         showCleanupDialog = false
                         scope.launch {
                             val ok = withContext(Dispatchers.IO) { JanusCleanup.cleanAll() }
-                            Toast.makeText(
-                                context,
-                                if (ok) cleanupSuccessMsg else cleanupFailedMsg,
-                                Toast.LENGTH_SHORT,
-                            ).show()
+                            Toast
+                                .makeText(
+                                    context,
+                                    if (ok) cleanupSuccessMsg else cleanupFailedMsg,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
                         }
                     },
                     modifier = Modifier.weight(1f),

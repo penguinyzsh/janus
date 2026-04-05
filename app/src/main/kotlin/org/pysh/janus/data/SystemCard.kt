@@ -3,7 +3,10 @@ package org.pysh.janus.data
 import androidx.annotation.StringRes
 import org.pysh.janus.R
 
-enum class SystemCard(val business: String, @param:StringRes val labelResId: Int) {
+enum class SystemCard(
+    val business: String,
+    @param:StringRes val labelResId: Int,
+) {
     MUSIC("music", R.string.system_card_music),
     INCALL("incall", R.string.system_card_incall),
     ALARM("alarm", R.string.system_card_alarm),
@@ -13,7 +16,8 @@ enum class SystemCard(val business: String, @param:StringRes val labelResId: Int
     XIAOMI_EV("xiaomiev", R.string.system_card_xiaomi_ev),
     PRIVACY("privacy", R.string.system_card_privacy),
     STOCK("stock", R.string.system_card_stock),
-    MI_HOME_CAMERA("mihomeCamera", R.string.system_card_mi_home_camera);
+    MI_HOME_CAMERA("mihomeCamera", R.string.system_card_mi_home_camera),
+    ;
 
     val customFileName: String get() = "${business}_custom.zip"
     val overridePrefsKey: String get() = "${business}_override_name"

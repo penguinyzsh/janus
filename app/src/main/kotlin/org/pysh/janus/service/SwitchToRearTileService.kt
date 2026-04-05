@@ -2,9 +2,6 @@ package org.pysh.janus.service
 
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import org.pysh.janus.R
-import org.pysh.janus.data.WhitelistManager
-import org.pysh.janus.util.DisplayUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,9 +10,11 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.pysh.janus.R
+import org.pysh.janus.data.WhitelistManager
+import org.pysh.janus.util.DisplayUtils
 
 class SwitchToRearTileService : TileService() {
-
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var watchJob: Job? = null
 
@@ -83,24 +82,25 @@ class SwitchToRearTileService : TileService() {
 
     private fun startWatching(whitelistManager: WhitelistManager) {
         watchJob?.cancel()
-        watchJob = scope.launch {
-            while (true) {
-                delay(2000)
-                val rearTask = DisplayUtils.getForegroundTaskId(DisplayUtils.BACK_DISPLAY)
-                if (rearTask == null) {
-                    // 背屏应用已退出，自动还原
-                    stopWatching(whitelistManager)
-                    withContext(Dispatchers.Main) {
-                        qsTile?.apply {
-                            state = Tile.STATE_INACTIVE
-                            subtitle = null
-                            updateTile()
+        watchJob =
+            scope.launch {
+                while (true) {
+                    delay(2000)
+                    val rearTask = DisplayUtils.getForegroundTaskId(DisplayUtils.BACK_DISPLAY)
+                    if (rearTask == null) {
+                        // 背屏应用已退出，自动还原
+                        stopWatching(whitelistManager)
+                        withContext(Dispatchers.Main) {
+                            qsTile?.apply {
+                                state = Tile.STATE_INACTIVE
+                                subtitle = null
+                                updateTile()
+                            }
                         }
+                        break
                     }
-                    break
                 }
             }
-        }
     }
 
     private fun stopWatching(whitelistManager: WhitelistManager) {

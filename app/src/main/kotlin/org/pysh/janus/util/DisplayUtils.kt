@@ -1,7 +1,6 @@
 package org.pysh.janus.util
 
 object DisplayUtils {
-
     const val MAIN_DISPLAY = 0
     const val BACK_DISPLAY = 1
 
@@ -10,19 +9,21 @@ object DisplayUtils {
     private val OVERRIDE_DENSITY_REGEX = Regex("Override density: (\\d+)")
     private val PHYSICAL_DENSITY_REGEX = Regex("Physical density: (\\d+)")
 
-    private val HOME_PACKAGES = setOf(
-        "com.xiaomi.subscreencenter",
-        "com.miui.home",
-    )
+    private val HOME_PACKAGES =
+        setOf(
+            "com.xiaomi.subscreencenter",
+            "com.miui.home",
+        )
 
     fun moveCurrentAppToBackScreen(): Boolean {
         val taskId = getForegroundTaskId(MAIN_DISPLAY) ?: return false
         return moveTaskToDisplay(taskId, BACK_DISPLAY)
     }
 
-    fun moveTaskToDisplay(taskId: Int, displayId: Int): Boolean {
-        return RootUtils.exec("am display move-stack $taskId $displayId")
-    }
+    fun moveTaskToDisplay(
+        taskId: Int,
+        displayId: Int,
+    ): Boolean = RootUtils.exec("am display move-stack $taskId $displayId")
 
     fun getForegroundTaskId(displayId: Int): Int? {
         val output = RootUtils.execWithOutput("am stack list") ?: return null
@@ -46,34 +47,29 @@ object DisplayUtils {
         return null
     }
 
-    fun setRearRotation(rotation: Int): Boolean {
-        return if (rotation == 0) {
+    fun setRearRotation(rotation: Int): Boolean =
+        if (rotation == 0) {
             resetRearRotation()
         } else {
             RootUtils.exec("wm fixed-to-user-rotation -d $BACK_DISPLAY enabled") &&
                 RootUtils.exec("wm user-rotation -d $BACK_DISPLAY lock $rotation")
         }
-    }
 
-    fun resetRearRotation(): Boolean {
-        return RootUtils.exec("wm user-rotation -d $BACK_DISPLAY free") &&
+    fun resetRearRotation(): Boolean =
+        RootUtils.exec("wm user-rotation -d $BACK_DISPLAY free") &&
             RootUtils.exec("wm fixed-to-user-rotation -d $BACK_DISPLAY default")
-    }
 
     fun getRearDpi(): Int? {
-        val output = RootUtils.execWithOutput("wm density -d $BACK_DISPLAY")
-            ?: return null
+        val output =
+            RootUtils.execWithOutput("wm density -d $BACK_DISPLAY")
+                ?: return null
         val overrideMatch = OVERRIDE_DENSITY_REGEX.find(output)
         if (overrideMatch != null) return overrideMatch.groupValues[1].toIntOrNull()
         val physicalMatch = PHYSICAL_DENSITY_REGEX.find(output)
         return physicalMatch?.groupValues[1]?.toIntOrNull()
     }
 
-    fun setRearDpi(dpi: Int): Boolean {
-        return RootUtils.exec("wm density $dpi -d $BACK_DISPLAY")
-    }
+    fun setRearDpi(dpi: Int): Boolean = RootUtils.exec("wm density $dpi -d $BACK_DISPLAY")
 
-    fun resetRearDpi(): Boolean {
-        return RootUtils.exec("wm density reset -d $BACK_DISPLAY")
-    }
+    fun resetRearDpi(): Boolean = RootUtils.exec("wm density reset -d $BACK_DISPLAY")
 }

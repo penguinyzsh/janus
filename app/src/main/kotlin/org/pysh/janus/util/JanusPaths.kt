@@ -8,7 +8,6 @@ package org.pysh.janus.util
  * structure under `janus/`.
  */
 object JanusPaths {
-
     // ── Base directories ────────────────────────────────────────
     private const val SUBSCREENCENTER_BASE =
         "/data/system/theme_magic/users/0/subscreencenter"
@@ -71,7 +70,7 @@ object JanusPaths {
         // NOTE: smart_assistant/music is NOT deleted — subscreencenter regenerates it on every
         // restart, and without the Hook it's the stock version (harmless)
         ok = RootUtils.exec("rm -f '$LEGACY_SMART_ASSISTANT/weather'") && ok
-        for (i in 0..19) {  // 0 = obsolete janus_card_0 naming
+        for (i in 0..19) { // 0 = obsolete janus_card_0 naming
             RootUtils.exec("rm -f '$LEGACY_SMART_ASSISTANT/janus_card_$i'")
         }
         return ok

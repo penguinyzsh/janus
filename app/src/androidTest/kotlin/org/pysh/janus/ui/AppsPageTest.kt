@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -23,20 +22,19 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class AppsPageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
     private val testIcon = ColorDrawable(0xFF000000.toInt())
 
-    private val testApps = listOf(
-        MediaAppInfo("com.netease.cloudmusic", "NetEase Music", testIcon, true),
-        MediaAppInfo("com.android.settings", "Settings", testIcon, false),
-        MediaAppInfo("com.tencent.mm", "WeChat", testIcon, false),
-    )
+    private val testApps =
+        listOf(
+            MediaAppInfo("com.netease.cloudmusic", "NetEase Music", testIcon, true),
+            MediaAppInfo("com.android.settings", "Settings", testIcon, false),
+            MediaAppInfo("com.tencent.mm", "WeChat", testIcon, false),
+        )
     private val testMediaApps = testApps.filter { it.isMediaApp }
 
     private fun content(

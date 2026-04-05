@@ -7,13 +7,25 @@ plugins {
 
 android {
     namespace = "org.pysh.janus"
-    compileSdk = libs.versions.compileSdk.get().toInt()
+    compileSdk =
+        libs.versions.compileSdk
+            .get()
+            .toInt()
 
     defaultConfig {
         applicationId = "org.pysh.janus"
-        minSdk = libs.versions.minSdk.get().toInt()
-        targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = libs.versions.moduleVersionCode.get().toInt()
+        minSdk =
+            libs.versions.minSdk
+                .get()
+                .toInt()
+        targetSdk =
+            libs.versions.targetSdk
+                .get()
+                .toInt()
+        versionCode =
+            libs.versions.moduleVersionCode
+                .get()
+                .toInt()
         versionName = libs.versions.moduleVersion.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -158,11 +170,16 @@ ktlint {
 }
 
 detekt {
-    config.setFrom("${rootProject.projectDir}/config/detekt/detekt.yml")
+    // Only layer a project-specific config file when present; otherwise fall
+    // back to the bundled defaults. config/detekt/detekt.yml was removed in
+    // an earlier cleanup commit but the task still needs to run.
+    val projectConfig = rootProject.projectDir.resolve("config/detekt/detekt.yml")
+    if (projectConfig.exists()) {
+        config.setFrom(projectConfig)
+    }
     buildUponDefaultConfig = true
     allRules = false
-    // Uncomment after first run to generate baseline:
-    // baseline = file("detekt-baseline.xml")
+    baseline = file("detekt-baseline.xml")
 }
 
 tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {

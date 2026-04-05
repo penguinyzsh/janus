@@ -16,6 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,9 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.unit.sp
 import org.pysh.janus.BuildConfig
 import org.pysh.janus.R
@@ -55,33 +55,37 @@ fun StatusCard(
     val overallOk = effectiveActive && effectiveRoot
     val isDark = isSystemInDarkTheme()
 
-    val cardColor = if (overallOk) {
-        if (isDark) Color(0xFF1A3825) else Color(0xFFDFFAE4)
-    } else {
-        if (isDark) Color(0xFF3B1010) else Color(0xFFF8E2E2)
-    }
+    val cardColor =
+        if (overallOk) {
+            if (isDark) Color(0xFF1A3825) else Color(0xFFDFFAE4)
+        } else {
+            if (isDark) Color(0xFF3B1010) else Color(0xFFF8E2E2)
+        }
 
     val iconTint = if (overallOk) Color(0xFF36D167) else Color(0xFFF72727)
 
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // Left — status card with decorative icon
         Card(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
             colors = CardDefaults.defaultColors(color = cardColor),
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .offset(38.dp, 45.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .offset(38.dp, 45.dp),
                     contentAlignment = Alignment.BottomEnd,
                 ) {
                     Icon(
@@ -92,9 +96,10 @@ fun StatusCard(
                     )
                 }
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -115,19 +120,25 @@ fun StatusCard(
 
         // Right — LSPosed & Root
         Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
+            modifier =
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
         ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .then(
-                        if (BuildConfig.DEBUG) Modifier.clickable {
-                            debugActive = 1 - debugActive
-                        } else Modifier,
-                    ),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .then(
+                            if (BuildConfig.DEBUG) {
+                                Modifier.clickable {
+                                    debugActive = 1 - debugActive
+                                }
+                            } else {
+                                Modifier
+                            },
+                        ),
                 insideMargin = PaddingValues(16.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -140,9 +151,10 @@ fun StatusCard(
                     )
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(
-                            if (effectiveActive) R.string.status_active else R.string.status_inactive,
-                        ),
+                        text =
+                            stringResource(
+                                if (effectiveActive) R.string.status_active else R.string.status_inactive,
+                            ),
                         fontSize = 26.sp,
                         fontWeight = FontWeight.SemiBold,
                     )
@@ -150,14 +162,19 @@ fun StatusCard(
             }
             Spacer(Modifier.height(12.dp))
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .then(
-                        if (BuildConfig.DEBUG) Modifier.clickable {
-                            debugRoot = 1 - debugRoot
-                        } else Modifier,
-                    ),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .then(
+                            if (BuildConfig.DEBUG) {
+                                Modifier.clickable {
+                                    debugRoot = 1 - debugRoot
+                                }
+                            } else {
+                                Modifier
+                            },
+                        ),
                 insideMargin = PaddingValues(16.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -170,9 +187,10 @@ fun StatusCard(
                     )
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(
-                            if (effectiveRoot) R.string.status_available else R.string.status_unavailable,
-                        ),
+                        text =
+                            stringResource(
+                                if (effectiveRoot) R.string.status_available else R.string.status_unavailable,
+                            ),
                         fontSize = 26.sp,
                         fontWeight = FontWeight.SemiBold,
                     )

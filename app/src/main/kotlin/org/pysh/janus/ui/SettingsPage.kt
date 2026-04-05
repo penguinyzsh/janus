@@ -53,16 +53,19 @@ fun SettingsPage(
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
     val pm = remember { if (!isInPreview) context.packageManager else null }
-    val aliasComponent = remember {
-        if (!isInPreview) ComponentName(context, "${context.packageName}.MainActivityAlias") else null
-    }
+    val aliasComponent =
+        remember {
+            if (!isInPreview) ComponentName(context, "${context.packageName}.MainActivityAlias") else null
+        }
 
     var iconHidden by remember {
         mutableStateOf(
             if (!isInPreview && pm != null && aliasComponent != null) {
                 pm.getComponentEnabledSetting(aliasComponent) ==
                     PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-            } else false
+            } else {
+                false
+            },
         )
     }
     var showHideDialog by remember { mutableStateOf(false) }
@@ -81,15 +84,17 @@ fun SettingsPage(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxHeight()
-                .overScrollVertical()
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
-                .padding(horizontal = 12.dp),
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding(),
-                bottom = bottomPadding,
-            ),
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .overScrollVertical()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
+                    .padding(horizontal = 12.dp),
+            contentPadding =
+                PaddingValues(
+                    top = innerPadding.calculateTopPadding(),
+                    bottom = bottomPadding,
+                ),
             overscrollEffect = null,
         ) {
             item {
@@ -98,9 +103,10 @@ fun SettingsPage(
                 ) {
                     SuperSwitch(
                         title = stringResource(R.string.hide_icon),
-                        summary = stringResource(
-                            if (iconHidden) R.string.hide_icon_on else R.string.hide_icon_off
-                        ),
+                        summary =
+                            stringResource(
+                                if (iconHidden) R.string.hide_icon_on else R.string.hide_icon_off,
+                            ),
                         checked = iconHidden,
                         onCheckedChange = {
                             if (it) {
@@ -173,5 +179,4 @@ fun SettingsPage(
             )
         }
     }
-
 }

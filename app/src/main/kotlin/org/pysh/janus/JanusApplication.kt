@@ -6,8 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import io.github.libxposed.service.XposedService
 import io.github.libxposed.service.XposedServiceHelper
 
-class JanusApplication : Application(), XposedServiceHelper.OnServiceListener {
-
+class JanusApplication :
+    Application(),
+    XposedServiceHelper.OnServiceListener {
     var xposedService: XposedService? = null
         private set
 
@@ -33,7 +34,9 @@ class JanusApplication : Application(), XposedServiceHelper.OnServiceListener {
         }
         // Sync all config to RemotePreferences on service bind
         try {
-            val wm = org.pysh.janus.data.WhitelistManager(this)
+            val wm =
+                org.pysh.janus.data
+                    .WhitelistManager(this)
             wm.syncAllToRemotePrefs()
             Log.i(TAG, "Config synced to RemotePreferences")
         } catch (e: Throwable) {

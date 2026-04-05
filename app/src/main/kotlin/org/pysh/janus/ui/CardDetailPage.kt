@@ -43,7 +43,6 @@ import top.yukonga.miuix.kmp.extra.SuperDialog
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 private const val REFRESH_MIN = 10
 private const val REFRESH_MAX = 120
@@ -80,10 +79,11 @@ fun CardDetailPage(
             return@LaunchedEffect
         }
         if (card == null) return@LaunchedEffect
-        val updated = card.copy(
-            refreshInterval = refreshInterval.toInt(),
-            priority = priority.toInt(),
-        )
+        val updated =
+            card.copy(
+                refreshInterval = refreshInterval.toInt(),
+                priority = priority.toInt(),
+            )
         withContext(Dispatchers.IO) { cardManager?.updateCard(updated) }
     }
 
@@ -92,10 +92,11 @@ fun CardDetailPage(
     var dialogInput by remember { mutableStateOf("") }
 
     val scrollBehavior = MiuixScrollBehavior()
-    val cardName = when {
-        card != null -> card.name
-        else -> ""
-    }
+    val cardName =
+        when {
+            card != null -> card.name
+            else -> ""
+        }
 
     Scaffold(
         topBar = {
@@ -115,74 +116,77 @@ fun CardDetailPage(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 12.dp),
+            modifier =
+                Modifier
+                    .padding(innerPadding)
+                    .padding(horizontal = 12.dp),
         ) {
             // Settings
             SmallTitle(text = stringResource(R.string.nav_settings))
             Card(modifier = Modifier.padding(bottom = 12.dp)) {
-                    SuperArrow(
-                        title = stringResource(R.string.card_refresh_interval),
-                        summary = stringResource(R.string.card_refresh_interval_value, refreshInterval.toInt()),
-                        onClick = {
-                            dialogInput = refreshInterval.toInt().toString()
-                            showRefreshDialog = true
-                        },
-                        bottomAction = {
-                            Slider(
-                                value = refreshInterval,
-                                onValueChange = { refreshInterval = it },
-                                valueRange = REFRESH_MIN.toFloat()..REFRESH_MAX.toFloat(),
-                            )
-                        },
-                    )
-                    SuperArrow(
-                        title = stringResource(R.string.card_priority),
-                        summary = stringResource(R.string.card_priority_value, priority.toInt()),
-                        onClick = {
-                            dialogInput = priority.toInt().toString()
-                            showPriorityDialog = true
-                        },
-                        bottomAction = {
-                            Slider(
-                                value = priority,
-                                onValueChange = { priority = it },
-                                valueRange = PRIORITY_MIN.toFloat()..PRIORITY_MAX.toFloat(),
-                            )
-                        },
-                    )
-                    TextButton(
-                        text = stringResource(R.string.reset_default),
-                        onClick = {
-                            refreshInterval = 30f
-                            priority = 100f
-                            Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier
+                SuperArrow(
+                    title = stringResource(R.string.card_refresh_interval),
+                    summary = stringResource(R.string.card_refresh_interval_value, refreshInterval.toInt()),
+                    onClick = {
+                        dialogInput = refreshInterval.toInt().toString()
+                        showRefreshDialog = true
+                    },
+                    bottomAction = {
+                        Slider(
+                            value = refreshInterval,
+                            onValueChange = { refreshInterval = it },
+                            valueRange = REFRESH_MIN.toFloat()..REFRESH_MAX.toFloat(),
+                        )
+                    },
+                )
+                SuperArrow(
+                    title = stringResource(R.string.card_priority),
+                    summary = stringResource(R.string.card_priority_value, priority.toInt()),
+                    onClick = {
+                        dialogInput = priority.toInt().toString()
+                        showPriorityDialog = true
+                    },
+                    bottomAction = {
+                        Slider(
+                            value = priority,
+                            onValueChange = { priority = it },
+                            valueRange = PRIORITY_MIN.toFloat()..PRIORITY_MAX.toFloat(),
+                        )
+                    },
+                )
+                TextButton(
+                    text = stringResource(R.string.reset_default),
+                    onClick = {
+                        refreshInterval = 30f
+                        priority = 100f
+                        Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
+                    },
+                    modifier =
+                        Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp)
                             .padding(bottom = 12.dp),
-                    )
+                )
             }
 
             // Delete
             Card(modifier = Modifier.padding(bottom = 12.dp)) {
-                    TextButton(
-                        text = stringResource(R.string.cards_delete),
-                        onClick = {
-                            scope.launch {
-                                withContext(Dispatchers.IO) {
-                                    cardManager?.removeCard(slot)
-                                    RootUtils.restartBackScreen()
-                                }
-                                onBack()
+                TextButton(
+                    text = stringResource(R.string.cards_delete),
+                    onClick = {
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                cardManager?.removeCard(slot)
+                                RootUtils.restartBackScreen()
                             }
-                        },
-                        modifier = Modifier
+                            onBack()
+                        }
+                    },
+                    modifier =
+                        Modifier
                             .fillMaxWidth()
                             .padding(12.dp),
-                    )
+                )
             }
         }
 
@@ -242,5 +246,4 @@ fun CardDetailPage(
             }
         }
     }
-
 }

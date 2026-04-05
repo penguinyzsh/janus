@@ -5,11 +5,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -85,24 +85,31 @@ fun AppsPage(
 
     var searchQuery by remember { mutableStateOf("") }
 
-    val whitelist = remember(whitelistVersion) {
-        whitelistManager?.getWhitelist() ?: emptySet()
-    }
-
-    val baseList = remember(allApps, mediaApps, whitelist) {
-        val mediaPackages = mediaApps.mapTo(HashSet()) { it.packageName }
-        allApps.map { app ->
-            app.copy(isMediaApp = app.packageName in mediaPackages)
-        }.sortedByDescending { it.packageName in whitelist }
-    }
-
-    val filteredApps = remember(baseList, searchQuery) {
-        if (searchQuery.isBlank()) baseList
-        else baseList.filter {
-            it.appName.contains(searchQuery, ignoreCase = true) ||
-                it.packageName.contains(searchQuery, ignoreCase = true)
+    val whitelist =
+        remember(whitelistVersion) {
+            whitelistManager?.getWhitelist() ?: emptySet()
         }
-    }
+
+    val baseList =
+        remember(allApps, mediaApps, whitelist) {
+            val mediaPackages = mediaApps.mapTo(HashSet()) { it.packageName }
+            allApps
+                .map { app ->
+                    app.copy(isMediaApp = app.packageName in mediaPackages)
+                }.sortedByDescending { it.packageName in whitelist }
+        }
+
+    val filteredApps =
+        remember(baseList, searchQuery) {
+            if (searchQuery.isBlank()) {
+                baseList
+            } else {
+                baseList.filter {
+                    it.appName.contains(searchQuery, ignoreCase = true) ||
+                        it.packageName.contains(searchQuery, ignoreCase = true)
+                }
+            }
+        }
 
     val scrollBehavior = MiuixScrollBehavior()
     val title = stringResource(R.string.nav_apps)
@@ -118,9 +125,10 @@ fun AppsPage(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = innerPadding.calculateTopPadding()),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = innerPadding.calculateTopPadding()),
         ) {
             SearchBar(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -173,11 +181,12 @@ private fun AppListItem(
     onClick: () -> Unit,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics(mergeDescendants = true) {}
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .semantics(mergeDescendants = true) {}
+                .clickable(onClick = onClick)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AppIcon(drawable = icon, size = 48, contentDescription = appName)
@@ -210,12 +219,12 @@ private fun AppListItem(
 @Composable
 internal fun MediaTag() {
     Box(
-        modifier = Modifier
-            .background(
-                color = MiuixTheme.colorScheme.primary,
-                shape = RoundedCornerShape(4.dp),
-            )
-            .padding(horizontal = 5.dp, vertical = 2.dp),
+        modifier =
+            Modifier
+                .background(
+                    color = MiuixTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(4.dp),
+                ).padding(horizontal = 5.dp, vertical = 2.dp),
     ) {
         Text(
             text = stringResource(R.string.media_tag),
@@ -227,12 +236,17 @@ internal fun MediaTag() {
 }
 
 @Composable
-internal fun AppIcon(drawable: Drawable, size: Int = 40, contentDescription: String) {
+internal fun AppIcon(
+    drawable: Drawable,
+    size: Int = 40,
+    contentDescription: String,
+) {
     val density = LocalContext.current.resources.displayMetrics.density
     val sizePx = (size * density).toInt()
-    val bitmap = remember(drawable) {
-        drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
-    }
+    val bitmap =
+        remember(drawable) {
+            drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
+        }
     Image(
         painter = BitmapPainter(bitmap),
         contentDescription = contentDescription,

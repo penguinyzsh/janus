@@ -8,8 +8,9 @@ import org.pysh.janus.JanusApplication
 import org.pysh.janus.util.JanusPaths
 import java.io.File
 
-class WhitelistManager(private val context: Context) {
-
+class WhitelistManager(
+    private val context: Context,
+) {
     private val TAG = "Janus-Config"
 
     companion object {
@@ -34,34 +35,31 @@ class WhitelistManager(private val context: Context) {
         val HIDE_TIME_TIP_FLAG_PATH = JanusPaths.HIDE_TIME_TIP
     }
 
-    private val prefs: SharedPreferences = try {
-        @Suppress("DEPRECATION")
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)
-    } catch (_: SecurityException) {
-        // MODE_WORLD_READABLE throws on targetSdk >= 24 without Xposed context.
-        // Fall back to MODE_PRIVATE; XSharedPreferences on the hook side reads
-        // the file directly regardless of this mode flag.
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).also {
-            makePrefsWorldReadable()
+    private val prefs: SharedPreferences =
+        try {
+            @Suppress("DEPRECATION")
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)
+        } catch (_: SecurityException) {
+            // MODE_WORLD_READABLE throws on targetSdk >= 24 without Xposed context.
+            // Fall back to MODE_PRIVATE; XSharedPreferences on the hook side reads
+            // the file directly regardless of this mode flag.
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).also {
+                makePrefsWorldReadable()
+            }
         }
-    }
 
     fun getWhitelist(): Set<String> {
         val raw = prefs.getString(KEY_WHITELIST, "") ?: ""
         return raw.split(",").filter { it.isNotBlank() }.toSet()
     }
 
-    fun isActivated(): Boolean {
-        return prefs.getBoolean(KEY_ACTIVATED, false)
-    }
+    fun isActivated(): Boolean = prefs.getBoolean(KEY_ACTIVATED, false)
 
     fun setActivated() {
         prefs.edit().putBoolean(KEY_ACTIVATED, true).commit()
     }
 
-    fun isTrackingDisabled(): Boolean {
-        return prefs.getBoolean(KEY_DISABLE_TRACKING, false)
-    }
+    fun isTrackingDisabled(): Boolean = prefs.getBoolean(KEY_DISABLE_TRACKING, false)
 
     fun setTrackingDisabled(disabled: Boolean) {
         prefs.edit().putBoolean(KEY_DISABLE_TRACKING, disabled).commit()
@@ -70,45 +68,35 @@ class WhitelistManager(private val context: Context) {
         syncRemoteBool("tracking_disabled", disabled)
     }
 
-    fun isKeepAliveEnabled(): Boolean {
-        return prefs.getBoolean(KEY_KEEP_ALIVE_ENABLED, false)
-    }
+    fun isKeepAliveEnabled(): Boolean = prefs.getBoolean(KEY_KEEP_ALIVE_ENABLED, false)
 
     fun setKeepAliveEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_KEEP_ALIVE_ENABLED, enabled).commit()
         makePrefsWorldReadable()
     }
 
-    fun getKeepAliveInterval(): Int {
-        return prefs.getInt(KEY_KEEP_ALIVE_INTERVAL, 10)
-    }
+    fun getKeepAliveInterval(): Int = prefs.getInt(KEY_KEEP_ALIVE_INTERVAL, 10)
 
     fun setKeepAliveInterval(seconds: Int) {
         prefs.edit().putInt(KEY_KEEP_ALIVE_INTERVAL, seconds).commit()
         makePrefsWorldReadable()
     }
 
-    fun getCastRotation(): Int {
-        return prefs.getInt(KEY_CAST_ROTATION, 0)
-    }
+    fun getCastRotation(): Int = prefs.getInt(KEY_CAST_ROTATION, 0)
 
     fun setCastRotation(rotation: Int) {
         prefs.edit().putInt(KEY_CAST_ROTATION, rotation).commit()
         makePrefsWorldReadable()
     }
 
-    fun isCastKeepAlive(): Boolean {
-        return prefs.getBoolean(KEY_CAST_KEEP_ALIVE, false)
-    }
+    fun isCastKeepAlive(): Boolean = prefs.getBoolean(KEY_CAST_KEEP_ALIVE, false)
 
     fun setCastKeepAlive(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_CAST_KEEP_ALIVE, enabled).commit()
         makePrefsWorldReadable()
     }
 
-    fun isWallpaperKeepAlive(): Boolean {
-        return prefs.getBoolean(KEY_WALLPAPER_KEEP_ALIVE, false)
-    }
+    fun isWallpaperKeepAlive(): Boolean = prefs.getBoolean(KEY_WALLPAPER_KEEP_ALIVE, false)
 
     fun setWallpaperKeepAlive(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_KEEP_ALIVE, enabled).commit()
@@ -117,9 +105,7 @@ class WhitelistManager(private val context: Context) {
         syncRemoteBool("wallpaper_keep_alive", enabled)
     }
 
-    fun isWallpaperLocked(): Boolean {
-        return prefs.getBoolean(KEY_WALLPAPER_LOCK, false)
-    }
+    fun isWallpaperLocked(): Boolean = prefs.getBoolean(KEY_WALLPAPER_LOCK, false)
 
     fun setWallpaperLocked(locked: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOCK, locked).commit()
@@ -128,9 +114,7 @@ class WhitelistManager(private val context: Context) {
         syncRemoteBool("wallpaper_lock", locked)
     }
 
-    fun isTimeTipHidden(): Boolean {
-        return prefs.getBoolean(KEY_HIDE_TIME_TIP, false)
-    }
+    fun isTimeTipHidden(): Boolean = prefs.getBoolean(KEY_HIDE_TIME_TIP, false)
 
     fun setTimeTipHidden(hidden: Boolean) {
         prefs.edit().putBoolean(KEY_HIDE_TIME_TIP, hidden).commit()
@@ -139,17 +123,13 @@ class WhitelistManager(private val context: Context) {
         syncRemoteBool("hide_time_tip", hidden)
     }
 
-    fun isWallpaperLoop(): Boolean {
-        return prefs.getBoolean(KEY_WALLPAPER_LOOP, false)
-    }
+    fun isWallpaperLoop(): Boolean = prefs.getBoolean(KEY_WALLPAPER_LOOP, false)
 
     fun setWallpaperLoop(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOOP, enabled).commit()
     }
 
-    fun isAutoRotateEnabled(): Boolean {
-        return prefs.getBoolean(KEY_AUTO_ROTATE, false)
-    }
+    fun isAutoRotateEnabled(): Boolean = prefs.getBoolean(KEY_AUTO_ROTATE, false)
 
     fun setAutoRotateEnabled(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_AUTO_ROTATE, enabled).commit()
@@ -172,24 +152,35 @@ class WhitelistManager(private val context: Context) {
     }
 
     private fun syncActiveWallpaperFlag(path: String) {
-        org.pysh.janus.util.JanusPaths.ensureAllDirs()
+        org.pysh.janus.util.JanusPaths
+            .ensureAllDirs()
         val flagPath = "${org.pysh.janus.util.JanusPaths.WALLPAPER_DIR}/active_wallpaper_path.txt"
         val cmd = "printf '%s' '$path' > '$flagPath' && chmod 644 '$flagPath' && chcon u:object_r:theme_data_file:s0 '$flagPath'"
-        org.pysh.janus.util.RootUtils.exec(cmd)
+        org.pysh.janus.util.RootUtils
+            .exec(cmd)
     }
 
     /** Sync a single string config to RemotePreferences. */
-    private fun syncRemoteString(key: String, value: String) {
+    private fun syncRemoteString(
+        key: String,
+        value: String,
+    ) {
         try {
-            JanusApplication.instance?.xposedService
+            JanusApplication.instance
+                ?.xposedService
                 ?.getRemotePreferences("janus_config")
-                ?.edit()?.putString(key, value)?.commit()
-        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
+                ?.edit()
+                ?.putString(key, value)
+                ?.commit()
+        } catch (_: Throwable) {
+            // RemotePrefs not available yet
+        }
     }
 
     fun saveWhitelist(packages: Set<String>) {
         val oldWhitelist = getWhitelist()
-        prefs.edit()
+        prefs
+            .edit()
             .putString(KEY_WHITELIST, packages.joinToString(","))
             .commit()
         makePrefsWorldReadable()
@@ -201,12 +192,17 @@ class WhitelistManager(private val context: Context) {
 
     private fun syncWhitelistFlag(packages: Set<String>) {
         if (packages.isEmpty()) {
-            org.pysh.janus.util.RootUtils.exec("rm -f $WHITELIST_FLAG_PATH")
+            org.pysh.janus.util.RootUtils
+                .exec("rm -f $WHITELIST_FLAG_PATH")
         } else {
             // Use printf to write content directly via shell, avoids app-private file access issues
             val content = packages.joinToString(",")
-            val cmd = "printf '%s' '$content' > $WHITELIST_FLAG_PATH && chmod 644 $WHITELIST_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $WHITELIST_FLAG_PATH"
-            org.pysh.janus.util.RootUtils.exec(cmd)
+            val cmd =
+                "printf '%s' '$content' > $WHITELIST_FLAG_PATH && " +
+                    "chmod 644 $WHITELIST_FLAG_PATH && " +
+                    "chcon u:object_r:theme_data_file:s0 $WHITELIST_FLAG_PATH"
+            org.pysh.janus.util.RootUtils
+                .exec(cmd)
         }
     }
 
@@ -215,7 +211,10 @@ class WhitelistManager(private val context: Context) {
      * removeScope for removed packages. This makes LSPosed prompt the user to approve
      * the scope expansion, after which the hook will be loaded in that app.
      */
-    private fun syncWhitelistScope(oldWhitelist: Set<String>, newWhitelist: Set<String>) {
+    private fun syncWhitelistScope(
+        oldWhitelist: Set<String>,
+        newWhitelist: Set<String>,
+    ) {
         val added = newWhitelist - oldWhitelist
         val removed = oldWhitelist - newWhitelist
         if (added.isEmpty() && removed.isEmpty()) return
@@ -223,14 +222,18 @@ class WhitelistManager(private val context: Context) {
         val service = JanusApplication.instance?.xposedService ?: return
         try {
             if (added.isNotEmpty()) {
-                service.requestScope(added.toList(), object : XposedService.OnScopeEventListener {
-                    override fun onScopeRequestApproved(approved: List<String>) {
-                        Log.i(TAG, "Scope request approved: $approved")
-                    }
-                    override fun onScopeRequestFailed(message: String) {
-                        Log.w(TAG, "Scope request failed: $message")
-                    }
-                })
+                service.requestScope(
+                    added.toList(),
+                    object : XposedService.OnScopeEventListener {
+                        override fun onScopeRequestApproved(approved: List<String>) {
+                            Log.i(TAG, "Scope request approved: $approved")
+                        }
+
+                        override fun onScopeRequestFailed(message: String) {
+                            Log.w(TAG, "Scope request failed: $message")
+                        }
+                    },
+                )
             }
             if (removed.isNotEmpty()) {
                 service.removeScope(removed.toList())
@@ -261,15 +264,17 @@ class WhitelistManager(private val context: Context) {
      * Key names match the JSON rule configFlag values.
      */
     fun syncAllToRemotePrefs() {
-        val remotePrefs = try {
-            JanusApplication.instance?.xposedService?.getRemotePreferences("janus_config")
-        } catch (e: Throwable) {
-            Log.w(TAG, "RemotePreferences not available: ${e.message}")
-            null
-        } ?: return
+        val remotePrefs =
+            try {
+                JanusApplication.instance?.xposedService?.getRemotePreferences("janus_config")
+            } catch (e: Throwable) {
+                Log.w(TAG, "RemotePreferences not available: ${e.message}")
+                null
+            } ?: return
 
         try {
-            remotePrefs.edit()
+            remotePrefs
+                .edit()
                 .putString("whitelist", getWhitelist().joinToString(","))
                 .putBoolean("tracking_disabled", isTrackingDisabled())
                 .putBoolean("wallpaper_keep_alive", isWallpaperKeepAlive())
@@ -283,19 +288,32 @@ class WhitelistManager(private val context: Context) {
     }
 
     /** Sync a single boolean config to RemotePreferences. */
-    private fun syncRemoteBool(key: String, value: Boolean) {
+    private fun syncRemoteBool(
+        key: String,
+        value: Boolean,
+    ) {
         try {
-            JanusApplication.instance?.xposedService
+            JanusApplication.instance
+                ?.xposedService
                 ?.getRemotePreferences("janus_config")
-                ?.edit()?.putBoolean(key, value)?.commit()
-        } catch (_: Throwable) { /* RemotePrefs not available yet */ }
+                ?.edit()
+                ?.putBoolean(key, value)
+                ?.commit()
+        } catch (_: Throwable) {
+            // RemotePrefs not available yet
+        }
     }
 
-    private fun syncBooleanFlag(path: String, enabled: Boolean) {
+    private fun syncBooleanFlag(
+        path: String,
+        enabled: Boolean,
+    ) {
         if (enabled) {
-            org.pysh.janus.util.RootUtils.exec("touch $path && chmod 644 $path && chcon u:object_r:theme_data_file:s0 $path")
+            org.pysh.janus.util.RootUtils
+                .exec("touch $path && chmod 644 $path && chcon u:object_r:theme_data_file:s0 $path")
         } else {
-            org.pysh.janus.util.RootUtils.exec("rm -f $path")
+            org.pysh.janus.util.RootUtils
+                .exec("rm -f $path")
         }
     }
 

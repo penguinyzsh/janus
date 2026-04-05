@@ -3,11 +3,9 @@ package org.pysh.janus.ui
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,15 +17,15 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class HomePageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
-    private fun s(id: Int, vararg args: Any): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
+    private fun s(
+        id: Int,
+        vararg args: Any,
+    ): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
 
     // TC-HOME-001: 首页展示状态卡片（模块激活 + Root 正常）
     @Test
@@ -75,5 +73,4 @@ class HomePageTest {
         }
         rule.onNodeWithText(s(R.string.hook_status_title)).assertIsDisplayed()
     }
-
 }

@@ -20,15 +20,15 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @RunWith(AndroidJUnit4::class)
 class CardDetailPageTest {
-
     @get:Rule
     val rule = createComposeRule()
 
-    private fun s(id: Int): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
+    private fun s(id: Int): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id)
 
-    private fun s(id: Int, vararg args: Any): String =
-        ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
+    private fun s(
+        id: Int,
+        vararg args: Any,
+    ): String = ApplicationProvider.getApplicationContext<android.content.Context>().getString(id, *args)
 
     private fun content() {
         rule.setContent { MiuixTheme { CardDetailPage(slot = 0, onBack = {}) } }

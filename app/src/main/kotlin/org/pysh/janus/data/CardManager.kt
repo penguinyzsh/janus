@@ -11,8 +11,9 @@ import org.pysh.janus.hookapi.CardInfo
 import java.io.File
 import java.util.zip.ZipFile
 
-class CardManager(private val context: Context) {
-
+class CardManager(
+    private val context: Context,
+) {
     companion object {
         private const val PREFS_NAME = "janus_config"
         private const val KEY_CARDS = "cards_config"
@@ -25,23 +26,25 @@ class CardManager(private val context: Context) {
         private val DEPLOY_BASE = JanusPaths.TEMPLATES_DIR
     }
 
-    private val prefs: SharedPreferences = try {
-        @Suppress("DEPRECATION")
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)
-    } catch (_: SecurityException) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    }
+    private val prefs: SharedPreferences =
+        try {
+            @Suppress("DEPRECATION")
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_WORLD_READABLE)
+        } catch (_: SecurityException) {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        }
 
     private val cardsDir: File
-        get() = File(context.filesDir, CARDS_DIR).also { dir ->
-            dir.mkdirs()
-            // Make cards directory traversable for Hook-side reading
-            // (subscreencenter process needs to read card ZIPs)
-            dir.setReadable(true, false)
-            dir.setExecutable(true, false)
-            context.filesDir.setReadable(true, false)
-            context.filesDir.setExecutable(true, false)
-        }
+        get() =
+            File(context.filesDir, CARDS_DIR).also { dir ->
+                dir.mkdirs()
+                // Make cards directory traversable for Hook-side reading
+                // (subscreencenter process needs to read card ZIPs)
+                dir.setReadable(true, false)
+                dir.setExecutable(true, false)
+                context.filesDir.setReadable(true, false)
+                context.filesDir.setExecutable(true, false)
+            }
 
     // ── Card CRUD ───────────────────────────────────────────────
 
@@ -60,15 +63,16 @@ class CardManager(private val context: Context) {
             } ?: return null
 
             // Validate ZIP contains manifest.xml
-            val name = try {
-                ZipFile(tmpFile).use { zip ->
-                    val entry = zip.getEntry("manifest.xml") ?: return null
-                    parseCardName(zip.getInputStream(entry).bufferedReader().readText())
+            val name =
+                try {
+                    ZipFile(tmpFile).use { zip ->
+                        val entry = zip.getEntry("manifest.xml") ?: return null
+                        parseCardName(zip.getInputStream(entry).bufferedReader().readText())
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("Janus-CardMgr", "addCard: invalid ZIP", e)
+                    return null
                 }
-            } catch (e: Exception) {
-                android.util.Log.w("Janus-CardMgr", "addCard: invalid ZIP", e)
-                return null
-            }
 
             // Move to permanent location
             val destFile = File(cardsDir, "$slot.zip")
@@ -79,13 +83,14 @@ class CardManager(private val context: Context) {
             // Extract original filename from URI
             val fileName = getFileNameFromUri(uri) ?: "card_$slot.zip"
 
-            val card = CardInfo(
-                slot = slot,
-                name = name ?: fileName.removeSuffix(".zip").removeSuffix(".mrc"),
-                fileName = fileName,
-                enabled = true,
-                sortOrder = getCards().maxOfOrNull { it.sortOrder + 1 } ?: 1,
-            )
+            val card =
+                CardInfo(
+                    slot = slot,
+                    name = name ?: fileName.removeSuffix(".zip").removeSuffix(".mrc"),
+                    fileName = fileName,
+                    enabled = true,
+                    sortOrder = getCards().maxOfOrNull { it.sortOrder + 1 } ?: 1,
+                )
 
             val cards = getCards().toMutableList()
             cards.add(card)
@@ -119,9 +124,10 @@ class CardManager(private val context: Context) {
                 priorities[i] = (priorities[i - 1] - 1).coerceAtLeast(1)
             }
         }
-        val updated = reordered.mapIndexed { index, card ->
-            card.copy(sortOrder = index, priority = priorities[index])
-        }
+        val updated =
+            reordered.mapIndexed { index, card ->
+                card.copy(sortOrder = index, priority = priorities[index])
+            }
         saveCards(updated)
     }
 
@@ -139,25 +145,29 @@ class CardManager(private val context: Context) {
     /** Write the full card config as a JSON flag file for the Hook side. */
     fun syncConfig(): Boolean {
         JanusPaths.ensureAllDirs()
-        val config = JSONObject().apply {
-            put("master_enabled", isMasterEnabled())
-            val arr = JSONArray()
-            getCards().filter { it.enabled }.forEach { card ->
-                arr.put(JSONObject().apply {
-                    put("slot", card.slot)
-                    put("business", card.businessName)
-                    put("refresh", card.refreshInterval)
-                    put("priority", card.priority)
-                })
+        val config =
+            JSONObject().apply {
+                put("master_enabled", isMasterEnabled())
+                val arr = JSONArray()
+                getCards().filter { it.enabled }.forEach { card ->
+                    arr.put(
+                        JSONObject().apply {
+                            put("slot", card.slot)
+                            put("business", card.businessName)
+                            put("refresh", card.refreshInterval)
+                            put("priority", card.priority)
+                        },
+                    )
+                }
+                put("cards", arr)
             }
-            put("cards", arr)
-        }
 
         val tmp = File(context.cacheDir, "cards_cfg_tmp.json")
         tmp.writeText(config.toString())
-        val ok = RootUtils.exec(
-            "cp ${tmp.absolutePath} $CARDS_CONFIG_FLAG_PATH && chmod 644 $CARDS_CONFIG_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $CARDS_CONFIG_FLAG_PATH"
-        )
+        val ok =
+            RootUtils.exec(
+                "cp ${tmp.absolutePath} $CARDS_CONFIG_FLAG_PATH && chmod 644 $CARDS_CONFIG_FLAG_PATH && chcon u:object_r:theme_data_file:s0 $CARDS_CONFIG_FLAG_PATH",
+            )
         tmp.delete()
         return ok
     }
@@ -199,9 +209,10 @@ class CardManager(private val context: Context) {
             val tmp = File(context.cacheDir, "card_hook_${card.slot}.zip")
             src.copyTo(tmp, overwrite = true)
             val dest = "$CARDS_DEPLOY_DIR/${card.slot}.zip"
-            val ok = RootUtils.exec(
-                "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest"
-            )
+            val ok =
+                RootUtils.exec(
+                    "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest",
+                )
             if (!ok) allOk = false
             tmp.delete()
         }
@@ -210,19 +221,26 @@ class CardManager(private val context: Context) {
 
     // ── System Card Override (generic) ────────────────────────────
 
-    fun importSystemCardOverride(card: SystemCard, uri: Uri): String? {
+    fun importSystemCardOverride(
+        card: SystemCard,
+        uri: Uri,
+    ): String? {
         val tmpFile = File(context.cacheDir, "${card.business}_import_tmp.zip")
         try {
             context.contentResolver.openInputStream(uri)?.use { input ->
                 tmpFile.outputStream().use { output -> input.copyTo(output) }
             } ?: return null
 
-            val name = try {
-                ZipFile(tmpFile).use { zip ->
-                    val entry = zip.getEntry("manifest.xml") ?: return null
-                    parseCardName(zip.getInputStream(entry).bufferedReader().readText())
+            val name =
+                try {
+                    ZipFile(tmpFile).use { zip ->
+                        val entry = zip.getEntry("manifest.xml") ?: return null
+                        parseCardName(zip.getInputStream(entry).bufferedReader().readText())
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("Janus-CardMgr", "importSystemCardOverride: invalid ZIP", e)
+                    return null
                 }
-            } catch (e: Exception) { android.util.Log.w("Janus-CardMgr", "importSystemCardOverride: invalid ZIP", e); return null }
 
             val localFile = File(cardsDir, card.customFileName)
             tmpFile.copyTo(localFile, overwrite = true)
@@ -234,7 +252,7 @@ class CardManager(private val context: Context) {
             val tmp = File(context.cacheDir, "${card.business}_deploy_tmp.zip")
             localFile.copyTo(tmp, overwrite = true)
             RootUtils.exec(
-                "cp ${tmp.absolutePath} $deployDest && chmod 644 $deployDest && chcon u:object_r:theme_data_file:s0 $deployDest"
+                "cp ${tmp.absolutePath} $deployDest && chmod 644 $deployDest && chcon u:object_r:theme_data_file:s0 $deployDest",
             )
             tmp.delete()
 
@@ -257,8 +275,7 @@ class CardManager(private val context: Context) {
         makePrefsWorldReadable()
     }
 
-    fun getSystemCardOverrideName(card: SystemCard): String? =
-        prefs.getString(card.overridePrefsKey, null)
+    fun getSystemCardOverrideName(card: SystemCard): String? = prefs.getString(card.overridePrefsKey, null)
 
     /** Deploy all system card override ZIPs to theme_magic cards/ so Hook can read them. */
     fun prepareSystemCardOverridesForHook() {
@@ -270,7 +287,7 @@ class CardManager(private val context: Context) {
             src.copyTo(tmp, overwrite = true)
             val dest = "${JanusPaths.CARDS_DIR}/${card.customFileName}"
             RootUtils.exec(
-                "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest"
+                "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest",
             )
             tmp.delete()
         }
@@ -281,7 +298,9 @@ class CardManager(private val context: Context) {
     // ── Music Override ───────────────────────────────────────────
 
     fun importMusicOverride(uri: Uri): String? = importSystemCardOverride(SystemCard.MUSIC, uri)
+
     fun removeMusicOverride() = removeSystemCardOverride(SystemCard.MUSIC)
+
     fun getMusicOverrideName(): String? = getSystemCardOverrideName(SystemCard.MUSIC)
 
     // ── Slot Management ─────────────────────────────────────────
@@ -295,9 +314,10 @@ class CardManager(private val context: Context) {
 
     /** Watch for card config changes. Returns an unregister function. */
     fun observeCards(onChange: () -> Unit): () -> Unit {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == KEY_CARDS) onChange()
-        }
+        val listener =
+            SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                if (key == KEY_CARDS) onChange()
+            }
         prefs.registerOnSharedPreferenceChangeListener(listener)
         return { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
     }

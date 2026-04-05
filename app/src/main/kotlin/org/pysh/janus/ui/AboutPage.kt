@@ -48,16 +48,17 @@ private fun AboutPagePreview() {
 fun AboutPage(onBack: () -> Unit) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
-    val icon = remember {
-        if (isInPreview) {
-            ImageBitmap(96, 96)
-        } else {
-            val drawable = context.packageManager.getApplicationIcon(context.packageName)
-            val density = context.resources.displayMetrics.density
-            val sizePx = (96 * density).toInt()
-            drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
+    val icon =
+        remember {
+            if (isInPreview) {
+                ImageBitmap(96, 96)
+            } else {
+                val drawable = context.packageManager.getApplicationIcon(context.packageName)
+                val density = context.resources.displayMetrics.density
+                val sizePx = (96 * density).toInt()
+                drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
+            }
         }
-    }
 
     Scaffold(
         topBar = {
@@ -75,10 +76,11 @@ fun AboutPage(onBack: () -> Unit) {
         },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = paddingValues.calculateTopPadding())
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding())
+                    .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(48.dp))
@@ -118,7 +120,7 @@ fun AboutPage(onBack: () -> Unit) {
                     },
                     onClick = {
                         context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/penguinyzsh"))
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/penguinyzsh")),
                         )
                     },
                 )
