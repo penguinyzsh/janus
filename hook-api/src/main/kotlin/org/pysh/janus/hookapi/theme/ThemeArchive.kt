@@ -150,13 +150,7 @@ object ThemeArchive {
         }
         val bytes = zip.getInputStream(manifestEntry).use { it.readBytes() }
         val doc = try {
-            val factory = DocumentBuilderFactory.newInstance().apply {
-                // Harden against XXE.
-                setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-                isNamespaceAware = false
-                isExpandEntityReferences = false
-            }
-            factory.newDocumentBuilder().parse(ByteArrayInputStream(bytes))
+            safeDocumentBuilder().parse(ByteArrayInputStream(bytes))
         } catch (e: Exception) {
             throw InvalidThemeArchiveException("manifest.xml is not valid XML: ${e.message}", e)
         }
@@ -206,30 +200,67 @@ object ThemeArchive {
         if (entry.size > MAX_TEXT_ENTRY_BYTES) return null
         val bytes = zip.getInputStream(entry).use { it.readBytes() }
         val doc = try {
-            val factory = DocumentBuilderFactory.newInstance().apply {
-                setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-                isNamespaceAware = false
-                isExpandEntityReferences = false
-            }
-            factory.newDocumentBuilder().parse(ByteArrayInputStream(bytes))
+            safeDocumentBuilder().parse(ByteArrayInputStream(bytes))
         } catch (_: Exception) {
             return null
         }
         val root = doc.documentElement ?: return null
-        val resources = root.getElementsByTagName("resource")
+
+        // MAML themes historically use <resource name="..." value="..."/>, but
+        // many packages (including card-style MRCs) ship an Android-style
+        // <string name="...">value</string> instead. Accept both.
+        val preferredKeys = setOf("theme_name", "app_name", "name", "display_name", "title")
+        val tagNames = listOf("resource", "string")
         var firstValue: String? = null
-        for (i in 0 until resources.length) {
-            val el = resources.item(i) as? Element ?: continue
-            val name = el.getAttribute("name")
-            val value = el.getAttribute("value").takeIf { it.isNotBlank() }
-                ?: el.textContent?.trim().orEmpty()
-            if (value.isBlank()) continue
-            if (name == "theme_name" || name == "app_name" || name == "name") {
-                return value
+        for (tag in tagNames) {
+            val nodes = root.getElementsByTagName(tag)
+            for (i in 0 until nodes.length) {
+                val el = nodes.item(i) as? Element ?: continue
+                val name = el.getAttribute("name")
+                val value = el.getAttribute("value").takeIf { it.isNotBlank() }
+                    ?: el.textContent?.trim().orEmpty()
+                if (value.isBlank()) continue
+                // Skip obvious non-name strings that some MRCs ship as the
+                // first <string> entry (e.g., language/RTL metadata).
+                if (name == "language" || name == "RTL") continue
+                if (name in preferredKeys) return value
+                if (firstValue == null) firstValue = value
             }
-            if (firstValue == null) firstValue = value
+            if (firstValue != null) return firstValue
         }
         return firstValue
+    }
+
+    /**
+     * Build a [DocumentBuilder] with best-effort XXE hardening that works on
+     * both JVM (Apache Xerces) and Android (internal Xerces-derived parser).
+     *
+     * We intentionally avoid Apache-specific feature URIs like
+     * `http://apache.org/xml/features/disallow-doctype-decl` because Android's
+     * `DocumentBuilderFactoryImpl` throws `ParserConfigurationException` for
+     * them on some API levels, causing otherwise-valid archives to be
+     * rejected. The parser is still hardened via:
+     *  - `FEATURE_SECURE_PROCESSING` (JAXP standard, supported everywhere)
+     *  - external entity disablement via `XMLConstants` URIs when available
+     *  - `isExpandEntityReferences = false` as a final belt.
+     *
+     * Any feature/property that is not supported is silently ignored — we
+     * prefer loosened security over rejecting the user's file.
+     */
+    private fun safeDocumentBuilder(): javax.xml.parsers.DocumentBuilder {
+        val factory = DocumentBuilderFactory.newInstance()
+        runCatching {
+            factory.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true)
+        }
+        runCatching {
+            factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD, "")
+        }
+        runCatching {
+            factory.setAttribute(javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
+        }
+        factory.isNamespaceAware = false
+        factory.isExpandEntityReferences = false
+        return factory.newDocumentBuilder()
     }
 
     private fun pickThumbnail(entryNames: Set<String>, entryRoot: String): String? {

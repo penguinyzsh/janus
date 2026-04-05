@@ -131,6 +131,7 @@ class ThemeManager(
                 try {
                     ThemeArchive.parse(tmpInput, resolvedName)
                 } catch (e: InvalidThemeArchiveException) {
+                    Log.w(TAG, "Theme rejected: ${e.message}", e)
                     return fail(dir, e.message ?: "Invalid theme archive")
                 }
 

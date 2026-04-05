@@ -172,17 +172,25 @@ fun ThemeDetailPage(
                         isBusy = false
                     }
                 },
-                onDelete = { showDeleteDialog = true },
+                onDelete = {
+                    android.util.Log.i(
+                        "Janus-ThemeManager",
+                        "onDelete button tapped (page level)",
+                    )
+                    showDeleteDialog = true
+                },
             )
         }
-    }
 
-    if (showDeleteDialog && currentTheme != null) {
-        val dismiss = remember { mutableStateOf(true) }
+        // SuperDialog MUST live inside the Scaffold's content lambda so the
+        // MIUIX overlay host is in scope — putting it outside causes the
+        // dialog to silently not render.
         SuperDialog(
-            show = dismiss,
+            show = showDeleteDialog && currentTheme != null,
             title = stringResource(R.string.theme_delete_confirm_title),
-            summary = stringResource(R.string.theme_delete_confirm_message, currentTheme.displayName),
+            summary = currentTheme?.let {
+                stringResource(R.string.theme_delete_confirm_message, it.displayName)
+            } ?: "",
             onDismissRequest = { showDeleteDialog = false },
         ) {
             Row(
@@ -197,14 +205,41 @@ fun ThemeDetailPage(
                 TextButton(
                     text = stringResource(R.string.theme_delete),
                     onClick = {
+                        android.util.Log.i(
+                            "Janus-ThemeManager",
+                            "dialog delete confirm tapped",
+                        )
+                        val target = currentTheme ?: return@TextButton
                         showDeleteDialog = false
                         if (themeManager == null) return@TextButton
                         scope.launch {
-                            withContext(Dispatchers.IO) { themeManager.deleteTheme(currentTheme.id) }
+                            val ok =
+                                try {
+                                    withContext(Dispatchers.IO) {
+                                        themeManager.deleteTheme(target.id)
+                                    }
+                                } catch (t: Throwable) {
+                                    android.util.Log.e(
+                                        "Janus-ThemeManager",
+                                        "deleteTheme threw",
+                                        t,
+                                    )
+                                    Toast.makeText(
+                                        context,
+                                        "delete error: ${t.message}",
+                                        Toast.LENGTH_LONG,
+                                    ).show()
+                                    false
+                                }
+                            android.util.Log.i(
+                                "Janus-ThemeManager",
+                                "deleteTheme(${target.id}) -> $ok",
+                            )
                             onBack()
                         }
                     },
                     modifier = Modifier.weight(1f),
+                    colors = top.yukonga.miuix.kmp.basic.ButtonDefaults.textButtonColorsPrimary(),
                 )
             }
         }

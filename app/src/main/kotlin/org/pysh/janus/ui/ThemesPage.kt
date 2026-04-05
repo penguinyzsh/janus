@@ -86,14 +86,23 @@ fun ThemesPage(
     var activeId by remember { mutableStateOf(themeManager?.getActiveThemeId()) }
     var isImporting by remember { mutableStateOf(false) }
 
-    // Refresh when returning to the page (active theme may have changed on detail page).
-    LaunchedEffect(Unit) {
-        if (themeManager != null) {
-            withContext(Dispatchers.IO) {
+    // Refresh when the hosting lifecycle resumes — this covers returning
+    // from ThemeDetailPage (after delete/apply/deactivate) as well as coming
+    // back to the app from the background.
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME && themeManager != null) {
                 themes = themeManager.getThemes()
                 activeId = themeManager.getActiveThemeId()
+                android.util.Log.i(
+                    "Janus-ThemeManager",
+                    "ThemesPage refreshed: ${themes.size} themes, active=$activeId",
+                )
             }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     val importLauncher =
