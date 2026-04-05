@@ -284,4 +284,35 @@
     <string name="about_qq_group_number">119655862</string>
     <string name="qq_group_copied">Group number copied</string>
 
+    <!-- Themes -->
+    <string name="themes_title">Themes</string>
+    <string name="nav_themes">Themes</string>
+    <string name="themes_empty_title">No themes yet</string>
+    <string name="themes_empty_hint">Tap Import to add a .mrc or .mtz file</string>
+    <string name="theme_import">Import</string>
+    <string name="theme_importing">Importing…</string>
+    <string name="theme_import_success">Imported: %1$s</string>
+    <string name="theme_import_failed">Import failed: %1$s</string>
+    <string name="theme_active_badge">ACTIVE</string>
+    <string name="theme_apply">Apply</string>
+    <string name="theme_deactivate">Deactivate</string>
+    <string name="theme_delete">Delete</string>
+    <string name="theme_delete_confirm_title">Delete theme?</string>
+    <string name="theme_delete_confirm_message">\"%1$s\" will be removed from Janus. This cannot be undone.</string>
+    <string name="theme_apply_success">Theme applied</string>
+    <string name="theme_apply_failed">Failed to apply theme (root required)</string>
+    <string name="theme_deactivated">Theme deactivated</string>
+    <string name="theme_detail_title">Theme Details</string>
+    <string name="theme_detail_author">Author</string>
+    <string name="theme_detail_description">Description</string>
+    <string name="theme_detail_file_size">File size</string>
+    <string name="theme_detail_maml_version">MAML version</string>
+    <string name="theme_detail_source">Source file</string>
+    <string name="theme_auto_restart_title">Auto-restart background</string>
+    <string name="theme_auto_restart_summary">Force-stop subscreencenter after applying a theme so it reloads immediately</string>
+    <string name="theme_clear_root_title">Clear theme deploy data</string>
+    <string name="theme_clear_root_summary">Remove all Janus-deployed theme files from the system partition (keeps local imports)</string>
+    <string name="theme_clear_root_confirm">Remove all root-deployed theme files?</string>
+    <string name="theme_clear_root_done">Theme deploy data cleared</string>
+
 </resources>
