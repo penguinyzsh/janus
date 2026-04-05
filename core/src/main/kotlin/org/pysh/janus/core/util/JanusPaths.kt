@@ -16,10 +16,22 @@ object JanusPaths {
     const val CONFIG_DIR = "$JANUS_BASE/config"
     const val CARDS_DIR = "$JANUS_BASE/cards"
     const val TEMPLATES_DIR = "$JANUS_BASE/templates"
+    const val THEMES_DIR = "$JANUS_BASE/themes"
 
     /** Hook-side template base — `$user_id` must be replaced at runtime. */
     const val HOOK_TEMPLATES_BASE =
         "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates"
+
+    /** Hook-side themes base — `$user_id` must be replaced at runtime. */
+    const val HOOK_THEMES_BASE =
+        "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/themes"
+
+    /** Hook-side config dir — `$user_id` must be replaced at runtime. */
+    const val HOOK_CONFIG_DIR =
+        "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/config"
+
+    /** File name written inside each theme directory (the MRC payload). */
+    const val THEME_FILE_NAME = "theme.mrc"
 
     // ── Config flag files (read by Hook, written by App via root) ──
     const val WHITELIST = "$CONFIG_DIR/whitelist"
@@ -28,6 +40,7 @@ object JanusPaths {
     const val WALLPAPER_LOCK = "$CONFIG_DIR/wallpaper_lock"
     const val CARDS_CONFIG = "$CONFIG_DIR/cards_config"
     const val HIDE_TIME_TIP = "$CONFIG_DIR/hide_time_tip"
+    const val ACTIVE_THEME = "$CONFIG_DIR/active_theme"
 
     // ── Wallpaper ───────────────────────────────────────────────
     const val REAR_SCREEN_WHITE = "/data/system/theme/rearScreenWhite"
@@ -46,6 +59,7 @@ object JanusPaths {
         RootUtils.ensureDir(CONFIG_DIR)
         RootUtils.ensureDir(CARDS_DIR)
         RootUtils.ensureDir(TEMPLATES_DIR)
+        RootUtils.ensureDir(THEMES_DIR)
     }
 
     /** Ensure the wallpaper janus/ directory exists. */

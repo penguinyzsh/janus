@@ -74,6 +74,7 @@ object ActionExecutor {
         "merge_list" -> mergeList(hookId, action, config)
         "field_set" -> fieldSet(hookId, action, config, rule.configFlag)
         "path_redirect" -> pathRedirect(hookId, action)
+        "path_from_active_theme" -> pathFromActiveTheme(hookId)
         "force_arg" -> forceArg(hookId, action, config, rule.configFlag)
         else -> throw IllegalArgumentException("Unknown action type: ${action.type}")
     }
@@ -188,6 +189,62 @@ object ActionExecutor {
             put("redirected", redirected)
         })
         if (redirected) targetPath else original
+    }
+
+    /**
+     * Layered path resolver for the rear-screen wallpaper hook point.
+     *
+     * Priority order (highest first):
+     *  1. **Active theme** — if `$config/active_theme` contains a non-empty
+     *     theme id AND `$themesBase/<id>/theme.mrc` exists on disk, return it.
+     *  2. **Custom wallpaper** — if `rearScreenWhite/janus/custom.mrc` exists
+     *     (set by the legacy [WallpaperManager] video import flow), return it.
+     *  3. **System default** — fall through to `chain.proceed()`.
+     *
+     * All pointer/theme paths are relative to the current Android user id,
+     * resolved via `Process.myUid() / 100_000` so multi-user devices work.
+     */
+    private fun pathFromActiveTheme(hookId: String) = XposedInterface.Hooker { chain ->
+        val userId = android.os.Process.myUid() / 100_000
+        val pointerPath = org.pysh.janus.core.util.JanusPaths.HOOK_CONFIG_DIR
+            .replace("\$user_id", userId.toString()) + "/active_theme"
+        val themesBase = org.pysh.janus.core.util.JanusPaths.HOOK_THEMES_BASE
+            .replace("\$user_id", userId.toString())
+        val customMrc = "/data/system/theme/rearScreenWhite/janus/custom.mrc"
+
+        var resolved: String? = null
+        var reason = "system_default"
+
+        try {
+            val pointerFile = File(pointerPath)
+            if (pointerFile.exists()) {
+                val themeId = pointerFile.readText().trim()
+                if (themeId.isNotEmpty()) {
+                    val themeFile = File("$themesBase/$themeId/${org.pysh.janus.core.util.JanusPaths.THEME_FILE_NAME}")
+                    if (themeFile.exists()) {
+                        resolved = themeFile.absolutePath
+                        reason = "active_theme"
+                    }
+                }
+            }
+        } catch (_: Throwable) { /* fall through */ }
+
+        if (resolved == null && File(customMrc).exists()) {
+            resolved = customMrc
+            reason = "custom_wallpaper"
+        }
+
+        val original = chain.proceed() as? String
+        val finalPath = resolved ?: original
+
+        HookStatusReporter.reportBehavior(hookId, JSONObject().apply {
+            put("action", "path_from_active_theme")
+            put("original", original)
+            put("resolved_to", finalPath)
+            put("reason", reason)
+        })
+
+        finalPath
     }
 
     private fun forceArg(hookId: String, action: HookAction, config: ConfigSource, flag: String?) = XposedInterface.Hooker { chain ->
