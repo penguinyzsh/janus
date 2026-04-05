@@ -25,6 +25,7 @@ class WhitelistManager(
         const val KEY_WALLPAPER_KEEP_ALIVE = "wallpaper_keep_alive"
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_HIDE_TIME_TIP = "hide_time_tip"
+        const val KEY_THEME_AUTO_RESTART = "theme_auto_restart"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
         const val KEY_AUTO_ROTATE = "auto_rotate"
         const val KEY_AUTO_ROTATE_INTERVAL = "auto_rotate_interval"
@@ -121,6 +122,14 @@ class WhitelistManager(
         makePrefsWorldReadable()
         syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, hidden)
         syncRemoteBool("hide_time_tip", hidden)
+    }
+
+    /** Whether to force-stop subscreencenter after applying/deactivating a theme. Defaults true. */
+    fun isThemeAutoRestart(): Boolean = prefs.getBoolean(KEY_THEME_AUTO_RESTART, true)
+
+    fun setThemeAutoRestart(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_THEME_AUTO_RESTART, enabled).commit()
+        makePrefsWorldReadable()
     }
 
     fun isWallpaperLoop(): Boolean = prefs.getBoolean(KEY_WALLPAPER_LOOP, false)
