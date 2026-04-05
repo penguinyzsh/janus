@@ -4,6 +4,7 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
+import org.pysh.janus.hook.BuildConfig
 import org.pysh.janus.hook.engine.RuleEngine
 import org.pysh.janus.hook.engine.RuleLoader
 import org.pysh.janus.hook.engine.engines.AppleMusicLyricEngine
@@ -69,7 +70,12 @@ class HookEntry : XposedModule() {
         engine.registerEngine(WallpaperKeepAliveEngine.ENGINE_NAME, WallpaperKeepAliveEngine())
         engine.registerEngine(AppleMusicLyricEngine.ENGINE_NAME, AppleMusicLyricEngine())
 
-        Log.i(TAG, "=== Janus v1.1.2-lyric code loaded for $packageName, engines: ${engine.engineNames()} ===")
+        Log.i(
+            TAG,
+            "=== Janus v${BuildConfig.MODULE_VERSION} " +
+                "(vc${BuildConfig.MODULE_VERSION_CODE}) loaded for $packageName, " +
+                "engines: ${engine.engineNames()} ===",
+        )
 
         engine.install(rules, classLoader)
     }
