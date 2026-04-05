@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.data.JanusCleanup
+import org.pysh.janus.data.ThemeManager
 import org.pysh.janus.data.WhitelistManager
 import org.pysh.janus.util.RootUtils
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -34,6 +35,7 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.extra.SuperArrow
+import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.extra.SuperDialog
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
@@ -52,9 +54,14 @@ fun OtherPage(onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var showCleanupDialog by remember { mutableStateOf(false) }
+    var showClearThemesDialog by remember { mutableStateOf(false) }
 
     val cleanupSuccessMsg = stringResource(R.string.cleanup_success)
     val cleanupFailedMsg = stringResource(R.string.cleanup_failed)
+    val themeClearDoneMsg = stringResource(R.string.theme_clear_root_done)
+
+    val whitelistManager = remember { WhitelistManager(context) }
+    var themeAutoRestart by remember { mutableStateOf(whitelistManager.isThemeAutoRestart()) }
 
     Scaffold(
         topBar = {
@@ -94,11 +101,57 @@ fun OtherPage(onBack: () -> Unit) {
                     }
                 },
             )
+            SuperSwitch(
+                title = stringResource(R.string.theme_auto_restart_title),
+                summary = stringResource(R.string.theme_auto_restart_summary),
+                checked = themeAutoRestart,
+                onCheckedChange = {
+                    themeAutoRestart = it
+                    whitelistManager.setThemeAutoRestart(it)
+                },
+            )
+            SuperArrow(
+                title = stringResource(R.string.theme_clear_root_title),
+                summary = stringResource(R.string.theme_clear_root_summary),
+                onClick = { showClearThemesDialog = true },
+            )
             SuperArrow(
                 title = stringResource(R.string.cleanup),
                 summary = stringResource(R.string.cleanup_summary),
                 onClick = { showCleanupDialog = true },
             )
+        }
+
+        SuperDialog(
+            show = showClearThemesDialog,
+            title = stringResource(R.string.theme_clear_root_title),
+            summary = stringResource(R.string.theme_clear_root_confirm),
+            onDismissRequest = { showClearThemesDialog = false },
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showClearThemesDialog = false },
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(
+                    text = stringResource(R.string.confirm),
+                    onClick = {
+                        showClearThemesDialog = false
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                ThemeManager(context).clearAllRootData()
+                            }
+                            Toast.makeText(context, themeClearDoneMsg, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.textButtonColorsPrimary(),
+                )
+            }
         }
 
         SuperDialog(
