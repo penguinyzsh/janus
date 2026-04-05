@@ -1,20 +1,20 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.plugin.compose")
-    id("org.jlleitschuh.gradle.ktlint")
-    id("io.gitlab.arturbosch.detekt")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ktlint)
+    alias(libs.plugins.detekt)
 }
 
 android {
     namespace = "org.pysh.janus"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "org.pysh.janus"
-        minSdk = 26
-        targetSdk = 35
-        versionCode = 12
-        versionName = "1.1.2"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.moduleVersionCode.get().toInt()
+        versionName = libs.versions.moduleVersion.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -41,7 +41,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
             signingConfig = signingConfigs.getByName("release")
         }
@@ -83,48 +83,52 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":hook"))
 
-    // MIUIX UI (Android-specific artifacts)
-    implementation("top.yukonga.miuix.kmp:miuix-android:0.8.8")
-    implementation("top.yukonga.miuix.kmp:miuix-icons-android:0.8.8")
+    // MIUIX UI
+    implementation(libs.miuix.android)
+    implementation(libs.miuix.icons.android)
+    implementation(libs.miuix.navigation3)
 
     // Drag-and-drop reorderable LazyColumn
-    implementation("sh.calvin.reorderable:reorderable:2.4.3")
+    implementation(libs.reorderable)
 
     // Compose
-    implementation(platform("androidx.compose:compose-bom:2025.03.01"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.compose.foundation:foundation")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.activity:activity-compose:1.13.0")
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.tooling.preview)
+    debugImplementation(libs.compose.ui.tooling)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material.icons.core)
+    implementation(libs.androidx.activity.compose)
 
-    // Navigation3 (MIUIX NavDisplay for page transitions)
-    implementation("androidx.navigation3:navigation3-runtime:1.1.0-beta01")
-    implementation("top.yukonga.miuix.kmp:miuix-navigation3-ui-android:0.8.8")
+    // Navigation3
+    implementation(libs.androidx.navigation3.runtime)
 
     // Navigation Event (required by MIUIX SearchBar's NavigationBackHandler)
-    implementation("androidx.navigationevent:navigationevent-compose:1.0.2")
+    implementation(libs.androidx.navigationevent.compose)
 
     // AndroidX
-    implementation("androidx.core:core-ktx:1.16.0")
+    implementation(libs.androidx.core.ktx)
 
-    // libxposed Modern API
-    compileOnly("io.github.libxposed:api:101.0.0")
-    implementation("io.github.libxposed:service:101.0.0")
+    // libxposed Modern API (compile-only; still referenced from hook code
+    // currently living in :app — will be removed at Step 4 after migration)
+    compileOnly(libs.libxposed.api)
+
+    // libxposed service — used by JanusApplication (service binding)
+    // and WhitelistManager (dynamic scope requests)
+    implementation(libs.libxposed.service)
 
     // Unit testing (Robolectric)
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.robolectric:robolectric:4.14.1")
-    testImplementation("androidx.test:core-ktx:1.6.1")
-    testImplementation("androidx.test.ext:junit:1.2.1")
+    testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core.ktx)
+    testImplementation(libs.androidx.test.ext.junit)
 
     // Compose UI testing (instrumented)
-    androidTestImplementation(platform("androidx.compose:compose-bom:2025.03.01"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation(platform(libs.compose.bom))
+    androidTestImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
 }
 
 // ADB-based device tests (require connected device with module activated)

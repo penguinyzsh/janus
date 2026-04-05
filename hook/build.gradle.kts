@@ -1,13 +1,13 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 }
 
 android {
     namespace = "org.pysh.janus.hook"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.minSdk.get().toInt()
     }
 
     compileOptions {
@@ -26,5 +26,5 @@ dependencies {
     implementation(project(":core"))
 
     // libxposed Modern API
-    compileOnly("io.github.libxposed:api:101.0.0")
+    compileOnly(libs.libxposed.api)
 }
