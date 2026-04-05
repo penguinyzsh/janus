@@ -129,18 +129,57 @@ Janus is an LSPosed module for Xiaomi phones with a rear screen, designed to enh
 
 ## Project Structure
 
+Janus is split into four Gradle modules to keep the Xposed hook surface free
+of UI/AndroidX dependencies and to make the rule contract independently
+testable on pure JVM.
+
 ```
-app/src/main/kotlin/org/pysh/janus/
-├── hook/               # Xposed Hook entry and infrastructure
-│   └── engine/         # JSON rule engine, action executor, engine plugins
-├── data/               # Data management (whitelist, hook rules, app scanning)
-├── service/            # Foreground keep-alive service, quick settings tile
-├── ui/                 # Compose UI pages (home, apps, features, settings, etc.)
-├── util/               # Utilities (Root, Display)
-└── MainActivity.kt
-app/src/main/assets/
-└── rules/              # Built-in JSON hook rules
+janus/
+├── hook-api/           # Pure Kotlin (java-library) — engine contracts
+│   └── org/pysh/janus/hookapi/
+│       ├── HookRule.kt       # Rule / HookTarget / HookAction JSON model
+│       ├── CardInfo.kt       # Card data contract shared by UI + hook
+│       └── ConfigSource.kt   # Abstract K/V config (no SharedPreferences)
+│
+├── hook/               # Android library — runs inside the hooked host
+│   ├── META-INF/xposed/      # module.prop / scope.list / java_init.list
+│   │                         # (module.prop generated from version catalog)
+│   ├── consumer-rules.pro    # R8 keeps for HookEntry + libxposed API
+│   └── org/pysh/janus/hook/
+│       ├── HookEntry.kt      # libxposed 101 XposedModule entry point
+│       ├── engine/           # RuleEngine, RuleLoader, ActionExecutor
+│       ├── engine/engines/   # Whitelist, SystemCard, CardInjection,
+│       │                       WallpaperKeepAlive, AppleMusicLyric
+│       ├── config/           # SharedPreferencesConfigSource,
+│       │                       FileFlagConfigSource (RemotePrefs + file-flag)
+│       └── lyric/            # Lyric parser / data
+│
+├── core/               # Android library — UI-side utilities
+│   └── org/pysh/janus/core/util/  # DisplayUtils, JanusPaths, RootUtils...
+│
+└── app/                # Android application — UI / Service / Receiver
+    └── org/pysh/janus/
+        ├── JanusApplication.kt   # XposedService binding (manager side)
+        ├── ui/                   # Compose + MIUIX pages
+        ├── data/                 # WhitelistManager, CardManager, etc.
+        ├── service/ receiver/ util/
+        └── MainActivity.kt
 ```
+
+Key properties:
+
+- **Module version is a single source of truth** in `gradle/libs.versions.toml`
+  (`moduleVersion` / `moduleVersionCode`). It reaches `META-INF/xposed/module.prop`
+  via a generated Gradle task and the runtime boot log via `BuildConfig.MODULE_VERSION`.
+- **`:hook` is the only module carrying `META-INF/xposed/`** — the `:app`
+  APK consumes `:hook` as a library, so the hook classes and metadata are
+  merged into the final APK while the Gradle dependency graph keeps
+  Compose/MIUIX out of the hook classpath.
+- **Engines depend on `ConfigSource`**, not `SharedPreferences`, so they can
+  be unit-tested on pure JVM via `./gradlew :hook-api:test` without
+  Robolectric.
+- **libxposed API 101** (`io.github.libxposed:api`) is the only hook
+  framework dependency; no EdXposed/legacy `de.robv.android.xposed` imports.
 
 ## Support
 
