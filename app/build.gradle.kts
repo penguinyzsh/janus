@@ -110,12 +110,9 @@ dependencies {
     // AndroidX
     implementation(libs.androidx.core.ktx)
 
-    // libxposed Modern API (compile-only; still referenced from hook code
-    // currently living in :app — will be removed at Step 4 after migration)
-    compileOnly(libs.libxposed.api)
-
     // libxposed service — used by JanusApplication (service binding)
-    // and WhitelistManager (dynamic scope requests)
+    // and WhitelistManager (dynamic scope requests). The hook-side
+    // libxposed:api is now owned by the :hook module and does not leak here.
     implementation(libs.libxposed.service)
 
     // Unit testing (Robolectric)
