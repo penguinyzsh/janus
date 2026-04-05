@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -104,10 +103,11 @@ fun ThemesPage(
             if (uri == null || themeManager == null) return@rememberLauncherForActivityResult
             isImporting = true
             scope.launch {
-                val result = withContext(Dispatchers.IO) {
-                    val fileName = queryDisplayName(context, uri) ?: "theme"
-                    themeManager.importTheme(uri, fileName)
-                }
+                val result =
+                    withContext(Dispatchers.IO) {
+                        val fileName = queryDisplayName(context, uri) ?: "theme"
+                        themeManager.importTheme(uri, fileName)
+                    }
                 when (result) {
                     is ThemeManager.ImportResult.Success -> {
                         themes = themeManager.getThemes()
@@ -185,12 +185,13 @@ fun ThemesPage(
         } else {
             LazyColumn(
                 state = lazyListState,
-                contentPadding = PaddingValues(
-                    top = paddingValues.calculateTopPadding() + 8.dp,
-                    bottom = paddingValues.calculateBottomPadding() + 16.dp,
-                    start = 16.dp,
-                    end = 16.dp,
-                ),
+                contentPadding =
+                    PaddingValues(
+                        top = paddingValues.calculateTopPadding() + 8.dp,
+                        bottom = paddingValues.calculateBottomPadding() + 16.dp,
+                        start = 16.dp,
+                        end = 16.dp,
+                    ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
@@ -210,11 +211,15 @@ fun ThemesPage(
 }
 
 @Composable
-private fun ThemesEmptyState(paddingValues: PaddingValues, isImporting: Boolean) {
+private fun ThemesEmptyState(
+    paddingValues: PaddingValues,
+    isImporting: Boolean,
+) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -222,9 +227,10 @@ private fun ThemesEmptyState(paddingValues: PaddingValues, isImporting: Boolean)
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = stringResource(
-                    if (isImporting) R.string.theme_importing else R.string.themes_empty_title,
-                ),
+                text =
+                    stringResource(
+                        if (isImporting) R.string.theme_importing else R.string.themes_empty_title,
+                    ),
                 fontSize = 16.sp,
                 color = MiuixTheme.colorScheme.onBackground,
             )
@@ -247,35 +253,39 @@ private fun ThemeRow(
     onClick: () -> Unit,
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Thumbnail
             Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MiuixTheme.colorScheme.secondaryContainer),
+                modifier =
+                    Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MiuixTheme.colorScheme.secondaryContainer),
                 contentAlignment = Alignment.Center,
             ) {
-                val bitmap = remember(thumbnailFile, theme.hasThumbnail) {
-                    if (theme.hasThumbnail && thumbnailFile?.exists() == true) {
-                        try {
-                            BitmapFactory.decodeFile(thumbnailFile.absolutePath)
-                        } catch (_: Exception) {
+                val bitmap =
+                    remember(thumbnailFile, theme.hasThumbnail) {
+                        if (theme.hasThumbnail && thumbnailFile?.exists() == true) {
+                            try {
+                                BitmapFactory.decodeFile(thumbnailFile.absolutePath)
+                            } catch (_: Exception) {
+                                null
+                            }
+                        } else {
                             null
                         }
-                    } else {
-                        null
                     }
-                }
                 if (bitmap != null) {
                     Image(
                         bitmap = bitmap.asImageBitmap(),
@@ -293,9 +303,10 @@ private fun ThemeRow(
             }
 
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp),
+                modifier =
+                    Modifier
+                        .weight(1f)
+                        .padding(start = 12.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -305,11 +316,12 @@ private fun ThemeRow(
                     )
                     if (isActive) {
                         Box(
-                            modifier = Modifier
-                                .padding(start = 8.dp)
-                                .clip(RoundedCornerShape(4.dp))
-                                .background(MiuixTheme.colorScheme.primary)
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier =
+                                Modifier
+                                    .padding(start = 8.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(MiuixTheme.colorScheme.primary)
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
                         ) {
                             Text(
                                 text = stringResource(R.string.theme_active_badge),
@@ -319,17 +331,18 @@ private fun ThemeRow(
                         }
                     }
                 }
-                val subtitle = buildString {
-                    if (!theme.author.isNullOrBlank()) append(theme.author)
-                    if (theme.fileSize > 0) {
-                        if (isNotEmpty()) append(" · ")
-                        append(formatSize(theme.fileSize))
+                val subtitle =
+                    buildString {
+                        if (!theme.author.isNullOrBlank()) append(theme.author)
+                        if (theme.fileSize > 0) {
+                            if (isNotEmpty()) append(" · ")
+                            append(formatSize(theme.fileSize))
+                        }
+                        if (theme.isExtractedFromMtz) {
+                            if (isNotEmpty()) append(" · ")
+                            append("MTZ")
+                        }
                     }
-                    if (theme.isExtractedFromMtz) {
-                        if (isNotEmpty()) append(" · ")
-                        append("MTZ")
-                    }
-                }
                 if (subtitle.isNotEmpty()) {
                     Text(
                         text = subtitle,
@@ -342,8 +355,11 @@ private fun ThemeRow(
     }
 }
 
-private fun queryDisplayName(context: android.content.Context, uri: Uri): String? {
-    return try {
+private fun queryDisplayName(
+    context: android.content.Context,
+    uri: Uri,
+): String? =
+    try {
         context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
             val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
             if (idx >= 0 && cursor.moveToFirst()) cursor.getString(idx) else null
@@ -351,7 +367,6 @@ private fun queryDisplayName(context: android.content.Context, uri: Uri): String
     } catch (_: Exception) {
         null
     }
-}
 
 private fun formatSize(bytes: Long): String {
     if (bytes <= 0) return ""

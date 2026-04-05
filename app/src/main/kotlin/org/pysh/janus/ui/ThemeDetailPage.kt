@@ -7,14 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,13 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -117,11 +112,12 @@ fun ThemeDetailPage(
         if (currentTheme == null) return@Scaffold
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             ThemePreviewCard(currentTheme, themeManager)
@@ -135,9 +131,10 @@ fun ThemeDetailPage(
                     if (themeManager == null) return@ActionButtons
                     isBusy = true
                     scope.launch {
-                        val ok = withContext(Dispatchers.IO) {
-                            themeManager.applyTheme(currentTheme.id)
-                        }
+                        val ok =
+                            withContext(Dispatchers.IO) {
+                                themeManager.applyTheme(currentTheme.id)
+                            }
                         if (ok) {
                             activeId = currentTheme.id
                             if (whitelistManager?.isThemeAutoRestart() != false) {
@@ -221,25 +218,27 @@ private fun ThemePreviewCard(
 ) {
     Card {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 10f)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MiuixTheme.colorScheme.secondaryContainer),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 10f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MiuixTheme.colorScheme.secondaryContainer),
             contentAlignment = Alignment.Center,
         ) {
             val thumbFile = themeManager?.thumbnailFile(theme.id)
-            val bitmap = remember(thumbFile, theme.hasThumbnail) {
-                if (theme.hasThumbnail && thumbFile?.exists() == true) {
-                    try {
-                        BitmapFactory.decodeFile(thumbFile.absolutePath)
-                    } catch (_: Exception) {
+            val bitmap =
+                remember(thumbFile, theme.hasThumbnail) {
+                    if (theme.hasThumbnail && thumbFile?.exists() == true) {
+                        try {
+                            BitmapFactory.decodeFile(thumbFile.absolutePath)
+                        } catch (_: Exception) {
+                            null
+                        }
+                    } else {
                         null
                     }
-                } else {
-                    null
                 }
-            }
             if (bitmap != null) {
                 Image(
                     bitmap = bitmap.asImageBitmap(),
@@ -262,9 +261,10 @@ private fun ThemePreviewCard(
 private fun MetadataCard(theme: ThemeManager.ThemeEntry) {
     Card {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (!theme.author.isNullOrBlank()) {
@@ -290,7 +290,10 @@ private fun MetadataCard(theme: ThemeManager.ThemeEntry) {
 }
 
 @Composable
-private fun MetadataRow(label: String, value: String) {
+private fun MetadataRow(
+    label: String,
+    value: String,
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top,

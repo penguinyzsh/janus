@@ -3,17 +3,17 @@ package org.pysh.janus.data
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import java.io.File
-import java.util.UUID
-import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
-import java.util.zip.ZipOutputStream
 import org.json.JSONArray
 import org.json.JSONObject
 import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.core.util.RootUtils
 import org.pysh.janus.hookapi.theme.InvalidThemeArchiveException
 import org.pysh.janus.hookapi.theme.ThemeArchive
+import java.io.File
+import java.util.UUID
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
 /**
  * Manages imported rear-screen theme packages (`.mrc` / `.mtz`).
@@ -51,8 +51,13 @@ class ThemeManager(
     )
 
     sealed class ImportResult {
-        data class Success(val entry: ThemeEntry) : ImportResult()
-        data class Failure(val reason: String) : ImportResult()
+        data class Success(
+            val entry: ThemeEntry,
+        ) : ImportResult()
+
+        data class Failure(
+            val reason: String,
+        ) : ImportResult()
     }
 
     // ── Paths ─────────────────────────────────────────────────────
@@ -64,7 +69,9 @@ class ThemeManager(
         get() = File(themesDir, "themes.json")
 
     private fun entryDir(id: String): File = File(themesDir, id)
+
     private fun entryMrc(id: String): File = File(entryDir(id), "theme.mrc")
+
     fun thumbnailFile(id: String): File = File(entryDir(id), "thumb.png")
 
     // ── Read ──────────────────────────────────────────────────────
@@ -103,7 +110,10 @@ class ThemeManager(
      * `rearScreen/` sublayer into a plain MRC, extracts the thumbnail, and
      * appends the result to themes.json.
      */
-    fun importTheme(uri: Uri, fallbackFileName: String): ImportResult {
+    fun importTheme(
+        uri: Uri,
+        fallbackFileName: String,
+    ): ImportResult {
         val id = UUID.randomUUID().toString()
         val dir = entryDir(id).also { it.mkdirs() }
         val tmpInput = File(context.cacheDir, "theme-import-$id.tmp")
@@ -117,11 +127,12 @@ class ThemeManager(
             val resolvedName = fallbackFileName.substringBeforeLast('.').ifBlank { "Theme" }
 
             // 2. Parse & validate.
-            val manifest = try {
-                ThemeArchive.parse(tmpInput, resolvedName)
-            } catch (e: InvalidThemeArchiveException) {
-                return fail(dir, e.message ?: "Invalid theme archive")
-            }
+            val manifest =
+                try {
+                    ThemeArchive.parse(tmpInput, resolvedName)
+                } catch (e: InvalidThemeArchiveException) {
+                    return fail(dir, e.message ?: "Invalid theme archive")
+                }
 
             // 3. Normalize — if MTZ, re-pack rearScreen/ as root-level MRC.
             val finalMrc = entryMrc(id)
@@ -132,31 +143,33 @@ class ThemeManager(
             }
 
             // 4. Extract thumbnail if present.
-            val hasThumb = manifest.thumbnailEntryPath?.let { path ->
-                val bytes = ThemeArchive.readEntryBytes(tmpInput, path)
-                if (bytes != null && bytes.isNotEmpty()) {
-                    thumbnailFile(id).writeBytes(bytes)
-                    true
-                } else {
-                    false
-                }
-            } ?: false
+            val hasThumb =
+                manifest.thumbnailEntryPath?.let { path ->
+                    val bytes = ThemeArchive.readEntryBytes(tmpInput, path)
+                    if (bytes != null && bytes.isNotEmpty()) {
+                        thumbnailFile(id).writeBytes(bytes)
+                        true
+                    } else {
+                        false
+                    }
+                } ?: false
 
             // 5. Build and persist the entry.
             val existing = getThemes()
-            val entry = ThemeEntry(
-                id = id,
-                displayName = manifest.displayName,
-                author = manifest.author,
-                description = manifest.description,
-                mamlVersion = manifest.mamlVersion,
-                fileSize = finalMrc.length(),
-                sourceFileName = fallbackFileName,
-                isExtractedFromMtz = manifest.isExtractedFromMtz,
-                hasThumbnail = hasThumb,
-                addedAt = System.currentTimeMillis(),
-                order = (existing.maxOfOrNull { it.order } ?: -1) + 1,
-            )
+            val entry =
+                ThemeEntry(
+                    id = id,
+                    displayName = manifest.displayName,
+                    author = manifest.author,
+                    description = manifest.description,
+                    mamlVersion = manifest.mamlVersion,
+                    fileSize = finalMrc.length(),
+                    sourceFileName = fallbackFileName,
+                    isExtractedFromMtz = manifest.isExtractedFromMtz,
+                    hasThumbnail = hasThumb,
+                    addedAt = System.currentTimeMillis(),
+                    order = (existing.maxOfOrNull { it.order } ?: -1) + 1,
+                )
             saveAll(existing + entry)
 
             return ImportResult.Success(entry)
@@ -168,7 +181,10 @@ class ThemeManager(
         }
     }
 
-    private fun fail(dir: File, reason: String): ImportResult.Failure {
+    private fun fail(
+        dir: File,
+        reason: String,
+    ): ImportResult.Failure {
         dir.deleteRecursively()
         return ImportResult.Failure(reason)
     }
@@ -196,13 +212,15 @@ class ThemeManager(
 
     fun reorderThemes(orderedIds: List<String>) {
         val byId = getThemes().associateBy { it.id }
-        val reordered = orderedIds.mapIndexedNotNull { i, id ->
-            byId[id]?.copy(order = i)
-        }
+        val reordered =
+            orderedIds.mapIndexedNotNull { i, id ->
+                byId[id]?.copy(order = i)
+            }
         // Any theme not in the ordered list keeps its relative tail position.
-        val extras = byId.values
-            .filterNot { it.id in orderedIds }
-            .mapIndexed { i, entry -> entry.copy(order = orderedIds.size + i) }
+        val extras =
+            byId.values
+                .filterNot { it.id in orderedIds }
+                .mapIndexed { i, entry -> entry.copy(order = orderedIds.size + i) }
         saveAll(reordered + extras)
     }
 
@@ -225,18 +243,20 @@ class ThemeManager(
 
         if (!RootUtils.ensureDir(targetDir)) return false
 
-        val deployOk = RootUtils.exec(
-            "cp '${localMrc.absolutePath}' '$targetFile' && " +
-                "chmod 644 '$targetFile' && " +
-                "chcon u:object_r:theme_data_file:s0 '$targetFile'",
-        )
+        val deployOk =
+            RootUtils.exec(
+                "cp '${localMrc.absolutePath}' '$targetFile' && " +
+                    "chmod 644 '$targetFile' && " +
+                    "chcon u:object_r:theme_data_file:s0 '$targetFile'",
+            )
         if (!deployOk) return false
 
-        val pointerOk = RootUtils.exec(
-            "printf '%s' '${entry.id}' > '${JanusPaths.ACTIVE_THEME}' && " +
-                "chmod 644 '${JanusPaths.ACTIVE_THEME}' && " +
-                "chcon u:object_r:theme_data_file:s0 '${JanusPaths.ACTIVE_THEME}'",
-        )
+        val pointerOk =
+            RootUtils.exec(
+                "printf '%s' '${entry.id}' > '${JanusPaths.ACTIVE_THEME}' && " +
+                    "chmod 644 '${JanusPaths.ACTIVE_THEME}' && " +
+                    "chcon u:object_r:theme_data_file:s0 '${JanusPaths.ACTIVE_THEME}'",
+            )
         if (!pointerOk) return false
 
         writeLocalShadowActiveId(entry.id)
@@ -285,21 +305,26 @@ class ThemeManager(
         metaFile.writeText(arr.toString(2))
     }
 
-    private fun parseEntry(json: JSONObject): ThemeEntry = ThemeEntry(
-        id = json.getString("id"),
-        displayName = json.getString("displayName"),
-        author = json.optString("author", "").ifBlank { null },
-        description = json.optString("description", "").ifBlank { null },
-        mamlVersion = json.optString("mamlVersion", "").ifBlank { null },
-        fileSize = json.optLong("fileSize", 0),
-        sourceFileName = json.optString("sourceFileName", ""),
-        isExtractedFromMtz = json.optBoolean("isExtractedFromMtz", false),
-        hasThumbnail = json.optBoolean("hasThumbnail", false),
-        addedAt = json.optLong("addedAt", 0),
-        order = json.optInt("order", 0),
-    )
+    private fun parseEntry(json: JSONObject): ThemeEntry =
+        ThemeEntry(
+            id = json.getString("id"),
+            displayName = json.getString("displayName"),
+            author = json.optString("author", "").ifBlank { null },
+            description = json.optString("description", "").ifBlank { null },
+            mamlVersion = json.optString("mamlVersion", "").ifBlank { null },
+            fileSize = json.optLong("fileSize", 0),
+            sourceFileName = json.optString("sourceFileName", ""),
+            isExtractedFromMtz = json.optBoolean("isExtractedFromMtz", false),
+            hasThumbnail = json.optBoolean("hasThumbnail", false),
+            addedAt = json.optLong("addedAt", 0),
+            order = json.optInt("order", 0),
+        )
 
-    private fun repackMtzSubPackage(src: File, prefix: String, dst: File) {
+    private fun repackMtzSubPackage(
+        src: File,
+        prefix: String,
+        dst: File,
+    ) {
         ZipFile(src).use { zipIn ->
             ZipOutputStream(dst.outputStream()).use { zipOut ->
                 val entries = zipIn.entries()
@@ -308,15 +333,16 @@ class ThemeManager(
                     if (!e.name.startsWith(prefix) || e.isDirectory) continue
                     val newName = e.name.substring(prefix.length)
                     if (newName.isEmpty()) continue
-                    val newEntry = ZipEntry(newName).apply {
-                        time = e.time
-                        if (e.method == ZipEntry.STORED) {
-                            method = ZipEntry.STORED
-                            size = e.size
-                            crc = e.crc
-                            compressedSize = e.compressedSize
+                    val newEntry =
+                        ZipEntry(newName).apply {
+                            time = e.time
+                            if (e.method == ZipEntry.STORED) {
+                                method = ZipEntry.STORED
+                                size = e.size
+                                crc = e.crc
+                                compressedSize = e.compressedSize
+                            }
                         }
-                    }
                     zipOut.putNextEntry(newEntry)
                     zipIn.getInputStream(e).use { it.copyTo(zipOut) }
                     zipOut.closeEntry()
@@ -328,8 +354,7 @@ class ThemeManager(
     private val localShadowFile: File
         get() = File(themesDir, ".active_theme_shadow")
 
-    private fun localShadowActiveId(): String? =
-        localShadowFile.takeIf { it.exists() }?.readText()?.trim()?.ifEmpty { null }
+    private fun localShadowActiveId(): String? = localShadowFile.takeIf { it.exists() }?.readText()?.trim()?.ifEmpty { null }
 
     private fun writeLocalShadowActiveId(id: String?) {
         if (id == null) {

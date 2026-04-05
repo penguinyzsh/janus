@@ -6,6 +6,8 @@
     <ID>CyclomaticComplexMethod:CastingPage.kt$@Composable fun CastingPage( currentDpi: Int?, onDpiChanged: (Int?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
     <ID>CyclomaticComplexMethod:MainScreen.kt$@Composable fun MainScreen(isModuleActive: Boolean)</ID>
     <ID>CyclomaticComplexMethod:SystemCardsPage.kt$@Composable fun SystemCardsPage(onBack: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:ThemeDetailPage.kt$@Composable fun ThemeDetailPage( themeId: String, onBack: () -&gt; Unit, )</ID>
+    <ID>CyclomaticComplexMethod:ThemesPage.kt$@Composable fun ThemesPage( onBack: () -&gt; Unit, onThemeClick: (themeId: String) -&gt; Unit, )</ID>
     <ID>CyclomaticComplexMethod:WallpaperPage.kt$@Composable fun WallpaperPage(onBack: () -&gt; Unit)</ID>
     <ID>CyclomaticComplexMethod:WallpaperUtils.kt$WallpaperUtils$fun createAiWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null, ): Boolean</ID>
     <ID>FunctionNaming:AboutPage.kt$@Composable fun AboutPage(onBack: () -&gt; Unit)</ID>
@@ -25,7 +27,7 @@
     <ID>FunctionNaming:CardsPage.kt$@Preview(showBackground = true) @Composable private fun CardsPagePreview()</ID>
     <ID>FunctionNaming:CastingPage.kt$@Composable fun CastingPage( currentDpi: Int?, onDpiChanged: (Int?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:CastingPage.kt$@Preview(showBackground = true) @Composable private fun CastingPagePreview()</ID>
-    <ID>FunctionNaming:FeaturesPage.kt$@Composable fun FeaturesPage( bottomPadding: Dp, onWallpaperClick: () -&gt; Unit, onCastingClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:FeaturesPage.kt$@Composable fun FeaturesPage( bottomPadding: Dp, onWallpaperClick: () -&gt; Unit, onCastingClick: () -&gt; Unit, onThemesClick: () -&gt; Unit, )</ID>
     <ID>FunctionNaming:FeaturesPage.kt$@Preview(showBackground = true) @Composable private fun FeaturesPagePreview()</ID>
     <ID>FunctionNaming:HomePage.kt$@Composable fun HomePage( bottomPadding: Dp, isModuleActive: Boolean, hasRoot: Boolean?, isVisible: Boolean = true, )</ID>
     <ID>FunctionNaming:HomePage.kt$@Composable private fun HookStatusSection( statuses: Map&lt;String, Map&lt;String, HookStatusManager.HookStatus&gt;&gt;, isQuerying: Boolean, onRefresh: () -&gt; Unit, cardNames: List&lt;String&gt;, modifier: Modifier = Modifier, )</ID>
@@ -40,6 +42,14 @@
     <ID>FunctionNaming:StatusCard.kt$@Composable fun StatusCard( isModuleActive: Boolean, hasRoot: Boolean?, modifier: Modifier = Modifier, )</ID>
     <ID>FunctionNaming:SystemCardsPage.kt$@Composable fun SystemCardsPage(onBack: () -&gt; Unit)</ID>
     <ID>FunctionNaming:SystemCardsPage.kt$@Preview(showBackground = true) @Composable private fun SystemCardsPagePreview()</ID>
+    <ID>FunctionNaming:ThemeDetailPage.kt$@Composable fun ThemeDetailPage( themeId: String, onBack: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:ThemeDetailPage.kt$@Composable private fun ActionButtons( isActive: Boolean, isBusy: Boolean, onApply: () -&gt; Unit, onDeactivate: () -&gt; Unit, onDelete: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:ThemeDetailPage.kt$@Composable private fun MetadataCard(theme: ThemeManager.ThemeEntry)</ID>
+    <ID>FunctionNaming:ThemeDetailPage.kt$@Composable private fun MetadataRow( label: String, value: String, )</ID>
+    <ID>FunctionNaming:ThemeDetailPage.kt$@Composable private fun ThemePreviewCard( theme: ThemeManager.ThemeEntry, themeManager: ThemeManager?, )</ID>
+    <ID>FunctionNaming:ThemesPage.kt$@Composable fun ThemesPage( onBack: () -&gt; Unit, onThemeClick: (themeId: String) -&gt; Unit, )</ID>
+    <ID>FunctionNaming:ThemesPage.kt$@Composable private fun ThemeRow( theme: ThemeManager.ThemeEntry, isActive: Boolean, thumbnailFile: java.io.File?, onClick: () -&gt; Unit, )</ID>
+    <ID>FunctionNaming:ThemesPage.kt$@Composable private fun ThemesEmptyState( paddingValues: PaddingValues, isImporting: Boolean, )</ID>
     <ID>FunctionNaming:WallpaperPage.kt$@Composable fun WallpaperPage(onBack: () -&gt; Unit)</ID>
     <ID>FunctionNaming:WallpaperPage.kt$@Preview(showBackground = true) @Composable private fun WallpaperPagePreview()</ID>
     <ID>LongMethod:AboutPage.kt$@Composable fun AboutPage(onBack: () -&gt; Unit)</ID>
@@ -48,17 +58,21 @@
     <ID>LongMethod:CardDetailPage.kt$@Composable fun CardDetailPage( slot: Int, onBack: () -&gt; Unit, )</ID>
     <ID>LongMethod:CardsPage.kt$@Composable fun CardsPage( bottomPadding: Dp, cardsVersion: Int = 0, onCardClick: (Int) -&gt; Unit, onSystemCardsClick: () -&gt; Unit, onCardsChanged: () -&gt; Unit = {}, )</ID>
     <ID>LongMethod:CastingPage.kt$@Composable fun CastingPage( currentDpi: Int?, onDpiChanged: (Int?) -&gt; Unit, onBack: () -&gt; Unit, )</ID>
-    <ID>LongMethod:FeaturesPage.kt$@Composable fun FeaturesPage( bottomPadding: Dp, onWallpaperClick: () -&gt; Unit, onCastingClick: () -&gt; Unit, )</ID>
+    <ID>LongMethod:FeaturesPage.kt$@Composable fun FeaturesPage( bottomPadding: Dp, onWallpaperClick: () -&gt; Unit, onCastingClick: () -&gt; Unit, onThemesClick: () -&gt; Unit, )</ID>
     <ID>LongMethod:HomePage.kt$@Composable fun HomePage( bottomPadding: Dp, isModuleActive: Boolean, hasRoot: Boolean?, isVisible: Boolean = true, )</ID>
     <ID>LongMethod:MainScreen.kt$@Composable fun MainScreen(isModuleActive: Boolean)</ID>
     <ID>LongMethod:OtherPage.kt$@Composable fun OtherPage(onBack: () -&gt; Unit)</ID>
     <ID>LongMethod:SettingsPage.kt$@Composable fun SettingsPage( bottomPadding: Dp, onAboutClick: () -&gt; Unit, onOtherClick: () -&gt; Unit, )</ID>
     <ID>LongMethod:StatusCard.kt$@Composable fun StatusCard( isModuleActive: Boolean, hasRoot: Boolean?, modifier: Modifier = Modifier, )</ID>
     <ID>LongMethod:SystemCardsPage.kt$@Composable fun SystemCardsPage(onBack: () -&gt; Unit)</ID>
+    <ID>LongMethod:ThemeDetailPage.kt$@Composable fun ThemeDetailPage( themeId: String, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:ThemesPage.kt$@Composable fun ThemesPage( onBack: () -&gt; Unit, onThemeClick: (themeId: String) -&gt; Unit, )</ID>
+    <ID>LongMethod:ThemesPage.kt$@Composable private fun ThemeRow( theme: ThemeManager.ThemeEntry, isActive: Boolean, thumbnailFile: java.io.File?, onClick: () -&gt; Unit, )</ID>
     <ID>LongMethod:WallpaperPage.kt$@Composable fun WallpaperPage(onBack: () -&gt; Unit)</ID>
     <ID>LongMethod:WallpaperUtils.kt$WallpaperUtils$fun createAiWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String? = null, ): Boolean</ID>
     <ID>LongParameterList:AppsPage.kt$( bottomPadding: Dp, whitelistVersion: Int, allApps: List&lt;MediaAppInfo&gt;, mediaApps: List&lt;MediaAppInfo&gt;, isRefreshing: Boolean, onRefresh: () -&gt; Unit, onAppClick: (MediaAppInfo) -&gt; Unit, )</ID>
     <ID>LongParameterList:WallpaperUtils.kt$WallpaperUtils$( signatureEntry: JSONObject?, resId: String, applyId: String, snapshotPath: String, entryDir: String, metaSnapshotPath: String, )</ID>
+    <ID>LoopWithTooManyJumpStatements:ThemeManager.kt$ThemeManager$while</ID>
     <ID>LoopWithTooManyJumpStatements:WallpaperUtils.kt$WallpaperUtils$for</ID>
     <ID>MagicNumber:AboutPage.kt$96</ID>
     <ID>MagicNumber:AppFeaturePage.kt$48</ID>
@@ -81,6 +95,12 @@
     <ID>MagicNumber:StatusCard.kt$0xFFF72727</ID>
     <ID>MagicNumber:StatusCard.kt$0xFFF8E2E2</ID>
     <ID>MagicNumber:SwitchToRearTileService.kt$SwitchToRearTileService$2000</ID>
+    <ID>MagicNumber:ThemeDetailPage.kt$0.35f</ID>
+    <ID>MagicNumber:ThemeDetailPage.kt$0.65f</ID>
+    <ID>MagicNumber:ThemeDetailPage.kt$1024</ID>
+    <ID>MagicNumber:ThemeDetailPage.kt$10f</ID>
+    <ID>MagicNumber:ThemeDetailPage.kt$16f</ID>
+    <ID>MagicNumber:ThemesPage.kt$1024</ID>
     <ID>MagicNumber:WallpaperManager.kt$WallpaperManager$85</ID>
     <ID>MagicNumber:WallpaperPage.kt$0.8f</ID>
     <ID>MagicNumber:WallpaperPage.kt$0x66000000</ID>
@@ -112,6 +132,7 @@
     <ID>MaxLineLength:SystemCardsPage.kt$Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()</ID>
     <ID>MaxLineLength:SystemCardsPage.kt$Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()</ID>
     <ID>MaxLineLength:SystemCardsPage.kt$Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()</ID>
+    <ID>MaxLineLength:ThemeManager.kt$ThemeManager$private fun localShadowActiveId(): String?</ID>
     <ID>MaxLineLength:WallpaperPage.kt$Box(modifier = Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surfaceContainerHigh))</ID>
     <ID>MaxLineLength:WallpaperPage.kt$Toast.makeText(context, context.getString(R.string.set_failed), Toast.LENGTH_SHORT).show()</ID>
     <ID>MaxLineLength:WallpaperPage.kt$Toast.makeText(context, context.getString(R.string.wp_apply_success), Toast.LENGTH_SHORT).show()</ID>
@@ -121,6 +142,7 @@
     <ID>MaxLineLength:WallpaperPage.kt$summary = stringResource(if (wallpaperLock) R.string.wallpaper_lock_on else R.string.wallpaper_lock_off)</ID>
     <ID>MaxLineLength:WhitelistManager.kt$WhitelistManager$val cmd = "printf '%s' '$path' &gt; '$flagPath' &amp;&amp; chmod 644 '$flagPath' &amp;&amp; chcon u:object_r:theme_data_file:s0 '$flagPath'"</ID>
     <ID>NestedBlockDepth:DisplayUtils.kt$DisplayUtils$fun getForegroundTaskId(displayId: Int): Int?</ID>
+    <ID>NestedBlockDepth:ThemeManager.kt$ThemeManager$private fun repackMtzSubPackage( src: File, prefix: String, dst: File, )</ID>
     <ID>NestedBlockDepth:WallpaperUtils.kt$WallpaperUtils$private fun buildMrcFromTemplate( context: Context, videoFile: File, enableLoop: Boolean, ): File?</ID>
     <ID>NestedBlockDepth:WallpaperUtils.kt$WallpaperUtils$private fun rebuildZip( source: File, dest: File, newVideo: File, enableLoop: Boolean, )</ID>
     <ID>NestedBlockDepth:WallpaperUtils.kt$WallpaperUtils$private fun rebuildZipLoopOnly( source: File, dest: File, enableLoop: Boolean, )</ID>
@@ -130,6 +152,8 @@
     <ID>ReturnCount:DisplayUtils.kt$DisplayUtils$fun getRearDpi(): Int?</ID>
     <ID>ReturnCount:JanusCleanup.kt$JanusCleanup$private fun cleanRuntimeEntries(): Boolean</ID>
     <ID>ReturnCount:JanusCleanup.kt$JanusCleanup$private fun writeRuntimeJson(arr: JSONArray): Boolean</ID>
+    <ID>ReturnCount:ThemeManager.kt$ThemeManager$fun applyTheme(id: String): Boolean</ID>
+    <ID>ReturnCount:ThemeManager.kt$ThemeManager$fun importTheme( uri: Uri, fallbackFileName: String, ): ImportResult</ID>
     <ID>ReturnCount:WallpaperManager.kt$WallpaperManager$fun addWallpaper(uri: Uri): WallpaperEntry?</ID>
     <ID>ReturnCount:WallpaperManager.kt$WallpaperManager$fun replaceVideo( id: String, uri: Uri, ): Boolean</ID>
     <ID>ReturnCount:WallpaperUtils.kt$WallpaperUtils$fun applyDynamicWallpaper( context: Context, videoUri: Uri, enableLoop: Boolean, wpId: String, ): String?</ID>
@@ -146,10 +170,12 @@
     <ID>TooGenericExceptionCaught:CardManager.kt$CardManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:JanusApplication.kt$JanusApplication$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:RootUtils.kt$RootUtils$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ThemeManager.kt$ThemeManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WallpaperPage.kt$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WallpaperRotationReceiver.kt$WallpaperRotationReceiver$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WhitelistManager.kt$WhitelistManager$e: Throwable</ID>
     <ID>TooManyFunctions:CardManager.kt$CardManager</ID>
+    <ID>TooManyFunctions:ThemeManager.kt$ThemeManager</ID>
     <ID>TooManyFunctions:WallpaperManager.kt$WallpaperManager</ID>
     <ID>TooManyFunctions:WallpaperUtils.kt$WallpaperUtils</ID>
     <ID>TooManyFunctions:WhitelistManager.kt$WhitelistManager</ID>
