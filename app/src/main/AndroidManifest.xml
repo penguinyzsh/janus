@@ -4,9 +4,10 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android 13+ runtime permission: without this, FGS notifications are silently
+         suppressed (the service still runs but the user has no visible sign of it) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".JanusApplication"
@@ -49,18 +50,18 @@
             </intent-filter>
         </service>
 
-        <!-- Screen keep-alive foreground service -->
+        <!-- Unified background foreground service: hosts screen keep-alive +
+             wallpaper rotation in a single process / single ongoing notification.
+             Replaces the earlier ScreenKeepAliveService + WallpaperRotationService
+             pair so users running both features see one notification instead of two. -->
         <service
-            android:name=".service.ScreenKeepAliveService"
+            android:name=".service.JanusBackgroundService"
             android:foregroundServiceType="specialUse"
             android:exported="false">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="keepScreenAlive" />
+                android:value="janusBackground" />
         </service>
-
-        <!-- Wallpaper rotation receiver -->
-        <receiver android:name=".receiver.WallpaperRotationReceiver" android:exported="false" />
 
         <!-- Auto start rotation on boot and app update -->
         <receiver android:name=".receiver.BootReceiver" android:exported="true">

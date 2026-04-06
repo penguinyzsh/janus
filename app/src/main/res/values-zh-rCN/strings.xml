@@ -37,51 +37,38 @@
     <string name="status_unavailable">不可用</string>
     <string name="status_checking">检测中…</string>
 
-    <!-- Hook 状态 -->
-    <string name="hook_status_title">Hook 状态</string>
-    <string name="hook_status_refresh">刷新</string>
-    <string name="hook_status_querying">查询中…</string>
-    <string name="hook_status_ok">正常</string>
-    <string name="hook_status_error">异常</string>
-    <string name="hook_status_empty">未检测到活跃 Hook</string>
-    <string name="process_subscreencenter">背屏中心</string>
-    <string name="process_luna_music">汽水音乐</string>
-    <string name="hook_music_whitelist">音乐白名单</string>
-    <string name="hook_tracking_block">遥测拦截</string>
-    <string name="hook_wallpaper_keep_alive">壁纸保活</string>
-    <string name="hook_wallpaper_lock">壁纸锁定</string>
-    <string name="hook_wallpaper_redirect">壁纸重定向</string>
-    <string name="hook_music_template">音乐模板</string>
-    <string name="hook_card_injection">卡片注入</string>
-    <string name="hook_apple_music_lyric">歌词提取</string>
-    <string name="hook_luna_music_manager">歌词管理器</string>
-    <string name="hook_luna_music_remote">远程控制</string>
-
     <!-- 激活页 -->
     <string name="activation">激活</string>
 
     <!-- 功能页 -->
-    <string name="section_wallpaper">壁纸相关</string>
-    <string name="disable_tracking">禁止使用统计上报小米</string>
-    <string name="disable_tracking_on">已拦截使用数据上报</string>
-    <string name="disable_tracking_off">正常上报使用数据</string>
+    <string name="section_wallpaper">壁纸</string>
+    <string name="features_themes_summary">导入 .mrc 或 .mtz 格式文件</string>
+    <string name="features_cards_summary">导入 .mrc 格式的文件</string>
+    <string name="features_wallpaper_summary">导入视频文件或功能相关设置</string>
+    <string name="features_casting_summary">背屏功能相关设置</string>
+    <string name="disable_tracking">禁止统计数据上传</string>
+    <string name="disable_tracking_on">将拦截上传小米</string>
+    <string name="disable_tracking_off">正常上传小米</string>
 
-    <string name="hide_time_tip">隐藏时间胶囊</string>
-    <string name="hide_time_tip_on">卡片显示时隐藏时间胶囊</string>
-    <string name="hide_time_tip_off">卡片显示时显示时间胶囊</string>
-    <string name="hook_hide_time_tip">隐藏时间胶囊</string>
+    <string name="hide_time_tip">隐藏卡片时间胶囊</string>
+    <string name="hide_time_tip_on">不显示时间胶囊</string>
+    <string name="hide_time_tip_off">显示时间胶囊</string>
+
+    <string name="focus_notice_allow">第三方焦点通知显示</string>
+    <string name="focus_notice_allow_on">焦点通知放行</string>
+    <string name="focus_notice_allow_off">焦点通知不放行</string>
 
     <string name="weather_card">背屏天气卡片</string>
     <string name="weather_card_on">服务助手中显示天气卡片</string>
     <string name="weather_card_off">不显示天气卡片</string>
 
     <string name="wallpaper_keep_alive">动态壁纸防打断</string>
-    <string name="wallpaper_keep_alive_on">遮盖时动态壁纸继续播放</string>
-    <string name="wallpaper_keep_alive_off">遮盖时动态壁纸暂停</string>
+    <string name="wallpaper_keep_alive_on">遮盖时继续</string>
+    <string name="wallpaper_keep_alive_off">遮盖时暂停</string>
 
     <string name="wallpaper_lock">锁定壁纸切换</string>
-    <string name="wallpaper_lock_on">壁纸轮播已锁定，滑动切换无效</string>
-    <string name="wallpaper_lock_off">可通过滑动切换壁纸</string>
+    <string name="wallpaper_lock_on">长按无法切换</string>
+    <string name="wallpaper_lock_off">长按允许切换</string>
 
     <string name="wp_custom_title">自定义背屏壁纸视频</string>
     <string name="wp_not_found">未找到 AI 壁纸</string>
@@ -92,8 +79,8 @@
     <string name="wp_replace_success">视频已替换，背屏正在重启</string>
     <string name="wp_replace_failed">视频替换失败</string>
     <string name="wp_loop">视频循环播放</string>
-    <string name="wp_loop_on">视频持续循环播放</string>
-    <string name="wp_loop_off">视频播放一次后停止</string>
+    <string name="wp_loop_on">会循环播放</string>
+    <string name="wp_loop_off">不循环播放</string>
     <string name="wp_loop_applied">循环设置已应用，背屏正在重启</string>
     <string name="wp_restore">恢复原始壁纸</string>
     <string name="wp_restore_success">已恢复原始壁纸，背屏正在重启</string>
@@ -117,10 +104,18 @@
     <string name="wp_import_failed">导入壁纸失败</string>
     <string name="wp_rename_title">重命名壁纸</string>
     <string name="wp_settings">壁纸设置</string>
-    <string name="wp_auto_rotate">自动轮换壁纸</string>
+    <string name="wp_auto_rotate">自动切换壁纸</string>
     <string name="wp_auto_rotate_desc">按指定间隔时间自动切换到下一张壁纸</string>
+    <string name="wp_auto_rotate_on">会自动切换</string>
+    <string name="wp_auto_rotate_off">不自动切换</string>
     <string name="wp_auto_rotate_interval">定时切换间隔 (秒)</string>
     <string name="wp_auto_rotate_interval_summary">每 %1$d 秒</string>
+    <string name="wp_rotation_notification_channel_desc">保持壁纸定时切换后台运行</string>
+    <string name="janus_bg_notification_channel_name">Janus 后台</string>
+    <string name="janus_bg_notification_channel_desc">保持 Janus 后台功能（屏幕常亮、壁纸定时切换）运行</string>
+    <string name="janus_bg_notification_title_both">Janus 后台运行中</string>
+    <string name="janus_bg_notification_text_both">屏幕每 %1$d 秒唤醒 · 壁纸每 %2$d 秒切换</string>
+    <string name="wp_auto_rotate_enabled_no_notification">已启用，但未授予通知权限 — 后台仍在运行，只是没有常驻通知提示。授予通知权限可看到运行状态。</string>
 
     <string name="section_weather">天气</string>
     <string name="weather_refresh_interval">刷新间隔</string>
@@ -160,6 +155,7 @@
 
     <!-- 系统卡片名称 -->
     <string name="system_card_music">音乐</string>
+    <string name="system_cards_reorder_note">长按拖动可排序</string>
     <string name="system_card_incall">来电</string>
     <string name="system_card_alarm">闹钟</string>
     <string name="system_card_countdown">计时器</string>
@@ -171,12 +167,11 @@
     <string name="system_card_mi_home_camera">智能摄像头</string>
 
     <!-- 系统卡片覆盖 -->
-    <string name="section_system_cards">系统卡片覆盖</string>
+    <string name="section_system_cards">系统卡片</string>
     <string name="section_other_system_cards">其他系统卡片</string>
-    <string name="system_cards_summary">替换系统卡片的官方模板</string>
+    <string name="system_cards_summary">替换系统模板卡片</string>
     <string name="system_card_override_import_success">%1$s卡片已设置: %2$s</string>
     <string name="system_card_override_removed">已恢复官方%s卡片</string>
-    <string name="hook_system_card_patch">系统卡片覆盖</string>
 
     <!-- 音乐卡片覆盖 -->
     <string name="section_music">音乐卡片</string>
@@ -187,9 +182,6 @@
     <string name="music_override_import_failed">导入失败: 无效的卡片文件</string>
     <string name="music_override_removed">已恢复官方音乐卡片</string>
     <string name="music_override_remove">删除覆盖</string>
-    <string name="music_lyric_patch">应用歌词滚动</string>
-    <string name="music_lyric_patch_on">对自定义卡片启用歌词优化</string>
-    <string name="music_lyric_patch_off">使用自定义卡片原始布局</string>
 
     <!-- 卡片 -->
     <string name="cards_master_toggle">卡片显示</string>
@@ -217,7 +209,7 @@
     <string name="card_enabled_off">不显示此卡片</string>
 
     <!-- 投屏 -->
-    <string name="section_casting">应用投屏</string>
+    <string name="section_casting">投屏</string>
     <string name="cast_rotation">投屏旋转</string>
     <string name="cast_rotation_none">不旋转</string>
     <string name="cast_rotation_left">向左旋转 90°</string>
@@ -268,6 +260,22 @@
     <string name="cleanup_failed">清除失败，部分文件可能残留</string>
     <string name="other">其他</string>
     <string name="other_summary">重新同步、数据清除等</string>
+    <string name="background_perm_title">后台运行权限</string>
+    <string name="background_perm_summary">壁纸定时切换 / 屏幕常亮等后台功能依赖这些授权</string>
+    <string name="background_perm_dialog_title">后台运行权限检查</string>
+    <string name="background_perm_dialog_intro">Janus 的定时切换壁纸、屏幕常亮等功能依赖前台服务。被划掉后台后要继续工作，需要以下授权：</string>
+    <string name="background_perm_notification">通知权限</string>
+    <string name="background_perm_notification_desc">前台服务必须有常驻通知，否则服务会被系统静默杀掉</string>
+    <string name="background_perm_battery">电池优化白名单</string>
+    <string name="background_perm_battery_desc">不加入白名单时，Doze 会延迟甚至丢弃后台工作</string>
+    <string name="background_perm_autostart">自启动权限（MIUI / HyperOS）</string>
+    <string name="background_perm_autostart_desc">小米系统特有。从最近任务划掉 app 后，只有开启此权限才能被重新唤起</string>
+    <string name="background_perm_status_granted">已授权</string>
+    <string name="background_perm_status_denied">未授权</string>
+    <string name="background_perm_status_manual">需手动在系统里开启</string>
+    <string name="background_perm_go">去设置</string>
+    <string name="background_perm_autostart_not_miui">当前系统非 MIUI，无需配置</string>
+    <string name="background_perm_autostart_failed">未能打开自启动页面，请手动前往 设置 → 应用设置 → 应用管理 → Janus → 自启动</string>
     <string name="about">关于</string>
 
     <!-- 关于页 -->
@@ -309,5 +317,9 @@
     <string name="theme_clear_root_summary">删除所有 Janus 部署到系统目录的主题文件（保留本地导入副本）</string>
     <string name="theme_clear_root_confirm">确定移除所有已部署的主题文件吗？</string>
     <string name="theme_clear_root_done">主题部署数据已清理</string>
+    <string name="theme_rename_title">重命名主题</string>
+
+    <!-- 卡片详情 -->
+    <string name="card_rename">重命名</string>
 
 </resources>

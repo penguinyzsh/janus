@@ -2,7 +2,5 @@
 <resources>
     <string-array name="xposed_scope">
         <item>com.xiaomi.subscreencenter</item>
-        <item>com.apple.android.music</item>
-        <item>com.luna.music</item>
     </string-array>
 </resources>

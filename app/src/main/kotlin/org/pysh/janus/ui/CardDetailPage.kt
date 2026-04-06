@@ -22,11 +22,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.CardManager
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.RootUtils
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -48,6 +49,7 @@ private const val REFRESH_MIN = 10
 private const val REFRESH_MAX = 120
 private const val PRIORITY_MIN = 1
 private const val PRIORITY_MAX = 999
+private const val DEBOUNCE_MS = 1500L
 
 @Preview(showBackground = true)
 @Composable
@@ -71,7 +73,12 @@ fun CardDetailPage(
     var refreshInterval by remember { mutableFloatStateOf(card?.refreshInterval?.toFloat() ?: 30f) }
     var priority by remember { mutableFloatStateOf(card?.priority?.toFloat() ?: 100f) }
 
-    // Auto-save on any change (only refreshInterval and priority; enabled is managed on CardsPage)
+    // Debounced auto-save for refresh/priority edits. Each slider tick
+    // cancels the previous LaunchedEffect coroutine, so rapid dragging does
+    // NOT spam subscreencenter restarts — only the final value after the user
+    // stops for ~1.5s is persisted, synced to the on-disk cards_config JSON
+    // that CardInjectionEngine reads, and applied via a single restart.
+    // `enabled` is managed on CardsPage and not touched here.
     var initialized by remember { mutableStateOf(false) }
     LaunchedEffect(refreshInterval.toInt(), priority.toInt()) {
         if (!initialized) {
@@ -79,24 +86,27 @@ fun CardDetailPage(
             return@LaunchedEffect
         }
         if (card == null) return@LaunchedEffect
+        delay(DEBOUNCE_MS)
         val updated =
             card.copy(
                 refreshInterval = refreshInterval.toInt(),
                 priority = priority.toInt(),
             )
-        withContext(Dispatchers.IO) { cardManager?.updateCard(updated) }
+        withContext(Dispatchers.IO) {
+            cardManager?.updateCard(updated)
+            cardManager?.syncConfig()
+            cardManager?.prepareCardsForHook()
+            RootUtils.restartBackScreen()
+        }
     }
 
+    var cardName by remember { mutableStateOf(card?.name ?: "") }
+    var showRenameDialog by remember { mutableStateOf(false) }
     var showRefreshDialog by remember { mutableStateOf(false) }
     var showPriorityDialog by remember { mutableStateOf(false) }
     var dialogInput by remember { mutableStateOf("") }
 
     val scrollBehavior = MiuixScrollBehavior()
-    val cardName =
-        when {
-            card != null -> card.name
-            else -> ""
-        }
 
     Scaffold(
         topBar = {
@@ -124,6 +134,14 @@ fun CardDetailPage(
             // Settings
             SmallTitle(text = stringResource(R.string.nav_settings))
             Card(modifier = Modifier.padding(bottom = 12.dp)) {
+                SuperArrow(
+                    title = stringResource(R.string.card_rename),
+                    summary = cardName,
+                    onClick = {
+                        dialogInput = cardName
+                        showRenameDialog = true
+                    },
+                )
                 SuperArrow(
                     title = stringResource(R.string.card_refresh_interval),
                     summary = stringResource(R.string.card_refresh_interval_value, refreshInterval.toInt()),
@@ -239,6 +257,37 @@ fun CardDetailPage(
                             priority = v.toFloat()
                         }
                         showPriorityDialog = false
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.textButtonColorsPrimary(),
+                )
+            }
+        }
+
+        SuperDialog(
+            show = showRenameDialog,
+            title = stringResource(R.string.card_rename),
+            onDismissRequest = { showRenameDialog = false },
+        ) {
+            TextField(value = dialogInput, onValueChange = { dialogInput = it })
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { showRenameDialog = false },
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(
+                    text = stringResource(R.string.confirm),
+                    onClick = {
+                        if (card != null && dialogInput.isNotBlank()) {
+                            val newName = dialogInput.trim()
+                            cardName = newName
+                            val updated = card.copy(name = newName)
+                            scope.launch(Dispatchers.IO) {
+                                cardManager?.updateCard(updated)
+                            }
+                        }
+                        showRenameDialog = false
                     },
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.textButtonColorsPrimary(),

@@ -149,10 +149,8 @@ janus/
 │       ├── HookEntry.kt      # libxposed 101 XposedModule entry point
 │       ├── engine/           # RuleEngine, RuleLoader, ActionExecutor
 │       ├── engine/engines/   # Whitelist, SystemCard, CardInjection,
-│       │                       WallpaperKeepAlive, AppleMusicLyric
-│       ├── config/           # SharedPreferencesConfigSource,
-│       │                       FileFlagConfigSource (RemotePrefs + file-flag)
-│       └── lyric/            # Lyric parser / data
+│       │                       WallpaperKeepAlive
+│       └── config/           # SharedPreferencesConfigSource (RemotePrefs)
 │
 ├── core/               # Android library — UI-side utilities
 │   └── org/pysh/janus/core/util/  # DisplayUtils, JanusPaths, RootUtils...

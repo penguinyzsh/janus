@@ -43,6 +43,18 @@ class WallpaperManager(
     private val metaFile: File
         get() = File(wallpapersDir, "wallpapers.json")
 
+    /**
+     * Resolve a relative path from wallpapers.json to an absolute path.
+     * Handles both new relative paths (`<uuid>/video.mp4`) and legacy
+     * absolute paths (`/data/user/0/.../video.mp4`) for backward compat.
+     */
+    fun resolvePath(relativePath: String): String =
+        if (relativePath.startsWith("/")) {
+            relativePath // legacy absolute — pass through
+        } else {
+            File(wallpapersDir, relativePath).absolutePath
+        }
+
     // ── Read ─────────────────────────────────────────────────────
 
     fun getWallpapers(): List<WallpaperEntry> {
@@ -51,7 +63,14 @@ class WallpaperManager(
             val arr = JSONArray(metaFile.readText())
             (0 until arr.length())
                 .map { parseEntry(arr.getJSONObject(it)) }
-                .sortedBy { it.order }
+                .map {
+                    // Resolve relative paths to absolute at read time so callers
+                    // don't need to know about the relative-vs-absolute distinction.
+                    it.copy(
+                        videoPath = resolvePath(it.videoPath),
+                        thumbnailPath = if (it.thumbnailPath.isNotEmpty()) resolvePath(it.thumbnailPath) else "",
+                    )
+                }.sortedBy { it.order }
         } catch (_: Exception) {
             emptyList()
         }
@@ -108,8 +127,8 @@ class WallpaperManager(
             WallpaperEntry(
                 id = id,
                 name = defaultName,
-                videoPath = videoFile.absolutePath,
-                thumbnailPath = if (thumbFile.exists()) thumbFile.absolutePath else "",
+                videoPath = "$id/video.mp4",
+                thumbnailPath = if (thumbFile.exists()) "$id/thumb.jpg" else "",
                 order = nextOrder,
                 isApplied = false,
                 addedAt = System.currentTimeMillis(),
@@ -143,8 +162,19 @@ class WallpaperManager(
         saveEntries(entries)
     }
 
-    /** Returns the video file path for the given wallpaper entry. */
-    fun getVideoPath(id: String): String? = getWallpapers().find { it.id == id }?.videoPath
+    /**
+     * Mark all wallpapers as not applied in a single write. Used by the
+     * "restore default" flow so we don't fall into the N-writes-per-reset
+     * trap that the old `forEach { markApplied("") }` loop had.
+     */
+    fun clearApplied() {
+        val entries = getWallpapers().map { it.copy(isApplied = false) }
+        saveEntries(entries)
+    }
+
+    /** Returns the absolute video file path for the given wallpaper entry. */
+    fun getVideoPath(id: String): String? =
+        getWallpapers().find { it.id == id }?.videoPath?.let { resolvePath(it) }
 
     // ── Rename ───────────────────────────────────────────────────
 

@@ -16,36 +16,21 @@ data class MediaAppInfo(
 class MediaAppScanner(
     private val context: Context,
 ) {
-    companion object {
-        private val BUILTIN_WHITELIST =
-            setOf(
-                "com.xiaomi.music",
-                "com.miui.player",
-                "com.tencent.qqmusic",
-                "com.netease.cloudmusic",
-                "com.luna.music",
-                "com.kugou.android",
-                "cn.kuwo.player",
-                "com.spotify.music",
-            )
-    }
-
+    /**
+     * Scan installed packages for anything that declares [MediaBrowserService].
+     * No hardcoded fallback list — if an app doesn't register the service we
+     * simply won't tag it as media. This mirrors the system's own criterion
+     * and avoids lying to the user about apps Janus can't actually detect.
+     */
     fun scanMediaApps(): List<MediaAppInfo> {
         val pm = context.packageManager
-        val candidates = mutableSetOf<String>()
-
         val browserIntent = Intent(MediaBrowserService.SERVICE_INTERFACE)
-        pm.queryIntentServices(browserIntent, 0).forEach { resolveInfo ->
-            candidates.add(resolveInfo.serviceInfo.packageName)
-        }
-
-        candidates.addAll(BUILTIN_WHITELIST)
-        candidates.remove(context.packageName)
-
-        return candidates
-            .mapNotNull { pkg ->
-                toMediaAppInfo(pm, pkg, isMediaApp = true)
-            }.sortedBy { it.appName }
+        return pm
+            .queryIntentServices(browserIntent, 0)
+            .mapTo(mutableSetOf()) { it.serviceInfo.packageName }
+            .apply { remove(context.packageName) }
+            .mapNotNull { pkg -> toMediaAppInfo(pm, pkg, isMediaApp = true) }
+            .sortedBy { it.appName }
     }
 
     fun scanAllApps(): List<MediaAppInfo> {

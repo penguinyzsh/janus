@@ -22,8 +22,7 @@ class CardManager(
         private const val CARDS_DIR = "cards"
 
         val CARDS_CONFIG_FLAG_PATH = JanusPaths.CARDS_CONFIG
-        private val CARDS_DEPLOY_DIR = JanusPaths.CARDS_DIR
-        private val DEPLOY_BASE = JanusPaths.TEMPLATES_DIR
+        private val TEMPLATES_DIR = JanusPaths.TEMPLATES_DIR
     }
 
     private val prefs: SharedPreferences =
@@ -172,34 +171,22 @@ class CardManager(
         return ok
     }
 
-    /** Deploy a card's ZIP template to the system smart_assistant path.
-     *  The template path in p2.a.d points directly to the ZIP file,
-     *  NOT a directory containing it. */
-    fun deployCard(card: CardInfo): Boolean {
-        val zipFile = File(cardsDir, "${card.slot}.zip")
-        if (!zipFile.exists()) {
-            android.util.Log.e("Janus-CardMgr", "deployCard: ${zipFile.absolutePath} not found")
-            return false
-        }
-        JanusPaths.ensureAllDirs()
-        val tmp = File(context.cacheDir, "card_deploy_${card.slot}.zip")
-        zipFile.copyTo(tmp, overwrite = true)
-        val dest = "$DEPLOY_BASE/${card.businessName}"
-        val cmd = "rm -rf $dest && cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest"
-        val ok = RootUtils.exec(cmd)
-        android.util.Log.d("Janus-CardMgr", "deployCard: result=$ok dest=$dest")
-        tmp.delete()
-        return ok
-    }
-
     /** Remove a card's deployed template from the system path. */
     fun undeployCard(slot: Int) {
         val business = "janus_card_$slot"
-        RootUtils.exec("rm -f $DEPLOY_BASE/$business")
+        RootUtils.exec("rm -f $TEMPLATES_DIR/$business")
     }
 
-    /** Deploy card ZIPs to theme_magic config/cards/ so Hook can read them.
-     *  subscreencenter can't read Janus app-private dir (SELinux MCS). */
+    /**
+     * Deploy enabled card ZIPs directly to `janus/templates/` so subscreencenter
+     * (via the Hook-side `p2.a.d` path mapping) can load them.
+     *
+     * Prior to v260408 there was an intermediate "staging" directory at
+     * `janus/cards/` that the Hook's `deployTemplate()` would copy from into
+     * `janus/templates/` at subscreencenter startup. That extra hop has been
+     * eliminated — the app now writes the final template files directly,
+     * removing one copy and ~20–60 MB of redundant disk usage.
+     */
     fun prepareCardsForHook(): Boolean {
         JanusPaths.ensureAllDirs()
         var allOk = true
@@ -208,7 +195,7 @@ class CardManager(
             if (!src.exists()) return@forEach
             val tmp = File(context.cacheDir, "card_hook_${card.slot}.zip")
             src.copyTo(tmp, overwrite = true)
-            val dest = "$CARDS_DEPLOY_DIR/${card.slot}.zip"
+            val dest = "$TEMPLATES_DIR/${card.businessName}"
             val ok =
                 RootUtils.exec(
                     "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest",
@@ -248,7 +235,7 @@ class CardManager(
             tmpFile.delete()
 
             JanusPaths.ensureAllDirs()
-            val deployDest = "${JanusPaths.CARDS_DIR}/${card.customFileName}"
+            val deployDest = "$TEMPLATES_DIR/${card.customTemplateName}"
             val tmp = File(context.cacheDir, "${card.business}_deploy_tmp.zip")
             localFile.copyTo(tmp, overwrite = true)
             RootUtils.exec(
@@ -269,15 +256,14 @@ class CardManager(
 
     fun removeSystemCardOverride(card: SystemCard) {
         File(cardsDir, card.customFileName).delete()
-        RootUtils.exec("rm -f '${JanusPaths.CARDS_DIR}/${card.customFileName}'")
-        RootUtils.exec("rm -f '${JanusPaths.TEMPLATES_DIR}/${card.customTemplateName}'")
+        RootUtils.exec("rm -f '$TEMPLATES_DIR/${card.customTemplateName}'")
         prefs.edit().remove(card.overridePrefsKey).commit()
         makePrefsWorldReadable()
     }
 
     fun getSystemCardOverrideName(card: SystemCard): String? = prefs.getString(card.overridePrefsKey, null)
 
-    /** Deploy all system card override ZIPs to theme_magic cards/ so Hook can read them. */
+    /** Deploy all system card override ZIPs to janus/templates/ so Hook can read them. */
     fun prepareSystemCardOverridesForHook() {
         JanusPaths.ensureAllDirs()
         for (card in SystemCard.entries) {
@@ -285,7 +271,7 @@ class CardManager(
             if (!src.exists()) continue
             val tmp = File(context.cacheDir, "${card.business}_hook_tmp.zip")
             src.copyTo(tmp, overwrite = true)
-            val dest = "${JanusPaths.CARDS_DIR}/${card.customFileName}"
+            val dest = "$TEMPLATES_DIR/${card.customTemplateName}"
             RootUtils.exec(
                 "cp ${tmp.absolutePath} $dest && chmod 644 $dest && chcon u:object_r:theme_data_file:s0 $dest",
             )

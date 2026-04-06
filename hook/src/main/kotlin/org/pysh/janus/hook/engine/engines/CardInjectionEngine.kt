@@ -46,6 +46,17 @@ import java.util.concurrent.ConcurrentHashMap
  * - `entry_key_field` (e.g. "a") — entry key field (String)
  * - `entry_priority_field` (e.g. "d") — entry priority field (int)
  * - `card_runnable_class` (e.g. "Z1.m") — card injection Runnable class
+ *
+ * Optional targets (focus notice dynamic allow sub-feature):
+ * - `business_resolver_class` / `business_resolver_method` (e.g. "p2.c" / "r") —
+ *   resolves (pkg, parser) → U0.b representing the notification's declared business
+ * - `u0b_business_field` (e.g. "c") — String field on the U0.b return value
+ * - `rv_business_check_class` / `rv_business_check_method` (e.g. "p2.a" / "d") —
+ *   static (pkg, biz) → Boolean, true if built-in RemoteView business
+ * - `template_path_query_class` / `template_path_query_method` (e.g. "p2.c" / "i") —
+ *   static (pkg, biz) → String, null/blank if no MAML template is registered
+ * - `focus_notice_config_flag` (e.g. "focus_notice_dynamic_allow") — runtime toggle key
+ *   read via ConfigSource; feature is OFF by default when the key is absent
  */
 class CardInjectionEngine : HookEnginePlugin {
 
@@ -58,7 +69,6 @@ class CardInjectionEngine : HookEnginePlugin {
         private const val JANUS_BASE =
             "/data/system/theme_magic/users/0/subscreencenter/janus"
         private const val CONFIG_PATH = "$JANUS_BASE/config/cards_config"
-        private const val CARDS_SRC_DIR = "$JANUS_BASE/cards"
         private const val TEMPLATE_BASE =
             "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates"
     }
@@ -79,9 +89,16 @@ class CardInjectionEngine : HookEnginePlugin {
     ) {
         targets = rule.targets!!
 
+        // ── Always-on sub-features (independent of master_enabled) ──
+        // hookManagerInit captures the Z1.d0 singleton into `manager`. Both custom
+        // card injection AND focus-notice dynamic-allow need this reference, so
+        // it must run even when cards_config is absent or disabled.
+        hookManagerInit(module, classLoader)
+        hookFocusNoticeBridge(module, classLoader, config)
+
         val cardConfig = readConfig()
         if (cardConfig == null || !cardConfig.optBoolean("master_enabled", false)) {
-            Log.d(TAG, "Card system disabled or config absent, skipping")
+            Log.d(TAG, "Card system disabled or config absent, custom cards skipped (focus notice bridge still active)")
             HookStatusReporter.reportSkip("card_injection")
             return
         }
@@ -95,7 +112,7 @@ class CardInjectionEngine : HookEnginePlugin {
             }
         }
         if (activeBusinesses.isEmpty()) {
-            Log.d(TAG, "No active cards, skipping")
+            Log.d(TAG, "No active cards, custom cards skipped (focus notice bridge still active)")
             HookStatusReporter.reportSkip("card_injection")
             return
         }
@@ -105,7 +122,6 @@ class CardInjectionEngine : HookEnginePlugin {
         hookFilter(module, classLoader)
         hookAppList(module, classLoader, activeBusinesses)
         hookCardSorting(module, classLoader)
-        hookManagerInit(module, classLoader)
 
         Log.d(TAG, "All hooks installed for ${activeBusinesses.size} card(s)")
         HookStatusReporter.report("card_injection", true, "${activeBusinesses.size} cards")
@@ -297,6 +313,141 @@ class CardInjectionEngine : HookEnginePlugin {
     }
 
     /**
+     * Focus notice dynamic allow — Janus's alternative to REAREye's Z1.m.run() hook.
+     *
+     * Hooks `p2.c.r(String pkg, Object parser)` after. When a notification carries
+     * valid `miui.rear.param` / `miui.focus.param` extras, subscreencenter already
+     * calls `r()` to resolve the declared business. We read the returned `U0.b.c`
+     * field and, if a matching template exists (`p2.a.d` built-in RV or `p2.c.i`
+     * template path — which covers SystemCardEngine-injected MAML), dynamically
+     * write `(pkg, business)` into `Z1.d0.f1804r` / `f1803q` so the subsequent
+     * `p2.c.k` filter gate passes.
+     *
+     * Key differentiators vs REAREye:
+     * - 2 obfuscation layers (`U0.b.c` + `Z1.d0.r/q`), not 4.
+     * - Hard template gate — refuses to allow a package whose business has no
+     *   renderable template (avoids polluting the whitelist with dead entries).
+     * - Runtime toggle via `ConfigSource` — no app restart required to flip.
+     */
+    private fun hookFocusNoticeBridge(
+        module: XposedInterface,
+        classLoader: ClassLoader,
+        config: ConfigSource,
+    ) {
+        val resolverClassName = targets["business_resolver_class"] ?: return
+        val resolverMethodName = targets["business_resolver_method"] ?: return
+        val bizFieldName = targets["u0b_business_field"] ?: return
+        val flagKey = targets["focus_notice_config_flag"] ?: "focus_notice_dynamic_allow"
+
+        try {
+            val resolverCls = classLoader.loadClass(resolverClassName)
+            // The second parameter is an obfuscated type (e.g. `j2.C0308a` — the parsed
+            // notification wrapper). We can't `getDeclaredMethod(name, String, X.class)`
+            // without hardcoding that name, so discover the method by shape: declared on
+            // p2.c, named `r`, 2 params, first param is String.
+            val resolverMethod = resolverCls.declaredMethods.firstOrNull { m ->
+                m.name == resolverMethodName &&
+                    m.parameterTypes.size == 2 &&
+                    m.parameterTypes[0] == String::class.java
+            } ?: run {
+                Log.e(TAG, "hookFocusNoticeBridge: method $resolverClassName.$resolverMethodName(String, ?) not found")
+                return
+            }
+
+            val rvCheck = runCatching {
+                val cls = classLoader.loadClass(targets["rv_business_check_class"]!!)
+                cls.getDeclaredMethod(
+                    targets["rv_business_check_method"]!!,
+                    String::class.java,
+                    String::class.java,
+                )
+            }.getOrNull()
+
+            val tplQuery = runCatching {
+                val cls = classLoader.loadClass(targets["template_path_query_class"]!!)
+                cls.getDeclaredMethod(
+                    targets["template_path_query_method"]!!,
+                    String::class.java,
+                    String::class.java,
+                )
+            }.getOrNull()
+
+            val fieldR = targets["app_list_field_r"] ?: return
+            val fieldQ = targets["app_list_field_q"] ?: return
+
+            module.hook(resolverMethod).intercept(XposedInterface.Hooker { chain ->
+                val result = chain.proceed() ?: return@Hooker null
+
+                // Runtime toggle — honor ConfigSource without reinstalling the hook.
+                if (!config.getBoolean(flagKey, false)) return@Hooker result
+
+                val pkg = chain.args[0] as? String ?: return@Hooker result
+                val business = runCatching {
+                    ReflectUtils.getField(result, bizFieldName) as? String
+                }.getOrNull()?.trim()?.takeIf { it.isNotBlank() } ?: return@Hooker result
+
+                // Template gate: allow only when the business has something to render.
+                // 1) p2.a.d(pkg, biz) == true → built-in RemoteView business
+                // 2) p2.c.i(pkg, biz) non-blank → MAML template path (covers
+                //    SystemCardEngine's injected templates as well)
+                val isRv = rvCheck?.let {
+                    runCatching { it.invoke(null, pkg, business) as? Boolean }.getOrNull()
+                } == true
+                val hasPath = tplQuery?.let {
+                    runCatching { it.invoke(null, pkg, business) as? String }.getOrNull()
+                }?.isNotBlank() == true
+
+                if (!isRv && !hasPath) {
+                    HookStatusReporter.reportBehavior("focus_notice", JSONObject().apply {
+                        put("action", "skip_no_template")
+                        put("package", pkg)
+                        put("business", business)
+                    })
+                    return@Hooker result
+                }
+
+                if (isFocusNoticeDenied(pkg, business)) {
+                    return@Hooker result
+                }
+
+                val mgr = manager ?: return@Hooker result
+                runCatching {
+                    @Suppress("UNCHECKED_CAST")
+                    val rSet = ReflectUtils.getField(mgr, fieldR)
+                        as ConcurrentHashMap.KeySetView<String, *>
+                    rSet.add(pkg)
+
+                    @Suppress("UNCHECKED_CAST")
+                    val qMap = ReflectUtils.getField(mgr, fieldQ)
+                        as ConcurrentHashMap<String, Boolean>
+                    qMap[pkg] = true
+                    qMap["${pkg}_$business"] = true
+
+                    HookStatusReporter.reportBehavior("focus_notice", JSONObject().apply {
+                        put("action", "dynamic_allow")
+                        put("package", pkg)
+                        put("business", business)
+                    })
+                }.onFailure {
+                    Log.w(TAG, "focus notice allow failed pkg=$pkg biz=$business: ${it.message}")
+                }
+
+                result
+            })
+            Log.d(TAG, "Focus notice bridge installed (toggle key=$flagKey)")
+        } catch (e: Throwable) {
+            Log.e(TAG, "hookFocusNoticeBridge: ${e.message}")
+        }
+    }
+
+    /**
+     * v1 stub: denylist disabled. A future revision may load a file at
+     * `$CONFIG_DIR/focus_notice_denylist` (line-based `pkg` or `pkg:business`).
+     */
+    @Suppress("UNUSED_PARAMETER")
+    private fun isFocusNoticeDenied(pkg: String, business: String): Boolean = false
+
+    /**
      * Sort all Janus cards in the manager list by priority ascending
      * (lower priority earlier in list = displayed below; higher = on top).
      */
@@ -364,38 +515,24 @@ class CardInjectionEngine : HookEnginePlugin {
         }
     }
 
-    // ── Template deployment (runs inside subscreencenter process) ────
+    // ── Template verification (runs inside subscreencenter process) ────
+    // Prior to v260408 this copied from `janus/cards/<slot>.zip` to
+    // `janus/templates/<business>`. The intermediate `cards/` staging dir has
+    // been eliminated — the app deploys directly to `templates/` via root cp
+    // in `CardManager.prepareCardsForHook`. This method now only verifies
+    // the template file exists and is readable.
 
     private fun deployTemplate(slot: Int, business: String) {
-        try {
-            val userId = Process.myUid() / 100_000
-            val destPath = "$TEMPLATE_BASE/$business".replace("\$user_id", userId.toString())
-            val destFile = File(destPath)
-
-            // Source: janus/cards/ (deployed by app via root)
-            val srcFile = File("$CARDS_SRC_DIR/$slot.zip")
-            if (!srcFile.exists()) {
-                Log.d(TAG, "deployTemplate: source not found: ${srcFile.absolutePath}")
-                return
-            }
-
-            // Remove old (could be file or directory from earlier bug)
-            if (destFile.exists()) {
-                if (destFile.isDirectory) destFile.deleteRecursively() else destFile.delete()
-            }
-            destFile.parentFile?.mkdirs()
-
-            srcFile.inputStream().use { input ->
-                destFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
+        val userId = Process.myUid() / 100_000
+        val destPath = "$TEMPLATE_BASE/$business".replace("\$user_id", userId.toString())
+        val destFile = File(destPath)
+        if (destFile.exists()) {
             destFile.setReadable(true, false)
             destFile.parentFile?.setReadable(true, false)
             destFile.parentFile?.setExecutable(true, false)
             Log.d(TAG, "Template deployed: $destPath (${destFile.length()} bytes)")
-        } catch (e: Throwable) {
-            Log.e(TAG, "deployTemplate slot=$slot: ${e.message}")
+        } else {
+            Log.w(TAG, "Template not found: $destPath — app may not have deployed yet")
         }
     }
 

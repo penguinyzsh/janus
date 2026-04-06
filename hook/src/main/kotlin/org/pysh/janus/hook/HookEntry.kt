@@ -4,19 +4,15 @@ import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.PackageLoadedParam
-import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.hook.BuildConfig
-import org.pysh.janus.hook.config.FileFlagConfigSource
 import org.pysh.janus.hook.config.SharedPreferencesConfigSource
 import org.pysh.janus.hook.engine.RuleEngine
 import org.pysh.janus.hook.engine.RuleLoader
-import org.pysh.janus.hook.engine.engines.AppleMusicLyricEngine
 import org.pysh.janus.hook.engine.engines.CardInjectionEngine
 import org.pysh.janus.hook.engine.engines.SystemCardEngine
 import org.pysh.janus.hook.engine.engines.WallpaperKeepAliveEngine
 import org.pysh.janus.hook.engine.engines.WhitelistEngine
 import org.pysh.janus.hookapi.ConfigSource
-import java.io.File
 
 @android.annotation.SuppressLint("NewApi")
 class HookEntry : XposedModule() {
@@ -33,8 +29,8 @@ class HookEntry : XposedModule() {
         ViewStateObserver.init(packageName)
         AppLifecycleHook.init(this, packageName)
 
-        // Build the engine-facing config store: file-flag overrides layered
-        // over RemotePreferences (or the Empty sentinel when unavailable).
+        // Build the engine-facing config store backed by LSPosed RemotePreferences
+        // (falls back to Empty sentinel when the service isn't bound yet).
         val config: ConfigSource = buildConfigSource()
 
         // Load rules for this package. `rulesPrefs` is a separate remote store
@@ -62,11 +58,10 @@ class HookEntry : XposedModule() {
         engine.registerEngine(SystemCardEngine.ENGINE_NAME, SystemCardEngine())
         engine.registerEngine(CardInjectionEngine.ENGINE_NAME, CardInjectionEngine())
         engine.registerEngine(WallpaperKeepAliveEngine.ENGINE_NAME, WallpaperKeepAliveEngine())
-        engine.registerEngine(AppleMusicLyricEngine.ENGINE_NAME, AppleMusicLyricEngine())
 
         Log.i(
             TAG,
-            "=== Janus v${BuildConfig.MODULE_VERSION} " +
+            "=== Janus ${BuildConfig.MODULE_VERSION} " +
                 "(vc${BuildConfig.MODULE_VERSION_CODE}) loaded for $packageName, " +
                 "engines: ${engine.engineNames()} ===",
         )
@@ -74,19 +69,13 @@ class HookEntry : XposedModule() {
         engine.install(rules, classLoader)
     }
 
-    private fun buildConfigSource(): ConfigSource {
-        val remote: ConfigSource =
-            try {
-                SharedPreferencesConfigSource(getRemotePreferences("janus_config"))
-            } catch (e: Throwable) {
-                Log.w(TAG, "RemotePreferences unavailable, using Empty fallback: ${e.message}")
-                ConfigSource.Empty
-            }
-        return FileFlagConfigSource(
-            flagsDir = File(JanusPaths.CONFIG_DIR),
-            delegate = remote,
-        )
-    }
+    private fun buildConfigSource(): ConfigSource =
+        try {
+            SharedPreferencesConfigSource(getRemotePreferences("janus_config"))
+        } catch (e: Throwable) {
+            Log.w(TAG, "RemotePreferences unavailable, using Empty fallback: ${e.message}")
+            ConfigSource.Empty
+        }
 
     private companion object {
         const val TAG = "Janus"

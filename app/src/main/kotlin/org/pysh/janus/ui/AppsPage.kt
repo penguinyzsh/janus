@@ -1,6 +1,5 @@
 package org.pysh.janus.ui
 
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,13 +25,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -111,6 +116,17 @@ fun AppsPage(
             }
         }
 
+    // Lazy icon cache keyed by package name — survives LazyColumn item
+    // recycling, so scrolling back/forth no longer re-allocates bitmaps.
+    // Invalidated whenever the underlying allApps list is replaced (e.g.
+    // pull-to-refresh).
+    val density = LocalDensity.current.density
+    val iconSizePx = remember(density) { (48 * density).toInt() }
+    val iconCache =
+        remember(allApps) { HashMap<String, ImageBitmap>(allApps.size) }
+
+    val highlightColor = MiuixTheme.colorScheme.primary
+
     val scrollBehavior = MiuixScrollBehavior()
     val title = stringResource(R.string.nav_apps)
 
@@ -157,12 +173,19 @@ fun AppsPage(
                     contentPadding = PaddingValues(bottom = bottomPadding),
                 ) {
                     items(filteredApps, key = { it.packageName }) { app ->
-                        val cachedIcon = remember(app.packageName) { app.icon }
+                        val iconBitmap =
+                            iconCache.getOrPut(app.packageName) {
+                                app.icon
+                                    .toBitmap(width = iconSizePx, height = iconSizePx)
+                                    .asImageBitmap()
+                            }
                         AppListItem(
                             appName = app.appName,
                             packageName = app.packageName,
-                            icon = cachedIcon,
+                            iconBitmap = iconBitmap,
                             isMediaApp = app.isMediaApp,
+                            searchQuery = searchQuery,
+                            highlightColor = highlightColor,
                             onClick = { onAppClick(app) },
                         )
                     }
@@ -176,10 +199,20 @@ fun AppsPage(
 private fun AppListItem(
     appName: String,
     packageName: String,
-    icon: Drawable,
+    iconBitmap: ImageBitmap,
     isMediaApp: Boolean,
+    searchQuery: String,
+    highlightColor: androidx.compose.ui.graphics.Color,
     onClick: () -> Unit,
 ) {
+    val highlightedName =
+        remember(appName, searchQuery, highlightColor) {
+            highlightMatches(appName, searchQuery, highlightColor)
+        }
+    val highlightedPkg =
+        remember(packageName, searchQuery, highlightColor) {
+            highlightMatches(packageName, searchQuery, highlightColor)
+        }
     Row(
         modifier =
             Modifier
@@ -189,17 +222,21 @@ private fun AppListItem(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppIcon(drawable = icon, size = 48, contentDescription = appName)
+        Image(
+            painter = BitmapPainter(iconBitmap),
+            contentDescription = appName,
+            modifier = Modifier.size(48.dp),
+        )
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = appName,
+                text = highlightedName,
                 style = MiuixTheme.textStyles.headline2,
                 fontWeight = FontWeight.Medium,
                 color = MiuixTheme.colorScheme.onBackground,
             )
             Text(
-                text = packageName,
+                text = highlightedPkg,
                 style = MiuixTheme.textStyles.body2,
                 color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
             )
@@ -213,6 +250,37 @@ private fun AppListItem(
             contentDescription = null,
             tint = MiuixTheme.colorScheme.onSurfaceContainerVariant,
         )
+    }
+}
+
+/**
+ * Build an [AnnotatedString] where every case-insensitive occurrence of
+ * [query] inside [text] is highlighted with [color]. Falls back to a plain
+ * string when [query] is blank or not found, so empty searches stay free.
+ */
+private fun highlightMatches(
+    text: String,
+    query: String,
+    color: androidx.compose.ui.graphics.Color,
+): AnnotatedString {
+    if (query.isBlank()) return AnnotatedString(text)
+    val lowerText = text.lowercase()
+    val lowerQuery = query.lowercase()
+    val firstIdx = lowerText.indexOf(lowerQuery)
+    if (firstIdx < 0) return AnnotatedString(text)
+
+    return buildAnnotatedString {
+        var cursor = 0
+        var idx = firstIdx
+        while (idx >= 0) {
+            if (idx > cursor) append(text.substring(cursor, idx))
+            withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+                append(text.substring(idx, idx + query.length))
+            }
+            cursor = idx + query.length
+            idx = lowerText.indexOf(lowerQuery, cursor)
+        }
+        if (cursor < text.length) append(text.substring(cursor))
     }
 }
 
@@ -235,21 +303,3 @@ internal fun MediaTag() {
     }
 }
 
-@Composable
-internal fun AppIcon(
-    drawable: Drawable,
-    size: Int = 40,
-    contentDescription: String,
-) {
-    val density = LocalContext.current.resources.displayMetrics.density
-    val sizePx = (size * density).toInt()
-    val bitmap =
-        remember(drawable) {
-            drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
-        }
-    Image(
-        painter = BitmapPainter(bitmap),
-        contentDescription = contentDescription,
-        modifier = Modifier.size(size.dp),
-    )
-}

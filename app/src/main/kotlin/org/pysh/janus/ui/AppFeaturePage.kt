@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.WhitelistManager
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.RootUtils
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -142,18 +142,8 @@ fun AppFeaturePage(
                                     whitelistManager?.saveWhitelist(whitelist)
                                     RootUtils.restartBackScreen()
                                 }
-                                Toast
-                                    .makeText(
-                                        context,
-                                        if (checked) {
-                                            context.getString(
-                                                R.string.whitelist_added,
-                                            )
-                                        } else {
-                                            context.getString(R.string.whitelist_removed)
-                                        },
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
+                                val msgRes = if (checked) R.string.whitelist_added else R.string.whitelist_removed
+                                Toast.makeText(context, context.getString(msgRes), Toast.LENGTH_SHORT).show()
                             }
                         },
                     )

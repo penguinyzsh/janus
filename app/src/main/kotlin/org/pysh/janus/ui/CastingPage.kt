@@ -28,9 +28,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.WhitelistManager
-import org.pysh.janus.service.ScreenKeepAliveService
 import org.pysh.janus.util.DisplayUtils
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.RootUtils
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
@@ -47,8 +46,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-private const val KEEP_ALIVE_MIN_SECONDS = 1
-private const val KEEP_ALIVE_MAX_SECONDS = 300
 private const val DPI_MIN = 100
 private const val DPI_MAX = 800
 
@@ -71,13 +68,10 @@ fun CastingPage(
     val scope = rememberCoroutineScope()
     val whitelistManager = remember { if (!isInPreview) WhitelistManager(context) else null }
 
-    var keepAlive by remember { mutableStateOf(if (!isInPreview) (whitelistManager?.isKeepAliveEnabled() ?: false) else false) }
-    var intervalValue by remember { mutableFloatStateOf(whitelistManager?.getKeepAliveInterval()?.toFloat() ?: 10f) }
     var dpiSliderValue by remember { mutableFloatStateOf(currentDpi?.toFloat() ?: 320f) }
     var castRotation by remember { mutableStateOf(whitelistManager?.getCastRotation() ?: 0) }
     var castKeepAlive by remember { mutableStateOf(whitelistManager?.isCastKeepAlive() ?: false) }
 
-    var showIntervalDialog by remember { mutableStateOf(false) }
     var showDpiDialog by remember { mutableStateOf(false) }
     var showRotationDialog by remember { mutableStateOf(false) }
     var dialogInput by remember { mutableStateOf("") }
@@ -132,69 +126,6 @@ fun CastingPage(
                             ).show()
                     },
                 )
-                // 背屏常亮
-                SuperSwitch(
-                    title = stringResource(R.string.keep_alive),
-                    summary = stringResource(if (keepAlive) R.string.keep_alive_on else R.string.keep_alive_off),
-                    checked = keepAlive,
-                    onCheckedChange = {
-                        keepAlive = it
-                        whitelistManager?.setKeepAliveEnabled(it)
-                        if (it) {
-                            ScreenKeepAliveService.start(context, intervalValue.toInt())
-                        } else {
-                            ScreenKeepAliveService.stop(context)
-                        }
-                        Toast
-                            .makeText(
-                                context,
-                                context.getString(if (it) R.string.enabled else R.string.disabled),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                    },
-                )
-                SuperArrow(
-                    title = stringResource(R.string.keep_alive_interval),
-                    summary = stringResource(R.string.keep_alive_interval_value, intervalValue.toInt()),
-                    onClick = {
-                        dialogInput = intervalValue.toInt().toString()
-                        showIntervalDialog = true
-                    },
-                    bottomAction = {
-                        Slider(
-                            value = intervalValue,
-                            onValueChange = { intervalValue = it },
-                            valueRange = KEEP_ALIVE_MIN_SECONDS.toFloat()..KEEP_ALIVE_MAX_SECONDS.toFloat(),
-                            onValueChangeFinished = {
-                                whitelistManager?.setKeepAliveInterval(intervalValue.toInt())
-                                if (keepAlive) {
-                                    ScreenKeepAliveService.start(context, intervalValue.toInt())
-                                }
-                            },
-                        )
-                    },
-                )
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(bottom = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    TextButton(
-                        text = stringResource(R.string.reset_default),
-                        onClick = {
-                            intervalValue = ScreenKeepAliveService.DEFAULT_INTERVAL.toFloat()
-                            whitelistManager?.setKeepAliveInterval(ScreenKeepAliveService.DEFAULT_INTERVAL)
-                            if (keepAlive) {
-                                ScreenKeepAliveService.start(context, ScreenKeepAliveService.DEFAULT_INTERVAL)
-                            }
-                            Toast.makeText(context, context.getString(R.string.reset_done), Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
                 // 背屏 DPI
                 SuperArrow(
                     title = stringResource(R.string.rear_dpi),
@@ -283,45 +214,6 @@ fun CastingPage(
                         modifier = Modifier.weight(1f),
                     )
                 }
-            }
-        }
-
-        SuperDialog(
-            show = showIntervalDialog,
-            title = stringResource(R.string.keep_alive_interval),
-            summary = stringResource(R.string.keep_alive_interval_dialog_summary),
-            onDismissRequest = { showIntervalDialog = false },
-        ) {
-            TextField(
-                value = dialogInput,
-                onValueChange = { dialogInput = it.filter { c -> c.isDigit() } },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                TextButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = { showIntervalDialog = false },
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(
-                    text = stringResource(R.string.confirm),
-                    onClick = {
-                        val seconds = dialogInput.toIntOrNull()?.coerceIn(KEEP_ALIVE_MIN_SECONDS, KEEP_ALIVE_MAX_SECONDS)
-                        if (seconds != null) {
-                            intervalValue = seconds.toFloat()
-                            whitelistManager?.setKeepAliveInterval(seconds)
-                            if (keepAlive) {
-                                ScreenKeepAliveService.start(context, seconds)
-                            }
-                        }
-                        showIntervalDialog = false
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.textButtonColorsPrimary(),
-                )
             }
         }
 

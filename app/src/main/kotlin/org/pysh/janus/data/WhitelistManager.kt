@@ -5,7 +5,6 @@ import android.content.SharedPreferences
 import android.util.Log
 import io.github.libxposed.service.XposedService
 import org.pysh.janus.JanusApplication
-import org.pysh.janus.util.JanusPaths
 import java.io.File
 
 class WhitelistManager(
@@ -15,8 +14,12 @@ class WhitelistManager(
 
     companion object {
         const val PREFS_NAME = "janus_config"
-        const val KEY_WHITELIST = "music_whitelist"
-        const val KEY_DISABLE_TRACKING = "disable_tracking"
+        const val KEY_WHITELIST = "whitelist"
+        const val KEY_DISABLE_TRACKING = "tracking_disabled"
+
+        // Legacy SP key names — kept for one-time migration in init{}
+        private const val LEGACY_KEY_WHITELIST = "music_whitelist"
+        private const val LEGACY_KEY_DISABLE_TRACKING = "disable_tracking"
         const val KEY_ACTIVATED = "activated"
         const val KEY_KEEP_ALIVE_ENABLED = "keep_alive_enabled"
         const val KEY_KEEP_ALIVE_INTERVAL = "keep_alive_interval"
@@ -25,15 +28,11 @@ class WhitelistManager(
         const val KEY_WALLPAPER_KEEP_ALIVE = "wallpaper_keep_alive"
         const val KEY_WALLPAPER_LOCK = "wallpaper_lock"
         const val KEY_HIDE_TIME_TIP = "hide_time_tip"
+        const val KEY_FOCUS_NOTICE_ALLOW = "focus_notice_dynamic_allow"
         const val KEY_THEME_AUTO_RESTART = "theme_auto_restart"
         const val KEY_WALLPAPER_LOOP = "wallpaper_loop"
         const val KEY_AUTO_ROTATE = "auto_rotate"
         const val KEY_AUTO_ROTATE_INTERVAL = "auto_rotate_interval"
-        val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
-        val TRACKING_FLAG_PATH = JanusPaths.TRACKING_DISABLED
-        val WALLPAPER_KEEP_ALIVE_FLAG_PATH = JanusPaths.WALLPAPER_KEEP_ALIVE
-        val WALLPAPER_LOCK_FLAG_PATH = JanusPaths.WALLPAPER_LOCK
-        val HIDE_TIME_TIP_FLAG_PATH = JanusPaths.HIDE_TIME_TIP
     }
 
     private val prefs: SharedPreferences =
@@ -48,6 +47,30 @@ class WhitelistManager(
                 makePrefsWorldReadable()
             }
         }
+
+    init {
+        // One-time SP key migration: rename legacy key names to match
+        // RemotePreferences key names. After this, the SP file and RemotePrefs
+        // use the same keys and no mapping table is needed in syncAllToRemotePrefs.
+        migrateLegacySpKey(LEGACY_KEY_WHITELIST, KEY_WHITELIST)
+        migrateLegacySpKey(LEGACY_KEY_DISABLE_TRACKING, KEY_DISABLE_TRACKING)
+    }
+
+    private fun migrateLegacySpKey(oldKey: String, newKey: String) {
+        if (prefs.contains(oldKey) && !prefs.contains(newKey)) {
+            val value = prefs.all[oldKey]
+            val editor = prefs.edit()
+            when (value) {
+                is String -> editor.putString(newKey, value)
+                is Boolean -> editor.putBoolean(newKey, value)
+                is Int -> editor.putInt(newKey, value)
+                is Long -> editor.putLong(newKey, value)
+                is Float -> editor.putFloat(newKey, value)
+            }
+            editor.remove(oldKey).commit()
+            makePrefsWorldReadable()
+        }
+    }
 
     fun getWhitelist(): Set<String> {
         val raw = prefs.getString(KEY_WHITELIST, "") ?: ""
@@ -65,8 +88,7 @@ class WhitelistManager(
     fun setTrackingDisabled(disabled: Boolean) {
         prefs.edit().putBoolean(KEY_DISABLE_TRACKING, disabled).commit()
         makePrefsWorldReadable()
-        syncBooleanFlag(TRACKING_FLAG_PATH, disabled)
-        syncRemoteBool("tracking_disabled", disabled)
+        syncRemoteBool(KEY_DISABLE_TRACKING, disabled)
     }
 
     fun isKeepAliveEnabled(): Boolean = prefs.getBoolean(KEY_KEEP_ALIVE_ENABLED, false)
@@ -102,8 +124,7 @@ class WhitelistManager(
     fun setWallpaperKeepAlive(enabled: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_KEEP_ALIVE, enabled).commit()
         makePrefsWorldReadable()
-        syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, enabled)
-        syncRemoteBool("wallpaper_keep_alive", enabled)
+        syncRemoteBool(KEY_WALLPAPER_KEEP_ALIVE, enabled)
     }
 
     fun isWallpaperLocked(): Boolean = prefs.getBoolean(KEY_WALLPAPER_LOCK, false)
@@ -111,8 +132,7 @@ class WhitelistManager(
     fun setWallpaperLocked(locked: Boolean) {
         prefs.edit().putBoolean(KEY_WALLPAPER_LOCK, locked).commit()
         makePrefsWorldReadable()
-        syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, locked)
-        syncRemoteBool("wallpaper_lock", locked)
+        syncRemoteBool(KEY_WALLPAPER_LOCK, locked)
     }
 
     fun isTimeTipHidden(): Boolean = prefs.getBoolean(KEY_HIDE_TIME_TIP, false)
@@ -120,8 +140,21 @@ class WhitelistManager(
     fun setTimeTipHidden(hidden: Boolean) {
         prefs.edit().putBoolean(KEY_HIDE_TIME_TIP, hidden).commit()
         makePrefsWorldReadable()
-        syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, hidden)
-        syncRemoteBool("hide_time_tip", hidden)
+        syncRemoteBool(KEY_HIDE_TIME_TIP, hidden)
+    }
+
+    /**
+     * Whether third-party focus notifications are allowed to dynamically
+     * bypass the subscreencenter whitelist. The hook side reads this via
+     * ConfigSource("focus_notice_dynamic_allow"), which is file-flag backed
+     * under CONFIG_DIR so the toggle takes effect without restarting the host.
+     */
+    fun isFocusNoticeAllowEnabled(): Boolean = prefs.getBoolean(KEY_FOCUS_NOTICE_ALLOW, false)
+
+    fun setFocusNoticeAllowEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(KEY_FOCUS_NOTICE_ALLOW, enabled).commit()
+        makePrefsWorldReadable()
+        syncRemoteBool(KEY_FOCUS_NOTICE_ALLOW, enabled)
     }
 
     /** Whether to force-stop subscreencenter after applying/deactivating a theme. Defaults true. */
@@ -144,46 +177,18 @@ class WhitelistManager(
         prefs.edit().putBoolean(KEY_AUTO_ROTATE, enabled).commit()
     }
 
-    fun getAutoRotateInterval(): Int {
-        // Default to 30 minutes
-        return prefs.getInt(KEY_AUTO_ROTATE_INTERVAL, 30)
-    }
+    /**
+     * Wallpaper auto-rotate interval, in **seconds**.
+     *
+     * UI labels and the `wp_auto_rotate_interval_summary` string both render
+     * this value as seconds; `WallpaperRotationReceiver.scheduleNext` also
+     * treats it as seconds (`intervalSeconds * 1000L` for `AlarmManager`).
+     * Default 30 seconds.
+     */
+    fun getAutoRotateInterval(): Int = prefs.getInt(KEY_AUTO_ROTATE_INTERVAL, 30)
 
-    fun setAutoRotateInterval(minutes: Int) {
-        prefs.edit().putInt(KEY_AUTO_ROTATE_INTERVAL, minutes).commit()
-    }
-
-    fun setActiveWallpaperPath(path: String) {
-        prefs.edit().putString("active_wallpaper_path", path).commit()
-        makePrefsWorldReadable()
-        syncRemoteString("active_wallpaper_path", path)
-        syncActiveWallpaperFlag(path)
-    }
-
-    private fun syncActiveWallpaperFlag(path: String) {
-        org.pysh.janus.util.JanusPaths
-            .ensureAllDirs()
-        val flagPath = "${org.pysh.janus.util.JanusPaths.WALLPAPER_DIR}/active_wallpaper_path.txt"
-        val cmd = "printf '%s' '$path' > '$flagPath' && chmod 644 '$flagPath' && chcon u:object_r:theme_data_file:s0 '$flagPath'"
-        org.pysh.janus.util.RootUtils
-            .exec(cmd)
-    }
-
-    /** Sync a single string config to RemotePreferences. */
-    private fun syncRemoteString(
-        key: String,
-        value: String,
-    ) {
-        try {
-            JanusApplication.instance
-                ?.xposedService
-                ?.getRemotePreferences("janus_config")
-                ?.edit()
-                ?.putString(key, value)
-                ?.commit()
-        } catch (_: Throwable) {
-            // RemotePrefs not available yet
-        }
+    fun setAutoRotateInterval(seconds: Int) {
+        prefs.edit().putInt(KEY_AUTO_ROTATE_INTERVAL, seconds).commit()
     }
 
     fun saveWhitelist(packages: Set<String>) {
@@ -193,26 +198,8 @@ class WhitelistManager(
             .putString(KEY_WHITELIST, packages.joinToString(","))
             .commit()
         makePrefsWorldReadable()
-        JanusPaths.ensureAllDirs()
-        syncWhitelistFlag(packages)
         syncAllToRemotePrefs()
         syncWhitelistScope(oldWhitelist, packages)
-    }
-
-    private fun syncWhitelistFlag(packages: Set<String>) {
-        if (packages.isEmpty()) {
-            org.pysh.janus.util.RootUtils
-                .exec("rm -f $WHITELIST_FLAG_PATH")
-        } else {
-            // Use printf to write content directly via shell, avoids app-private file access issues
-            val content = packages.joinToString(",")
-            val cmd =
-                "printf '%s' '$content' > $WHITELIST_FLAG_PATH && " +
-                    "chmod 644 $WHITELIST_FLAG_PATH && " +
-                    "chcon u:object_r:theme_data_file:s0 $WHITELIST_FLAG_PATH"
-            org.pysh.janus.util.RootUtils
-                .exec(cmd)
-        }
     }
 
     /**
@@ -252,18 +239,8 @@ class WhitelistManager(
         }
     }
 
-    /** Sync all SP settings to file flags and RemotePreferences so the hook side can read them. */
+    /** Sync all SP settings to RemotePreferences so the hook side can read them. */
     fun syncAllFlags() {
-        JanusPaths.ensureAllDirs()
-        syncWhitelistFlag(getWhitelist())
-        syncBooleanFlag(TRACKING_FLAG_PATH, isTrackingDisabled())
-        syncBooleanFlag(WALLPAPER_KEEP_ALIVE_FLAG_PATH, isWallpaperKeepAlive())
-        syncBooleanFlag(WALLPAPER_LOCK_FLAG_PATH, isWallpaperLocked())
-        syncBooleanFlag(HIDE_TIME_TIP_FLAG_PATH, isTimeTipHidden())
-        val currentWpPath = prefs.getString("active_wallpaper_path", null)
-        if (currentWpPath != null) {
-            syncActiveWallpaperFlag(currentWpPath)
-        }
         // Card config is synced by CardManager.syncConfig()
         syncAllToRemotePrefs()
     }
@@ -284,11 +261,12 @@ class WhitelistManager(
         try {
             remotePrefs
                 .edit()
-                .putString("whitelist", getWhitelist().joinToString(","))
-                .putBoolean("tracking_disabled", isTrackingDisabled())
-                .putBoolean("wallpaper_keep_alive", isWallpaperKeepAlive())
-                .putBoolean("wallpaper_lock", isWallpaperLocked())
-                .putBoolean("hide_time_tip", isTimeTipHidden())
+                .putString(KEY_WHITELIST, getWhitelist().joinToString(","))
+                .putBoolean(KEY_DISABLE_TRACKING, isTrackingDisabled())
+                .putBoolean(KEY_WALLPAPER_KEEP_ALIVE, isWallpaperKeepAlive())
+                .putBoolean(KEY_WALLPAPER_LOCK, isWallpaperLocked())
+                .putBoolean(KEY_HIDE_TIME_TIP, isTimeTipHidden())
+                .putBoolean(KEY_FOCUS_NOTICE_ALLOW, isFocusNoticeAllowEnabled())
                 .commit()
             Log.d(TAG, "Config synced to RemotePreferences")
         } catch (e: Throwable) {
@@ -310,19 +288,6 @@ class WhitelistManager(
                 ?.commit()
         } catch (_: Throwable) {
             // RemotePrefs not available yet
-        }
-    }
-
-    private fun syncBooleanFlag(
-        path: String,
-        enabled: Boolean,
-    ) {
-        if (enabled) {
-            org.pysh.janus.util.RootUtils
-                .exec("touch $path && chmod 644 $path && chcon u:object_r:theme_data_file:s0 $path")
-        } else {
-            org.pysh.janus.util.RootUtils
-                .exec("rm -f $path")
         }
     }
 

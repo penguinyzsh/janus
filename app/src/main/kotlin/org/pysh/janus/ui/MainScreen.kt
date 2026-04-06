@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -21,8 +22,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
@@ -40,17 +45,16 @@ import org.pysh.janus.R
 import org.pysh.janus.data.MediaAppInfo
 import org.pysh.janus.data.MediaAppScanner
 import org.pysh.janus.data.WhitelistManager
-import org.pysh.janus.service.ScreenKeepAliveService
+import org.pysh.janus.service.JanusBackgroundService
 import org.pysh.janus.util.DisplayUtils
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.RootUtils
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.All
 import top.yukonga.miuix.kmp.icon.extended.GridView
 import top.yukonga.miuix.kmp.icon.extended.Info
-import top.yukonga.miuix.kmp.icon.extended.Layers
-import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.icon.extended.Tune
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -58,19 +62,11 @@ import top.yukonga.miuix.kmp.theme.ThemeController
 import kotlin.math.abs
 
 sealed interface Screen : NavKey {
-    data object Activation : Screen
-
     data object Main : Screen
-
-    data object About : Screen
 
     data object Wallpaper : Screen
 
     data object Themes : Screen
-
-    data class ThemeDetail(
-        val themeId: String,
-    ) : Screen
 
     data class AppFeature(
         val packageName: String,
@@ -79,6 +75,8 @@ sealed interface Screen : NavKey {
     data class CardDetail(
         val slot: Int,
     ) : Screen
+
+    data object Cards : Screen
 
     data object SystemCards : Screen
 
@@ -160,16 +158,28 @@ fun MainScreen(isModuleActive: Boolean) {
         val scope = rememberCoroutineScope()
         val whitelistManager = remember { WhitelistManager(context) }
 
-        val initialScreen =
-            remember {
-                if (whitelistManager.isActivated()) Screen.Main else Screen.Activation
-            }
-        val backStack = remember { mutableStateListOf<NavKey>(initialScreen) }
+        val backStack = remember { mutableStateListOf<NavKey>(Screen.Main) }
 
         var hasRoot by remember { mutableStateOf<Boolean?>(null) }
         var currentDpi by remember { mutableStateOf<Int?>(null) }
         var whitelistVersion by remember { mutableIntStateOf(0) }
         var cardsVersion by remember { mutableIntStateOf(0) }
+
+        // Bump whitelistVersion whenever the app returns to foreground so that
+        // AppsPage re-reads whitelist state. Covers the case where the user
+        // toggled the whitelist from AppFeaturePage, pressed Home instead of
+        // Back, then returned to AppsPage — without this the row ordering
+        // would stay stale until the next pull-to-refresh.
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner) {
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    whitelistVersion++
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+        }
 
         // App list cached at MainScreen level — survives NavDisplay entry recreation
         val scanner = remember { MediaAppScanner(context) }
@@ -191,24 +201,22 @@ fun MainScreen(isModuleActive: Boolean) {
                         .migrateIfNeeded()
                 }
             }
-            // 同步已有配置到文件标志位（XSharedPreferences 不可用，Hook 端依赖文件）
-            if (hasRoot == true) {
-                withContext(Dispatchers.IO) { whitelistManager.syncAllFlags() }
-            }
+            // 同步已有配置到 LSPosed RemotePreferences，供 Hook 端读取
+            withContext(Dispatchers.IO) { whitelistManager.syncAllFlags() }
             // 恢复常亮服务
-            if (whitelistManager.isKeepAliveEnabled() && !ScreenKeepAliveService.isRunning) {
-                ScreenKeepAliveService.start(context, whitelistManager.getKeepAliveInterval())
+            if (whitelistManager.isKeepAliveEnabled() && !JanusBackgroundService.isKeepAliveActive) {
+                JanusBackgroundService.startKeepAlive(context, whitelistManager.getKeepAliveInterval())
             }
         }
 
-        // 自动激活：模块和 Root 都就绪时，标记已激活并进入主界面
+        // 自动激活：模块和 Root 都就绪时，标记已激活
         LaunchedEffect(isModuleActive, hasRoot) {
             if (isModuleActive && hasRoot == true && !whitelistManager.isActivated()) {
                 whitelistManager.setActivated()
-                backStack.clear()
-                backStack.add(Screen.Main)
             }
         }
+
+        val isReady = isModuleActive && hasRoot == true
 
         NavDisplay(
             backStack = backStack,
@@ -219,16 +227,9 @@ fun MainScreen(isModuleActive: Boolean) {
                 ),
         ) { key ->
             when (key) {
-                Screen.Activation ->
-                    NavEntry(key) {
-                        ActivationPage(
-                            isModuleActive = isModuleActive,
-                            hasRoot = hasRoot == true,
-                        )
-                    }
                 Screen.Main ->
                     NavEntry(key) {
-                        val pagerState = rememberPagerState(pageCount = { 5 })
+                        val pagerState = rememberPagerState(pageCount = { 4 })
                         val mainPagerState = rememberMainPagerState(pagerState)
 
                         LaunchedEffect(pagerState.currentPage) {
@@ -243,32 +244,28 @@ fun MainScreen(isModuleActive: Boolean) {
                                     NavigationBarItem(
                                         selected = mainPagerState.selectedPage == 0,
                                         onClick = { mainPagerState.animateToPage(0) },
-                                        icon = MiuixIcons.Info,
+                                        icon = MiuixIcons.All,
                                         label = stringResource(R.string.nav_home),
                                     )
                                     NavigationBarItem(
                                         selected = mainPagerState.selectedPage == 1,
-                                        onClick = { mainPagerState.animateToPage(1) },
+                                        onClick = { if (isReady) mainPagerState.animateToPage(1) },
                                         icon = MiuixIcons.GridView,
                                         label = stringResource(R.string.nav_apps),
+                                        enabled = isReady,
                                     )
                                     NavigationBarItem(
                                         selected = mainPagerState.selectedPage == 2,
-                                        onClick = { mainPagerState.animateToPage(2) },
+                                        onClick = { if (isReady) mainPagerState.animateToPage(2) },
                                         icon = MiuixIcons.Tune,
                                         label = stringResource(R.string.nav_features),
+                                        enabled = isReady,
                                     )
                                     NavigationBarItem(
                                         selected = mainPagerState.selectedPage == 3,
                                         onClick = { mainPagerState.animateToPage(3) },
-                                        icon = MiuixIcons.Layers,
-                                        label = stringResource(R.string.nav_cards),
-                                    )
-                                    NavigationBarItem(
-                                        selected = mainPagerState.selectedPage == 4,
-                                        onClick = { mainPagerState.animateToPage(4) },
-                                        icon = MiuixIcons.Settings,
-                                        label = stringResource(R.string.nav_settings),
+                                        icon = MiuixIcons.Info,
+                                        label = stringResource(R.string.about),
                                     )
                                 }
                             },
@@ -282,7 +279,7 @@ fun MainScreen(isModuleActive: Boolean) {
                             val isMainCovered = backStack.size > 1
                             HorizontalPager(
                                 state = pagerState,
-                                beyondViewportPageCount = 4,
+                                beyondViewportPageCount = 3,
                                 userScrollEnabled = false,
                             ) { page ->
                                 val hideFromA11y = isMainCovered || page != pagerState.currentPage
@@ -299,7 +296,6 @@ fun MainScreen(isModuleActive: Boolean) {
                                                 bottomPadding = paddingValues.calculateBottomPadding(),
                                                 isModuleActive = isModuleActive,
                                                 hasRoot = hasRoot,
-                                                isVisible = pagerState.currentPage == 0,
                                             )
                                         1 ->
                                             AppsPage(
@@ -326,29 +322,17 @@ fun MainScreen(isModuleActive: Boolean) {
                                                 onWallpaperClick = { backStack.add(Screen.Wallpaper) },
                                                 onCastingClick = { backStack.add(Screen.Casting) },
                                                 onThemesClick = { backStack.add(Screen.Themes) },
+                                                onCardsClick = { backStack.add(Screen.Cards) },
                                             )
                                         3 ->
-                                            CardsPage(
-                                                bottomPadding = paddingValues.calculateBottomPadding(),
-                                                cardsVersion = cardsVersion,
-                                                onCardClick = { slot -> backStack.add(Screen.CardDetail(slot)) },
-                                                onSystemCardsClick = { backStack.add(Screen.SystemCards) },
-                                                onCardsChanged = { cardsVersion++ },
-                                            )
-                                        4 ->
                                             SettingsPage(
                                                 bottomPadding = paddingValues.calculateBottomPadding(),
-                                                onAboutClick = { backStack.add(Screen.About) },
                                                 onOtherClick = { backStack.add(Screen.Other) },
                                             )
                                     }
                                 }
                             }
                         }
-                    }
-                Screen.About ->
-                    NavEntry(key) {
-                        AboutPage(onBack = { backStack.removeLastOrNull() })
                     }
                 Screen.Other ->
                     NavEntry(key) {
@@ -362,14 +346,6 @@ fun MainScreen(isModuleActive: Boolean) {
                     NavEntry(key) {
                         ThemesPage(
                             onBack = { backStack.removeLastOrNull() },
-                            onThemeClick = { themeId -> backStack.add(Screen.ThemeDetail(themeId)) },
-                        )
-                    }
-                is Screen.ThemeDetail ->
-                    NavEntry(key) {
-                        ThemeDetailPage(
-                            themeId = key.themeId,
-                            onBack = { backStack.removeLastOrNull() },
                         )
                     }
                 Screen.Casting ->
@@ -378,6 +354,17 @@ fun MainScreen(isModuleActive: Boolean) {
                             currentDpi = currentDpi,
                             onDpiChanged = { currentDpi = it },
                             onBack = { backStack.removeLastOrNull() },
+                        )
+                    }
+                Screen.Cards ->
+                    NavEntry(key) {
+                        CardsPage(
+                            bottomPadding = 0.dp,
+                            cardsVersion = cardsVersion,
+                            onBack = { backStack.removeLastOrNull() },
+                            onCardClick = { slot -> backStack.add(Screen.CardDetail(slot)) },
+                            onSystemCardsClick = { backStack.add(Screen.SystemCards) },
+                            onCardsChanged = { cardsVersion++ },
                         )
                     }
                 Screen.SystemCards ->

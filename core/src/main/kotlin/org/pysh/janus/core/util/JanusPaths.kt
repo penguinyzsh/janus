@@ -10,13 +10,17 @@ package org.pysh.janus.core.util
 object JanusPaths {
 
     // ── Base directories ────────────────────────────────────────
+    // User 0 is hardcoded because subscreencenter is a system app whose
+    // rear-screen theme data always lives under users/0/ regardless of
+    // Android multi-user ("手机分身") state. Hook-side paths use $user_id
+    // placeholder as a defensive measure for the same logical directory.
     private const val SUBSCREENCENTER_BASE =
         "/data/system/theme_magic/users/0/subscreencenter"
     const val JANUS_BASE = "$SUBSCREENCENTER_BASE/janus"
     const val CONFIG_DIR = "$JANUS_BASE/config"
-    const val CARDS_DIR = "$JANUS_BASE/cards"
     const val TEMPLATES_DIR = "$JANUS_BASE/templates"
     const val THEMES_DIR = "$JANUS_BASE/themes"
+    const val WALLPAPERS_DIR = "$JANUS_BASE/wallpapers"
 
     /** Hook-side template base — `$user_id` must be replaced at runtime. */
     const val HOOK_TEMPLATES_BASE =
@@ -30,22 +34,20 @@ object JanusPaths {
     const val HOOK_CONFIG_DIR =
         "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/config"
 
+    /** Hook-side wallpapers base — `$user_id` must be replaced at runtime. */
+    const val HOOK_WALLPAPERS_DIR =
+        "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/wallpapers"
+
     /** File name written inside each theme directory (the MRC payload). */
     const val THEME_FILE_NAME = "theme.mrc"
 
-    // ── Config flag files (read by Hook, written by App via root) ──
-    const val WHITELIST = "$CONFIG_DIR/whitelist"
-    const val TRACKING_DISABLED = "$CONFIG_DIR/tracking_disabled"
-    const val WALLPAPER_KEEP_ALIVE = "$CONFIG_DIR/wallpaper_keep_alive"
-    const val WALLPAPER_LOCK = "$CONFIG_DIR/wallpaper_lock"
+    // ── Config data files (read by Hook directly) ──────────────
+    // Boolean feature flags live in LSPosed RemotePreferences ("janus_config"),
+    // not on disk. Only non-flag data files that the Hook reads directly are
+    // listed here.
     const val CARDS_CONFIG = "$CONFIG_DIR/cards_config"
-    const val HIDE_TIME_TIP = "$CONFIG_DIR/hide_time_tip"
     const val ACTIVE_THEME = "$CONFIG_DIR/active_theme"
-
-    // ── Wallpaper ───────────────────────────────────────────────
-    const val REAR_SCREEN_WHITE = "/data/system/theme/rearScreenWhite"
-    const val WALLPAPER_DIR = "$REAR_SCREEN_WHITE/janus"
-    const val CUSTOM_MRC = "$WALLPAPER_DIR/custom.mrc"
+    const val ACTIVE_WALLPAPER = "$CONFIG_DIR/active_wallpaper"
 
     // ── Non-movable system paths (subscreencenter reads directly) ──
     const val RUNTIME_JSON =
@@ -53,18 +55,25 @@ object JanusPaths {
     const val RUNTIME_DIR =
         "/data/system/theme_magic/users/0/rearScreen"
 
+    // ── Wallpaper (legacy, for migration / cleanup only) ──────
+    const val REAR_SCREEN_WHITE = "/data/system/theme/rearScreenWhite"
+    /** @deprecated Replaced by [WALLPAPERS_DIR] in v260408. Kept for migration/cleanup. */
+    const val WALLPAPER_DIR = "$REAR_SCREEN_WHITE/janus"
+    /** @deprecated Replaced by [ACTIVE_WALLPAPER] pointer in v260408. Kept for migration. */
+    const val CUSTOM_MRC = "$WALLPAPER_DIR/custom.mrc"
+
+    /** @deprecated Use [ensureAllDirs] instead; kept for v0→v1 migration compat. */
+    fun ensureWallpaperDir() {
+        RootUtils.ensureDir(WALLPAPER_DIR)
+    }
+
     /** Ensure the janus/ base and all subdirectories exist with correct permissions. */
     fun ensureAllDirs() {
         RootUtils.ensureDir(JANUS_BASE)
         RootUtils.ensureDir(CONFIG_DIR)
-        RootUtils.ensureDir(CARDS_DIR)
         RootUtils.ensureDir(TEMPLATES_DIR)
         RootUtils.ensureDir(THEMES_DIR)
-    }
-
-    /** Ensure the wallpaper janus/ directory exists. */
-    fun ensureWallpaperDir() {
-        RootUtils.ensureDir(WALLPAPER_DIR)
+        RootUtils.ensureDir(WALLPAPERS_DIR)
     }
 
     // ── Legacy paths (for cleanup of old versions) ──────────────

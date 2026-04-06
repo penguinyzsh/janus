@@ -40,8 +40,6 @@ class SystemCardEngine : HookEnginePlugin {
             "xiaomiev", "privacy", "stock", "mihomeCamera",
         )
 
-        private const val CARDS_DIR =
-            "/data/system/theme_magic/users/0/subscreencenter/janus/cards"
         private const val TEMPLATE_BASE =
             "/data/system/theme_magic/users/\$user_id/subscreencenter/janus/templates"
     }
@@ -70,14 +68,19 @@ class SystemCardEngine : HookEnginePlugin {
     }
 
     /**
-     * Scan janus/cards/ for {business}_custom.zip files.
+     * Scan `janus/templates/` for `{business}_custom` template files.
      * Returns map of business name -> custom template name.
+     *
+     * Prior to v260408 this scanned `janus/cards/{biz}_custom.zip`; the
+     * intermediate `cards/` staging directory has been eliminated.
      */
     private fun detectOverrides(): Map<String, String> {
+        val userId = Process.myUid() / 100_000
+        val base = TEMPLATE_BASE.replace("\$user_id", userId.toString())
         val result = mutableMapOf<String, String>()
         for (biz in SYSTEM_CARDS) {
-            val src = File("$CARDS_DIR/${biz}_custom.zip")
-            if (src.exists()) {
+            val template = File("$base/${biz}_custom")
+            if (template.exists()) {
                 result[biz] = "${biz}_custom"
             }
         }
@@ -139,31 +142,23 @@ class SystemCardEngine : HookEnginePlugin {
         }
     }
 
+    /**
+     * Verify that detected override templates exist and are readable.
+     * Prior to v260408 this copied from `janus/cards/` to `janus/templates/`;
+     * now the app deploys directly to `templates/`, so this is a guard only.
+     */
     private fun deployOverrides(overrides: Map<String, String>) {
         val userId = Process.myUid() / 100_000
         for ((biz, templateName) in overrides) {
-            try {
-                val src = File("$CARDS_DIR/${biz}_custom.zip")
-                if (!src.exists()) {
-                    Log.d(TAG, "Deploy skipped: ${src.absolutePath} not found")
-                    continue
-                }
-                val destPath = TEMPLATE_BASE.replace("\$user_id", userId.toString()) + "/$templateName"
-                val dest = File(destPath)
-                if (dest.isDirectory) dest.deleteRecursively()
-                if (dest.isFile) dest.delete()
-                dest.parentFile?.mkdirs()
-                src.inputStream().use { input ->
-                    dest.outputStream().use { output -> input.copyTo(output) }
-                }
-                dest.setReadable(true, false)
-                dest.parentFile?.let {
-                    it.setReadable(true, false)
-                    it.setExecutable(true, false)
-                }
-                Log.d(TAG, "Deployed $biz -> $destPath (${dest.length()} bytes)")
-            } catch (e: Throwable) {
-                Log.e(TAG, "Deploy $biz failed: ${e.message}")
+            val path = TEMPLATE_BASE.replace("\$user_id", userId.toString()) + "/$templateName"
+            val file = File(path)
+            if (file.exists()) {
+                file.setReadable(true, false)
+                file.parentFile?.setReadable(true, false)
+                file.parentFile?.setExecutable(true, false)
+                Log.d(TAG, "Template verified: $path (${file.length()} bytes)")
+            } else {
+                Log.w(TAG, "Template missing: $path (app may not have deployed yet)")
             }
         }
     }

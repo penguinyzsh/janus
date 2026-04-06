@@ -1,7 +1,9 @@
 [versions]
 # Module metadata (single source of truth for Xposed module.prop + BuildConfig)
-moduleVersion = "1.3.0"
-moduleVersionCode = "14"
+# Versioning scheme: yyMMdd date-based. Matches the storage migration version
+# convention (see JanusMigration.CURRENT_VERSION). Bumps monotonically.
+moduleVersion = "v260406"
+moduleVersionCode = "260406"
 
 # Android / Kotlin toolchain
 agp = "9.1.0"

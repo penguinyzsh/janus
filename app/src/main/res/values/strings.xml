@@ -38,51 +38,38 @@
     <string name="status_unavailable">Unavailable</string>
     <string name="status_checking">Checking…</string>
 
-    <!-- Hook Status -->
-    <string name="hook_status_title">Hook Status</string>
-    <string name="hook_status_refresh">Refresh</string>
-    <string name="hook_status_querying">Querying…</string>
-    <string name="hook_status_ok">OK</string>
-    <string name="hook_status_error">Error</string>
-    <string name="hook_status_empty">No active hooks detected</string>
-    <string name="process_subscreencenter">Rear Screen Center</string>
-    <string name="process_luna_music">Luna Music</string>
-    <string name="hook_music_whitelist">Music Whitelist</string>
-    <string name="hook_tracking_block">Tracking Block</string>
-    <string name="hook_wallpaper_keep_alive">Wallpaper Keep-Alive</string>
-    <string name="hook_wallpaper_lock">Wallpaper Lock</string>
-    <string name="hook_wallpaper_redirect">Wallpaper Redirect</string>
-    <string name="hook_music_template">Music Template</string>
-    <string name="hook_card_injection">Card Injection</string>
-    <string name="hook_apple_music_lyric">Lyric Extraction</string>
-    <string name="hook_luna_music_manager">Lyric Manager</string>
-    <string name="hook_luna_music_remote">Remote Control</string>
-
     <!-- Activation -->
     <string name="activation">Activation</string>
 
     <!-- Features -->
     <string name="section_wallpaper">Wallpaper</string>
-    <string name="disable_tracking">Block Usage Tracking to Xiaomi</string>
-    <string name="disable_tracking_on">Usage data reporting blocked</string>
-    <string name="disable_tracking_off">Usage data reported normally</string>
+    <string name="features_themes_summary">Import .mrc or .mtz files</string>
+    <string name="features_cards_summary">Import .mrc files</string>
+    <string name="features_wallpaper_summary">Import videos or related settings</string>
+    <string name="features_casting_summary">Rear screen related settings</string>
+    <string name="disable_tracking">Block Usage Data Upload</string>
+    <string name="disable_tracking_on">Upload to Xiaomi blocked</string>
+    <string name="disable_tracking_off">Upload to Xiaomi normally</string>
 
-    <string name="hide_time_tip">Hide Time Capsule</string>
-    <string name="hide_time_tip_on">Time capsule hidden on card display</string>
-    <string name="hide_time_tip_off">Time capsule shown on card display</string>
-    <string name="hook_hide_time_tip">Hide Time Capsule</string>
+    <string name="hide_time_tip">Hide Card Time Capsule</string>
+    <string name="hide_time_tip_on">Time capsule hidden</string>
+    <string name="hide_time_tip_off">Time capsule shown</string>
+
+    <string name="focus_notice_allow">Allow Third-party Focus Notifications</string>
+    <string name="focus_notice_allow_on">Focus notifications allowed</string>
+    <string name="focus_notice_allow_off">Focus notifications blocked</string>
 
     <string name="weather_card">Weather Card on Rear Screen</string>
     <string name="weather_card_on">Weather card shown in Smart Assistant</string>
     <string name="weather_card_off">Weather card hidden</string>
 
     <string name="wallpaper_keep_alive">Live Wallpaper Anti-Interrupt</string>
-    <string name="wallpaper_keep_alive_on">Live wallpaper keeps playing through cover overlay</string>
-    <string name="wallpaper_keep_alive_off">Live wallpaper pauses when cover overlay appears</string>
+    <string name="wallpaper_keep_alive_on">Keeps playing when covered</string>
+    <string name="wallpaper_keep_alive_off">Pauses when covered</string>
 
     <string name="wallpaper_lock">Lock Wallpaper Switching</string>
-    <string name="wallpaper_lock_on">Wallpaper carousel locked, swipe to switch disabled</string>
-    <string name="wallpaper_lock_off">Wallpaper can be switched by swiping</string>
+    <string name="wallpaper_lock_on">Long-press switching disabled</string>
+    <string name="wallpaper_lock_off">Long-press switching allowed</string>
 
     <string name="wp_custom_title">Custom Rear Wallpaper Video</string>
     <string name="wp_not_found">No AI wallpaper found</string>
@@ -93,8 +80,8 @@
     <string name="wp_replace_success">Video replaced, rear screen restarting</string>
     <string name="wp_replace_failed">Video replacement failed</string>
     <string name="wp_loop">Loop Playback</string>
-    <string name="wp_loop_on">Video plays in a continuous loop</string>
-    <string name="wp_loop_off">Video plays once then stops</string>
+    <string name="wp_loop_on">Will loop</string>
+    <string name="wp_loop_off">Will not loop</string>
     <string name="wp_loop_applied">Loop setting applied, rear screen restarting</string>
     <string name="wp_restore">Restore Original</string>
     <string name="wp_restore_success">Original wallpaper restored, rear screen restarting</string>
@@ -118,10 +105,18 @@
     <string name="wp_import_failed">Failed to import wallpaper</string>
     <string name="wp_rename_title">Rename Wallpaper</string>
     <string name="wp_settings">Wallpaper Settings</string>
-    <string name="wp_auto_rotate">Auto Rotate Wallpaper</string>
+    <string name="wp_auto_rotate">Auto Switch Wallpaper</string>
     <string name="wp_auto_rotate_desc">Automatically change wallpaper periodically</string>
+    <string name="wp_auto_rotate_on">Will switch automatically</string>
+    <string name="wp_auto_rotate_off">Will not switch automatically</string>
     <string name="wp_auto_rotate_interval">Rotation Interval (Seconds)</string>
     <string name="wp_auto_rotate_interval_summary">Every %1$d seconds</string>
+    <string name="wp_rotation_notification_channel_desc">Keeps wallpaper rotation running in the background</string>
+    <string name="janus_bg_notification_channel_name">Janus Background</string>
+    <string name="janus_bg_notification_channel_desc">Keeps Janus background features (screen keep-alive, wallpaper rotation) running</string>
+    <string name="janus_bg_notification_title_both">Janus is running</string>
+    <string name="janus_bg_notification_text_both">Screen awake every %1$ds · Wallpaper every %2$ds</string>
+    <string name="wp_auto_rotate_enabled_no_notification">Enabled, but notifications are off — the rotation runs silently in the background. Grant notification permission to see the ongoing indicator.</string>
 
     <string name="section_weather">Weather</string>
     <string name="weather_refresh_interval">Refresh Interval</string>
@@ -161,6 +156,7 @@
 
     <!-- System Card Names -->
     <string name="system_card_music">Music</string>
+    <string name="system_cards_reorder_note">Long press to reorder cards</string>
     <string name="system_card_incall">Incoming Call</string>
     <string name="system_card_alarm">Alarm</string>
     <string name="system_card_countdown">Timer</string>
@@ -172,12 +168,11 @@
     <string name="system_card_mi_home_camera">Smart Home Camera</string>
 
     <!-- System Card Override -->
-    <string name="section_system_cards">System Card Overrides</string>
+    <string name="section_system_cards">System Cards</string>
     <string name="section_other_system_cards">Other System Cards</string>
-    <string name="system_cards_summary">Override stock system card templates</string>
+    <string name="system_cards_summary">Replace stock system card templates</string>
     <string name="system_card_override_import_success">%1$s card set: %2$s</string>
     <string name="system_card_override_removed">Reverted to stock %s card</string>
-    <string name="hook_system_card_patch">System Card Override</string>
 
     <!-- Music Override -->
     <string name="section_music">Music Card</string>
@@ -188,9 +183,6 @@
     <string name="music_override_import_failed">Import failed: invalid card file</string>
     <string name="music_override_removed">Reverted to stock music card</string>
     <string name="music_override_remove">Remove Override</string>
-    <string name="music_lyric_patch">Apply Lyric Scrolling</string>
-    <string name="music_lyric_patch_on">Lyric optimizations applied to custom card</string>
-    <string name="music_lyric_patch_off">Using original custom card layout</string>
 
     <!-- Cards -->
     <string name="cards_master_toggle">Card Display</string>
@@ -218,7 +210,7 @@
     <string name="card_enabled_off">Card hidden</string>
 
     <!-- Cast -->
-    <string name="section_casting">App Casting</string>
+    <string name="section_casting">Casting</string>
     <string name="cast_rotation">Cast Rotation</string>
     <string name="cast_rotation_none">No rotation</string>
     <string name="cast_rotation_left">Rotate left 90°</string>
@@ -268,12 +260,28 @@
     <string name="cleanup_success">All Janus data cleaned</string>
     <string name="cleanup_failed">Cleanup failed, some files may remain</string>
     <string name="other">Other</string>
+    <string name="background_perm_title">Background Permissions</string>
+    <string name="background_perm_summary">Wallpaper rotation / screen keep-alive need these grants to survive app kill</string>
+    <string name="background_perm_dialog_title">Background Permission Check</string>
+    <string name="background_perm_dialog_intro">Janus wallpaper rotation and screen keep-alive rely on a foreground service. To keep working after the app is swiped from recents, the following grants are required:</string>
+    <string name="background_perm_notification">Notification permission</string>
+    <string name="background_perm_notification_desc">Foreground services need an ongoing notification; without it the system silently kills the service</string>
+    <string name="background_perm_battery">Battery optimization whitelist</string>
+    <string name="background_perm_battery_desc">Without the exemption, Doze delays or drops background work</string>
+    <string name="background_perm_autostart">Autostart (MIUI / HyperOS only)</string>
+    <string name="background_perm_autostart_desc">Xiaomi-specific. Required for the service to be re-spawned after the app is swiped from recents</string>
+    <string name="background_perm_status_granted">Granted</string>
+    <string name="background_perm_status_denied">Not granted</string>
+    <string name="background_perm_status_manual">Manual action required</string>
+    <string name="background_perm_go">Open settings</string>
+    <string name="background_perm_autostart_not_miui">Not an MIUI device — no action needed</string>
+    <string name="background_perm_autostart_failed">Could not open the autostart page. Please navigate: Settings → Apps → Manage apps → Janus → Autostart</string>
     <string name="other_summary">Resync, cleanup, and more</string>
     <string name="about">About</string>
     <string name="about_janus">Janus</string>
 
     <!-- About -->
-    <string name="app_version_format">v%s</string>
+    <string name="app_version_format">%s</string>
     <string name="about_github">GitHub</string>
     <string name="about_afdian">Afdian</string>
     <string name="support">Support</string>
@@ -314,5 +322,9 @@
     <string name="theme_clear_root_summary">Remove all Janus-deployed theme files from the system partition (keeps local imports)</string>
     <string name="theme_clear_root_confirm">Remove all root-deployed theme files?</string>
     <string name="theme_clear_root_done">Theme deploy data cleared</string>
+    <string name="theme_rename_title">Rename Theme</string>
+
+    <!-- Card Detail -->
+    <string name="card_rename">Rename</string>
 
 </resources>

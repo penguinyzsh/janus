@@ -54,26 +54,29 @@ import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.WallpaperManager
 import org.pysh.janus.data.WhitelistManager
-import org.pysh.janus.receiver.WallpaperRotationReceiver
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.RootUtils
+import org.pysh.janus.service.JanusBackgroundService
+import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.util.WallpaperUtils
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyGridState
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TopAppBar
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.extra.SuperDialog
 import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Preview(showBackground = true)
@@ -116,10 +119,12 @@ fun WallpaperPage(onBack: () -> Unit) {
                 val loopState = WallpaperUtils.isLoopEnabled(context)
                 if (loopState != null) wallpaperLoop = loopState
             }
-            // Auto resume or start rotation alarm if it was lost during app update
+            // Restart the rotation service if auto-rotate is on but the process
+            // was killed (user swipe / OOM / MIUI greezer). Idempotent — a
+            // second start call just refreshes the interval and notification.
             val wm = WhitelistManager(context)
-            if (wm.isAutoRotateEnabled()) {
-                WallpaperRotationReceiver.scheduleNext(context, wm.getAutoRotateInterval().coerceAtLeast(1))
+            if (wm.isAutoRotateEnabled() && !JanusBackgroundService.isRotationActive) {
+                JanusBackgroundService.startRotation(context)
             }
         }
 
@@ -179,15 +184,33 @@ fun WallpaperPage(onBack: () -> Unit) {
             }
         }
 
+    val scrollBehavior = MiuixScrollBehavior()
+    val wpTitle = stringResource(R.string.wp_gallery_title)
     Scaffold(
         topBar = {
-            SmallTopAppBar(
-                title = stringResource(R.string.wp_gallery_title),
+            TopAppBar(
+                title = wpTitle,
+                largeTitle = wpTitle,
+                scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = MiuixIcons.Back,
                             contentDescription = stringResource(R.string.back),
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = {
+                            if (!isProcessing) {
+                                addPicker.launch(arrayOf("video/*"))
+                            }
+                        },
+                    ) {
+                        Icon(
+                            imageVector = MiuixIcons.Add,
+                            contentDescription = stringResource(R.string.wp_add),
                         )
                     }
                 },
@@ -201,23 +224,11 @@ fun WallpaperPage(onBack: () -> Unit) {
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .nestedScroll(scrollBehavior.nestedScrollConnection)
                     .padding(top = paddingValues.calculateTopPadding())
                     .padding(horizontal = 4.dp),
             contentPadding = PaddingValues(bottom = 12.dp),
         ) {
-            // "Add Wallpaper" Button (Span 2 to take full row instead of a huge card)
-            item(key = "add_btn", span = { GridItemSpan(2) }) {
-                TextButton(
-                    text = "+ " + stringResource(R.string.wp_add),
-                    onClick = {
-                        if (!isProcessing) {
-                            addPicker.launch(arrayOf("video/*"))
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
-                )
-            }
-
             // Wallpapers list
             items(wallpapers, key = { it.id }) { wp ->
                 ReorderableItem(reorderableState, key = wp.id) { isDragging ->
@@ -236,7 +247,14 @@ fun WallpaperPage(onBack: () -> Unit) {
                                 } else {
                                     it
                                 }
-                            }.clickable(enabled = !isProcessing) {
+                            }.longPressDraggableHandle(
+                                onDragStopped = {
+                                    val reordered = wallpapers.map { it.id }
+                                    scope.launch(Dispatchers.IO) {
+                                        wallpaperManager?.reorderWallpapers(reordered)
+                                    }
+                                },
+                            ).clickable(enabled = !isProcessing) {
                                 showActionDialogFor = wp.id
                             }
 
@@ -260,55 +278,6 @@ fun WallpaperPage(onBack: () -> Unit) {
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize().background(MiuixTheme.colorScheme.surfaceContainerHigh))
-                        }
-
-                        // Gradient overlay for better text readability
-                        Box(
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .align(Alignment.BottomCenter)
-                                    .background(Color(0x66000000)),
-                        )
-
-                        // Name label
-                        Text(
-                            text = wp.name,
-                            color = Color.White,
-                            style = MiuixTheme.textStyles.body2,
-                            maxLines = 1,
-                            modifier =
-                                Modifier
-                                    .align(Alignment.BottomStart)
-                                    .padding(8.dp),
-                        )
-
-                        // Drag Handle (Top Right)
-                        Box(
-                            modifier =
-                                Modifier
-                                    .align(Alignment.TopEnd)
-                                    .padding(8.dp)
-                                    .size(28.dp)
-                                    .clip(RoundedCornerShape(14.dp))
-                                    .background(Color(0x66000000))
-                                    .longPressDraggableHandle(
-                                        onDragStopped = {
-                                            val reordered = wallpapers.map { it.id }
-                                            scope.launch(Dispatchers.IO) {
-                                                wallpaperManager?.reorderWallpapers(reordered)
-                                            }
-                                        },
-                                    ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Icon(
-                                imageVector = MiuixIcons.More,
-                                contentDescription = "Drag to reorder",
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp),
-                            )
                         }
 
                         // Applied indicator
@@ -407,18 +376,67 @@ fun WallpaperPage(onBack: () -> Unit) {
                         enabled = wallpapers.any { it.isApplied } && !isProcessing,
                     )
 
+                    // Pending toggle state captured before the permission dialog fires,
+                    // so if the user grants the permission we can flip the switch.
+                    var pendingRotateEnable by remember { mutableStateOf(false) }
+                    val notificationPermissionLauncher =
+                        rememberLauncherForActivityResult(
+                            contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                        ) { granted ->
+                            if (pendingRotateEnable) {
+                                // Regardless of grant result, start the service. On denial
+                                // the FGS still runs but its ongoing notification is silently
+                                // suppressed — a better UX than silently failing to enable.
+                                autoRotate = true
+                                whitelistManager?.setAutoRotateEnabled(true)
+                                JanusBackgroundService.startRotation(context)
+                                Toast.makeText(
+                                    context,
+                                    if (granted) {
+                                        context.getString(R.string.enabled)
+                                    } else {
+                                        context.getString(R.string.wp_auto_rotate_enabled_no_notification)
+                                    },
+                                    Toast.LENGTH_LONG,
+                                ).show()
+                                pendingRotateEnable = false
+                            }
+                        }
+
                     SuperSwitch(
                         title = stringResource(R.string.wp_auto_rotate),
-                        summary = stringResource(R.string.wp_auto_rotate_desc),
+                        summary = stringResource(if (autoRotate) R.string.wp_auto_rotate_on else R.string.wp_auto_rotate_off),
                         checked = autoRotate,
                         onCheckedChange = { checked ->
-                            autoRotate = checked
-                            whitelistManager?.setAutoRotateEnabled(checked)
                             if (checked) {
-                                WallpaperRotationReceiver.scheduleNext(context, autoRotateInterval)
-                                Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
+                                // Android 13+ requires POST_NOTIFICATIONS to show the FGS
+                                // ongoing notification. Request it before starting the
+                                // service; on older versions the request is a no-op and
+                                // the launcher callback fires immediately with granted=true.
+                                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                                    val alreadyGranted =
+                                        context.checkSelfPermission(
+                                            android.Manifest.permission.POST_NOTIFICATIONS,
+                                        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                                    if (alreadyGranted) {
+                                        autoRotate = true
+                                        whitelistManager?.setAutoRotateEnabled(true)
+                                        JanusBackgroundService.startRotation(context)
+                                        Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        pendingRotateEnable = true
+                                        notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                                    }
+                                } else {
+                                    autoRotate = true
+                                    whitelistManager?.setAutoRotateEnabled(true)
+                                    JanusBackgroundService.startRotation(context)
+                                    Toast.makeText(context, context.getString(R.string.enabled), Toast.LENGTH_SHORT).show()
+                                }
                             } else {
-                                WallpaperRotationReceiver.cancelAll(context)
+                                autoRotate = false
+                                whitelistManager?.setAutoRotateEnabled(false)
+                                JanusBackgroundService.stopRotation(context)
                                 Toast.makeText(context, context.getString(R.string.disabled), Toast.LENGTH_SHORT).show()
                             }
                         },
@@ -449,13 +467,11 @@ fun WallpaperPage(onBack: () -> Unit) {
                                 isProcessing = true
                                 scope.launch {
                                     withContext(Dispatchers.IO) {
-                                        WallpaperUtils.disableCustomWallpaper()
+                                        WallpaperUtils.clearActiveWallpaper()
                                         RootUtils.restartBackScreen()
                                     }
-                                    // Clear applied states
-                                    wallpaperManager?.getWallpapers()?.forEach { _ ->
-                                        wallpaperManager.markApplied("") // dummy ID clears all
-                                    }
+                                    // Clear applied states in a single write.
+                                    wallpaperManager?.clearApplied()
                                     wallpapers = wallpaperManager?.getWallpapers() ?: emptyList()
                                     isProcessing = false
                                     Toast
@@ -492,10 +508,10 @@ fun WallpaperPage(onBack: () -> Unit) {
                         isProcessing = true
                         scope.launch {
                             val uri = Uri.fromFile(java.io.File(actionTarget?.videoPath ?: ""))
+                            val targetWpId = actionTarget?.id ?: return@launch
                             val success =
                                 withContext(Dispatchers.IO) {
-                                    WallpaperUtils.replaceVideo(context, uri, wallpaperLoop, actionTarget?.id) ||
-                                        WallpaperUtils.createAiWallpaper(context, uri, wallpaperLoop, actionTarget?.id)
+                                    WallpaperUtils.applyWallpaper(context, uri, wallpaperLoop, targetWpId)
                                 }
                             isProcessing = false
                             if (success) {
@@ -525,9 +541,20 @@ fun WallpaperPage(onBack: () -> Unit) {
                     text = stringResource(R.string.wp_delete),
                     onClick = {
                         val targetId = showActionDialogFor ?: return@TextButton
+                        val wasApplied = wallpapers.find { it.id == targetId }?.isApplied == true
                         showActionDialogFor = null
-                        wallpaperManager?.removeWallpaper(targetId)
-                        wallpapers = wallpaperManager?.getWallpapers() ?: emptyList()
+                        scope.launch {
+                            withContext(Dispatchers.IO) {
+                                wallpaperManager?.removeWallpaper(targetId)
+                                // Drop the deployed MRC cache
+                                RootUtils.exec("rm -f '${JanusPaths.WALLPAPERS_DIR}/wp_$targetId.mrc'")
+                                if (wasApplied) {
+                                    WallpaperUtils.clearActiveWallpaper()
+                                    RootUtils.restartBackScreen()
+                                }
+                            }
+                            wallpapers = wallpaperManager?.getWallpapers() ?: emptyList()
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -602,12 +629,14 @@ fun WallpaperPage(onBack: () -> Unit) {
                         text = stringResource(R.string.confirm),
                         onClick = {
                             try {
-                                val minutes = customIntervalText.toIntOrNull() ?: 1
-                                val clamped = minutes.coerceAtLeast(1)
+                                val seconds = customIntervalText.toIntOrNull() ?: 1
+                                val clamped = seconds.coerceAtLeast(1)
                                 autoRotateInterval = clamped
                                 whitelistManager?.setAutoRotateInterval(clamped)
                                 if (autoRotate) {
-                                    WallpaperRotationReceiver.scheduleNext(context, clamped)
+                                    // Re-start the service so it picks up the new interval
+                                    // from WhitelistManager on its next onStartCommand.
+                                    JanusBackgroundService.startRotation(context)
                                 }
                                 Toast.makeText(context, "已设为每 $clamped 秒后轮换", Toast.LENGTH_SHORT).show()
                             } catch (e: Exception) {

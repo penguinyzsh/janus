@@ -1,5 +1,7 @@
 package org.pysh.janus.util
 
+import org.pysh.janus.core.util.RootUtils
+
 object DisplayUtils {
     const val MAIN_DISPLAY = 0
     const val BACK_DISPLAY = 1

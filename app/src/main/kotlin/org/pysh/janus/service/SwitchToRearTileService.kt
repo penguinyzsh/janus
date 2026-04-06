@@ -64,8 +64,8 @@ class SwitchToRearTileService : TileService() {
                     if (rotation != 0) {
                         DisplayUtils.setRearRotation(rotation)
                     }
-                    if (whitelistManager.isCastKeepAlive() && !ScreenKeepAliveService.isRunning) {
-                        ScreenKeepAliveService.start(applicationContext, whitelistManager.getKeepAliveInterval())
+                    if (whitelistManager.isCastKeepAlive() && !JanusBackgroundService.isKeepAliveActive) {
+                        JanusBackgroundService.startKeepAlive(applicationContext, whitelistManager.getKeepAliveInterval())
                     }
                     startWatching(whitelistManager)
                 }
@@ -108,10 +108,10 @@ class SwitchToRearTileService : TileService() {
         watchJob = null
         DisplayUtils.resetRearRotation()
         // 仅当投屏常亮开启、且手动常亮未开启时，才停止 Service
-        if (whitelistManager.isCastKeepAlive() && ScreenKeepAliveService.isRunning) {
+        if (whitelistManager.isCastKeepAlive() && JanusBackgroundService.isKeepAliveActive) {
             val manualKeepAlive = whitelistManager.isKeepAliveEnabled()
             if (!manualKeepAlive) {
-                ScreenKeepAliveService.stop(applicationContext)
+                JanusBackgroundService.stopKeepAlive(applicationContext)
             }
         }
     }

@@ -1,182 +1,129 @@
 package org.pysh.janus.ui
 
-import android.content.ComponentName
-import android.content.pm.PackageManager
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import org.pysh.janus.R
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TopAppBar
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.extra.SuperArrow
-import top.yukonga.miuix.kmp.extra.SuperDialog
-import top.yukonga.miuix.kmp.extra.SuperSwitch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Preview(showBackground = true)
 @Composable
 private fun SettingsPagePreview() {
     MiuixTheme {
-        SettingsPage(bottomPadding = 0.dp, onAboutClick = {}, onOtherClick = {})
+        SettingsPage(bottomPadding = 0.dp, onOtherClick = {})
     }
 }
 
 @Composable
 fun SettingsPage(
     bottomPadding: Dp,
-    onAboutClick: () -> Unit,
     onOtherClick: () -> Unit,
 ) {
     val isInPreview = LocalInspectionMode.current
     val context = LocalContext.current
-    val pm = remember { if (!isInPreview) context.packageManager else null }
-    val aliasComponent =
+    val icon =
         remember {
-            if (!isInPreview) ComponentName(context, "${context.packageName}.MainActivityAlias") else null
-        }
-
-    var iconHidden by remember {
-        mutableStateOf(
-            if (!isInPreview && pm != null && aliasComponent != null) {
-                pm.getComponentEnabledSetting(aliasComponent) ==
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            if (isInPreview) {
+                ImageBitmap(96, 96)
             } else {
-                false
-            },
-        )
-    }
-    var showHideDialog by remember { mutableStateOf(false) }
-
-    val scrollBehavior = MiuixScrollBehavior()
-    val title = stringResource(R.string.nav_settings)
+                val drawable = context.packageManager.getApplicationIcon(context.packageName)
+                val density = context.resources.displayMetrics.density
+                val sizePx = (96 * density).toInt()
+                drawable.toBitmap(width = sizePx, height = sizePx).asImageBitmap()
+            }
+        }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = title,
-                largeTitle = title,
-                scrollBehavior = scrollBehavior,
-            )
+            SmallTopAppBar(title = stringResource(R.string.about))
         },
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-    ) { innerPadding ->
-        LazyColumn(
+    ) { paddingValues ->
+        Column(
             modifier =
                 Modifier
-                    .fillMaxHeight()
-                    .overScrollVertical()
-                    .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    .padding(horizontal = 12.dp),
-            contentPadding =
-                PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = bottomPadding,
-                ),
-            overscrollEffect = null,
+                    .fillMaxSize()
+                    .padding(top = paddingValues.calculateTopPadding())
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = bottomPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            item {
-                Card(
-                    modifier = Modifier.padding(top = 12.dp, bottom = 6.dp),
-                ) {
-                    SuperSwitch(
-                        title = stringResource(R.string.hide_icon),
-                        summary =
-                            stringResource(
-                                if (iconHidden) R.string.hide_icon_on else R.string.hide_icon_off,
-                            ),
-                        checked = iconHidden,
-                        onCheckedChange = {
-                            if (it) {
-                                showHideDialog = true
-                            } else {
-                                pm?.setComponentEnabledSetting(
-                                    aliasComponent!!,
-                                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                                    PackageManager.DONT_KILL_APP,
-                                )
-                                iconHidden = false
-                            }
-                        },
-                    )
-                }
-            }
-            item {
-                Card(
-                    modifier = Modifier.padding(bottom = 6.dp),
-                ) {
-                    SuperArrow(
-                        title = stringResource(R.string.other),
-                        summary = stringResource(R.string.other_summary),
-                        onClick = onOtherClick,
-                    )
-                }
-            }
-            item {
-                Card(
-                    modifier = Modifier.padding(bottom = 6.dp),
-                ) {
-                    SuperArrow(
-                        title = stringResource(R.string.about),
-                        summary = stringResource(R.string.about_janus),
-                        onClick = onAboutClick,
-                    )
-                }
-            }
-        }
-    }
+            Spacer(modifier = Modifier.height(48.dp))
 
-    SuperDialog(
-        show = showHideDialog,
-        title = stringResource(R.string.hide_icon_dialog_title),
-        summary = stringResource(R.string.hide_icon_dialog_summary),
-        onDismissRequest = { showHideDialog = false },
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            TextButton(
-                text = stringResource(R.string.cancel),
-                onClick = { showHideDialog = false },
-                modifier = Modifier.weight(1f),
+            Image(
+                painter = BitmapPainter(icon),
+                contentDescription = stringResource(R.string.app_name),
+                modifier = Modifier.size(96.dp),
             )
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = {
-                    pm?.setComponentEnabledSetting(
-                        aliasComponent!!,
-                        PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                        PackageManager.DONT_KILL_APP,
-                    )
-                    iconHidden = true
-                    showHideDialog = false
-                },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.textButtonColorsPrimary(),
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = stringResource(R.string.app_name),
+                style = MiuixTheme.textStyles.headline1,
+                color = MiuixTheme.colorScheme.onBackground,
             )
+
+            Text(
+                text = stringResource(R.string.app_version_format, org.pysh.janus.BuildConfig.VERSION_NAME),
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Card(modifier = Modifier.padding(horizontal = 12.dp)) {
+                SuperArrow(
+                    title = stringResource(R.string.author),
+                    endActions = {
+                        Text(
+                            text = stringResource(R.string.about_author_name),
+                            color = MiuixTheme.colorScheme.onSurfaceContainerVariant,
+                        )
+                    },
+                    onClick = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/penguinyzsh")),
+                        )
+                    },
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Card(modifier = Modifier.padding(horizontal = 12.dp)) {
+                SuperArrow(
+                    title = stringResource(R.string.other),
+                    summary = stringResource(R.string.other_summary),
+                    onClick = onOtherClick,
+                )
+            }
         }
     }
 }

@@ -3,47 +3,59 @@ package org.pysh.janus.ui
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.pysh.janus.R
 import org.pysh.janus.data.CardManager
 import org.pysh.janus.data.SystemCard
-import org.pysh.janus.util.RootUtils
+import org.pysh.janus.core.util.RootUtils
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar
-import top.yukonga.miuix.kmp.extra.SuperArrow
 import top.yukonga.miuix.kmp.extra.SuperDialog
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Preview(showBackground = true)
 @Composable
@@ -59,48 +71,27 @@ fun SystemCardsPage(onBack: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cardManager = remember { if (!isInPreview) CardManager(context) else null }
-
-    // Music state
-    var musicOverrideName by remember { mutableStateOf(cardManager?.getMusicOverrideName()) }
-    var showMusicRemoveDialog by remember { mutableStateOf(false) }
-
-    // Non-music system cards state
-    var systemCardOverrides by remember {
+    val cards = remember { SystemCard.entries.toList() }
+    var overrides by remember {
         mutableStateOf(
-            SystemCard.nonMusic.associateWith { cardManager?.getSystemCardOverrideName(it) },
+            SystemCard.entries.associateWith { cardManager?.getSystemCardOverrideName(it) },
         )
     }
-    var pendingSystemCard by remember { mutableStateOf<SystemCard?>(null) }
-    var showSystemCardRemoveDialog by remember { mutableStateOf<SystemCard?>(null) }
+    var actionTarget by remember { mutableStateOf<SystemCard?>(null) }
+    var pendingImport by remember { mutableStateOf<SystemCard?>(null) }
+    var removeTarget by remember { mutableStateOf<SystemCard?>(null) }
 
-    // File pickers
-    val musicPicker =
+    val picker =
         rememberLauncherForActivityResult(
             contract = ActivityResultContracts.OpenDocument(),
         ) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
-            scope.launch {
-                val name = withContext(Dispatchers.IO) { cardManager?.importMusicOverride(uri) }
-                if (name != null) {
-                    musicOverrideName = name
-                    Toast.makeText(context, context.getString(R.string.music_override_import_success, name), Toast.LENGTH_SHORT).show()
-                    withContext(Dispatchers.IO) { RootUtils.restartBackScreen() }
-                } else {
-                    Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
-    val systemCardPicker =
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.OpenDocument(),
-        ) { uri ->
-            if (uri == null) return@rememberLauncherForActivityResult
-            val card = pendingSystemCard ?: return@rememberLauncherForActivityResult
+            val card = pendingImport
+            pendingImport = null
+            if (uri == null || card == null) return@rememberLauncherForActivityResult
             scope.launch {
                 val name = withContext(Dispatchers.IO) { cardManager?.importSystemCardOverride(card, uri) }
                 if (name != null) {
-                    systemCardOverrides = systemCardOverrides.toMutableMap().apply { put(card, name) }
+                    overrides = overrides.toMutableMap().apply { put(card, name) }
                     val label = context.getString(card.labelResId)
                     Toast
                         .makeText(
@@ -112,10 +103,10 @@ fun SystemCardsPage(onBack: () -> Unit) {
                 } else {
                     Toast.makeText(context, context.getString(R.string.music_override_import_failed), Toast.LENGTH_SHORT).show()
                 }
-                pendingSystemCard = null
             }
         }
 
+    val lazyGridState = rememberLazyGridState()
     val scrollBehavior = MiuixScrollBehavior()
     val title = stringResource(R.string.section_system_cards)
 
@@ -126,8 +117,8 @@ fun SystemCardsPage(onBack: () -> Unit) {
                 largeTitle = title,
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
-                    top.yukonga.miuix.kmp.basic.IconButton(onClick = onBack) {
-                        top.yukonga.miuix.kmp.basic.Icon(
+                    IconButton(onClick = onBack) {
+                        Icon(
                             imageVector = MiuixIcons.Back,
                             contentDescription = stringResource(R.string.back),
                         )
@@ -137,164 +128,140 @@ fun SystemCardsPage(onBack: () -> Unit) {
         },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            state = lazyGridState,
             modifier =
                 Modifier
-                    .fillMaxHeight()
-                    .overScrollVertical()
+                    .fillMaxSize()
                     .nestedScroll(scrollBehavior.nestedScrollConnection)
-                    .padding(horizontal = 12.dp),
-            contentPadding =
-                PaddingValues(
-                    top = innerPadding.calculateTopPadding(),
-                    bottom = 12.dp,
-                ),
-            overscrollEffect = null,
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .padding(horizontal = 4.dp),
+            contentPadding = PaddingValues(bottom = 12.dp),
         ) {
-            // Music section
-            item(key = "music_section_title") {
-                SmallTitle(text = stringResource(R.string.section_music))
-            }
-            item(key = "music_override") {
-                Card(modifier = Modifier.padding(bottom = if (musicOverrideName != null) 0.dp else 12.dp)) {
-                    SuperArrow(
-                        title = stringResource(R.string.music_override_title),
-                        summary =
-                            if (musicOverrideName != null) {
-                                stringResource(R.string.music_override_set, musicOverrideName!!)
+            items(cards, key = { it.business }) { card ->
+                val overrideName = overrides[card]
+                val isOverridden = overrideName != null
+
+                val cardModifier =
+                    Modifier
+                        .padding(8.dp)
+                        .aspectRatio(0.8f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MiuixTheme.colorScheme.secondaryContainer)
+                        .let {
+                            if (isOverridden) {
+                                it.border(2.dp, MiuixTheme.colorScheme.primary, RoundedCornerShape(16.dp))
                             } else {
-                                stringResource(R.string.music_override_none)
-                            },
-                        onClick = {
-                            musicPicker.launch(arrayOf("application/zip", "application/octet-stream"))
-                        },
-                    )
-                    if (musicOverrideName != null) {
-                        Row(
+                                it
+                            }
+                        }.clickable { actionTarget = card }
+
+                Box(modifier = cardModifier, contentAlignment = Alignment.Center) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                    ) {
+                        Text(
+                            text = stringResource(card.labelResId),
+                            fontSize = 16.sp,
+                            color = MiuixTheme.colorScheme.onSecondaryContainer,
+                        )
+                        if (overrideName != null) {
+                            Text(
+                                text = overrideName,
+                                fontSize = 11.sp,
+                                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                            )
+                        }
+                    }
+
+                    if (isOverridden) {
+                        Box(
                             modifier =
                                 Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 12.dp)
-                                    .padding(bottom = 12.dp),
+                                    .align(Alignment.TopStart)
+                                    .padding(8.dp)
+                                    .background(MiuixTheme.colorScheme.primary, RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
                         ) {
-                            TextButton(
-                                text = stringResource(R.string.music_override_remove),
-                                onClick = { showMusicRemoveDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
+                            Text(
+                                text = stringResource(R.string.theme_active_badge),
+                                color = MiuixTheme.colorScheme.onPrimary,
+                                style = MiuixTheme.textStyles.body2,
+                                fontSize = 11.sp,
                             )
                         }
                     }
                 }
             }
-            // Other system cards section
-            item(key = "other_system_cards_title") {
-                SmallTitle(text = stringResource(R.string.section_other_system_cards))
-            }
-            item(key = "system_card_overrides") {
-                Card(modifier = Modifier.padding(bottom = 12.dp)) {
-                    SystemCard.nonMusic.forEach { card ->
-                        val overrideName = systemCardOverrides[card]
-                        SuperArrow(
-                            title = stringResource(card.labelResId),
-                            summary =
-                                if (overrideName != null) {
-                                    stringResource(R.string.music_override_set, overrideName)
-                                } else {
-                                    stringResource(R.string.music_override_none)
-                                },
-                            onClick = {
-                                pendingSystemCard = card
-                                systemCardPicker.launch(arrayOf("application/zip", "application/octet-stream"))
-                            },
-                        )
-                        if (overrideName != null) {
-                            Row(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 12.dp)
-                                        .padding(bottom = 12.dp),
-                            ) {
-                                TextButton(
-                                    text = stringResource(R.string.music_override_remove),
-                                    onClick = { showSystemCardRemoveDialog = card },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-                            }
-                        }
-                    }
+        }
+
+        // Action dialog for a tapped system card
+        val target = actionTarget
+        SuperDialog(
+            show = target != null,
+            title = target?.let { stringResource(it.labelResId) } ?: "",
+            onDismissRequest = { actionTarget = null },
+        ) {
+            val current = target ?: return@SuperDialog
+            val currentOverride = overrides[current]
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                TextButton(
+                    text = stringResource(R.string.music_override_title),
+                    onClick = {
+                        actionTarget = null
+                        pendingImport = current
+                        picker.launch(arrayOf("application/zip", "application/octet-stream"))
+                    },
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                )
+                if (currentOverride != null) {
+                    TextButton(
+                        text = stringResource(R.string.music_override_remove),
+                        onClick = {
+                            removeTarget = current
+                            actionTarget = null
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColorsPrimary(),
+                    )
                 }
             }
         }
 
-        // Music remove dialog
-        SuperDialog(
-            show = showMusicRemoveDialog,
-            title = stringResource(R.string.music_override_remove),
-            summary = stringResource(R.string.cards_delete_confirm, musicOverrideName ?: ""),
-            onDismissRequest = { showMusicRemoveDialog = false },
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                TextButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = { showMusicRemoveDialog = false },
-                    modifier = Modifier.weight(1f),
-                )
-                TextButton(
-                    text = stringResource(R.string.confirm),
-                    onClick = {
-                        showMusicRemoveDialog = false
-                        scope.launch {
-                            withContext(Dispatchers.IO) {
-                                cardManager?.removeMusicOverride()
-                                RootUtils.restartBackScreen()
-                            }
-                            musicOverrideName = null
-                            Toast.makeText(context, context.getString(R.string.music_override_removed), Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.textButtonColorsPrimary(),
-                )
-            }
-        }
-
-        // System card remove dialog
-        val systemCardToRemove = showSystemCardRemoveDialog
-        if (systemCardToRemove != null) {
-            val removeLabel = stringResource(systemCardToRemove.labelResId)
-            val removeName = systemCardOverrides[systemCardToRemove] ?: ""
+        // Remove confirmation
+        val toRemove = removeTarget
+        if (toRemove != null) {
+            val removeLabel = stringResource(toRemove.labelResId)
+            val removeName = overrides[toRemove] ?: ""
             SuperDialog(
                 show = true,
                 title = stringResource(R.string.music_override_remove),
                 summary = stringResource(R.string.cards_delete_confirm, removeName),
-                onDismissRequest = { showSystemCardRemoveDialog = null },
+                onDismissRequest = { removeTarget = null },
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     TextButton(
                         text = stringResource(R.string.cancel),
-                        onClick = { showSystemCardRemoveDialog = null },
+                        onClick = { removeTarget = null },
                         modifier = Modifier.weight(1f),
                     )
                     TextButton(
                         text = stringResource(R.string.confirm),
                         onClick = {
-                            showSystemCardRemoveDialog = null
+                            removeTarget = null
                             scope.launch {
                                 withContext(Dispatchers.IO) {
-                                    cardManager?.removeSystemCardOverride(systemCardToRemove)
+                                    cardManager?.removeSystemCardOverride(toRemove)
                                     RootUtils.restartBackScreen()
                                 }
-                                systemCardOverrides =
-                                    systemCardOverrides.toMutableMap().apply {
-                                        put(systemCardToRemove, null)
-                                    }
+                                overrides =
+                                    overrides.toMutableMap().apply { put(toRemove, null) }
                                 Toast
                                     .makeText(
                                         context,

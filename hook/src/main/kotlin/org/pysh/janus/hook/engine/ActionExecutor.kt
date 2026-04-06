@@ -204,19 +204,32 @@ object ActionExecutor {
      * All pointer/theme paths are relative to the current Android user id,
      * resolved via `Process.myUid() / 100_000` so multi-user devices work.
      */
+    /**
+     * Layered path resolver for the rear-screen wallpaper hook point.
+     *
+     * Priority order (highest first):
+     *  1. **Active theme** — `active_theme` pointer → `themes/<id>/theme.mrc`
+     *  2. **Active wallpaper** — `active_wallpaper` pointer → `wallpapers/wp_<id>.mrc`
+     *  3. **System default** — fall through to `chain.proceed()`
+     *
+     * All pointer/data paths are relative to the current Android user id,
+     * resolved via `Process.myUid() / 100_000` so multi-user devices work.
+     */
     private fun pathFromActiveTheme(hookId: String) = XposedInterface.Hooker { chain ->
         val userId = android.os.Process.myUid() / 100_000
-        val pointerPath = org.pysh.janus.core.util.JanusPaths.HOOK_CONFIG_DIR
-            .replace("\$user_id", userId.toString()) + "/active_theme"
+        val configDir = org.pysh.janus.core.util.JanusPaths.HOOK_CONFIG_DIR
+            .replace("\$user_id", userId.toString())
         val themesBase = org.pysh.janus.core.util.JanusPaths.HOOK_THEMES_BASE
             .replace("\$user_id", userId.toString())
-        val customMrc = "/data/system/theme/rearScreenWhite/janus/custom.mrc"
+        val wallpapersBase = org.pysh.janus.core.util.JanusPaths.HOOK_WALLPAPERS_DIR
+            .replace("\$user_id", userId.toString())
 
         var resolved: String? = null
         var reason = "system_default"
 
+        // Layer 1: Active theme (highest priority)
         try {
-            val pointerFile = File(pointerPath)
+            val pointerFile = File("$configDir/active_theme")
             if (pointerFile.exists()) {
                 val themeId = pointerFile.readText().trim()
                 if (themeId.isNotEmpty()) {
@@ -229,9 +242,21 @@ object ActionExecutor {
             }
         } catch (_: Throwable) { /* fall through */ }
 
-        if (resolved == null && File(customMrc).exists()) {
-            resolved = customMrc
-            reason = "custom_wallpaper"
+        // Layer 2: Active wallpaper (pointer → wp_<uuid>.mrc)
+        if (resolved == null) {
+            try {
+                val pointerFile = File("$configDir/active_wallpaper")
+                if (pointerFile.exists()) {
+                    val wpId = pointerFile.readText().trim()
+                    if (wpId.isNotEmpty()) {
+                        val mrcFile = File("$wallpapersBase/wp_$wpId.mrc")
+                        if (mrcFile.exists()) {
+                            resolved = mrcFile.absolutePath
+                            reason = "active_wallpaper"
+                        }
+                    }
+                }
+            } catch (_: Throwable) { /* fall through */ }
         }
 
         val original = chain.proceed() as? String

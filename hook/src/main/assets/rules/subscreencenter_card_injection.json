@@ -30,6 +30,14 @@
     "manager_list_field": "a",
     "entry_key_field": "a",
     "entry_priority_field": "d",
-    "card_runnable_class": "Z1.m"
+    "card_runnable_class": "Z1.m",
+    "business_resolver_class": "p2.c",
+    "business_resolver_method": "r",
+    "u0b_business_field": "c",
+    "rv_business_check_class": "p2.a",
+    "rv_business_check_method": "d",
+    "template_path_query_class": "p2.c",
+    "template_path_query_method": "i",
+    "focus_notice_config_flag": "focus_notice_dynamic_allow"
   }
 }

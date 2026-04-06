@@ -93,14 +93,32 @@ class ThemeManager(
 
     /**
      * Returns the currently active theme id, or null if no theme is active.
-     * Reads the root-owned pointer file via `su cat`, with a local shadow
-     * fallback if root is unavailable.
+     *
+     * Reads the root-owned pointer file `$ACTIVE_THEME` on the first call,
+     * then serves subsequent calls from an in-memory cache. [applyTheme] and
+     * [deactivate] invalidate the cache immediately, so the value is always
+     * in sync with what this process wrote. Cross-process writes (e.g. a
+     * shell poking the file directly) are not observed, but there is no such
+     * writer in the current codebase.
+     *
+     * Rationale for caching: the UI hits this on every `ON_RESUME` of
+     * `ThemesPage` and on dialog open, which used to fork a `su` subprocess
+     * per call. Root is a hard invariant on Main screen, so the historical
+     * "local shadow fallback" for no-root users has been removed.
      */
     fun getActiveThemeId(): String? {
-        val remote = RootUtils.execWithOutput("cat '${JanusPaths.ACTIVE_THEME}' 2>/dev/null")
-        val id = remote?.trim()?.takeIf { it.isNotEmpty() }
-        return id ?: localShadowActiveId()
+        cachedActiveId?.let { return it.value }
+        val raw = RootUtils.execWithOutput("cat '${JanusPaths.ACTIVE_THEME}' 2>/dev/null")
+        val id = raw?.trim()?.takeIf { it.isNotEmpty() }
+        cachedActiveId = ActiveIdCell(id)
+        return id
     }
+
+    /** Wrapper so a cached null (no active theme) is distinguishable from "not loaded yet". */
+    private data class ActiveIdCell(val value: String?)
+
+    @Volatile
+    private var cachedActiveId: ActiveIdCell? = null
 
     // ── Import ────────────────────────────────────────────────────
 
@@ -190,6 +208,13 @@ class ThemeManager(
         return ImportResult.Failure(reason)
     }
 
+    // ── Rename ────────────────────────────────────────────────────
+
+    fun renameTheme(id: String, newName: String) {
+        val entries = getThemes()
+        saveAll(entries.map { if (it.id == id) it.copy(displayName = newName) else it })
+    }
+
     // ── Delete ────────────────────────────────────────────────────
 
     fun deleteTheme(id: String): Boolean {
@@ -260,14 +285,14 @@ class ThemeManager(
             )
         if (!pointerOk) return false
 
-        writeLocalShadowActiveId(entry.id)
+        cachedActiveId = ActiveIdCell(entry.id)
         return true
     }
 
     /** Clear the active_theme pointer so the hook falls through to the next layer. */
     fun deactivate(): Boolean {
         val ok = RootUtils.exec("rm -f '${JanusPaths.ACTIVE_THEME}'")
-        if (ok) writeLocalShadowActiveId(null)
+        if (ok) cachedActiveId = ActiveIdCell(null)
         return ok
     }
 
@@ -349,19 +374,6 @@ class ThemeManager(
                     zipOut.closeEntry()
                 }
             }
-        }
-    }
-
-    private val localShadowFile: File
-        get() = File(themesDir, ".active_theme_shadow")
-
-    private fun localShadowActiveId(): String? = localShadowFile.takeIf { it.exists() }?.readText()?.trim()?.ifEmpty { null }
-
-    private fun writeLocalShadowActiveId(id: String?) {
-        if (id == null) {
-            localShadowFile.delete()
-        } else {
-            localShadowFile.writeText(id)
         }
     }
 

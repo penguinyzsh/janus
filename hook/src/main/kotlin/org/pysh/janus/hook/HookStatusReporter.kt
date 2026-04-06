@@ -77,7 +77,11 @@ object HookStatusReporter {
     fun reportBehavior(hookId: String, data: JSONObject) {
         val count = behaviorCounts.merge(hookId, 1) { old, _ -> old + 1 } ?: 1
         data.put("call_count", count)
-        behaviors[hookId] = data.toString()
+        val payload = data.toString()
+        behaviors[hookId] = payload
+        // Per-call visibility: log each behavior event as debug so logcat -s
+        // Janus-Status surfaces them live without waiting for a pull query.
+        Log.d(TAG, "behavior $hookId: $payload")
     }
 
     private fun registerReceiver(context: Context) {

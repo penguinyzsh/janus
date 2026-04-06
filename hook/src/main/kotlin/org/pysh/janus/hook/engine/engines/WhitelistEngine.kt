@@ -4,7 +4,6 @@ import org.pysh.janus.hookapi.ConfigSource
 import android.util.Log
 import io.github.libxposed.api.XposedInterface
 import org.json.JSONObject
-import org.pysh.janus.core.util.JanusPaths
 import org.pysh.janus.hook.HookStatusReporter
 import org.pysh.janus.hook.engine.HookEnginePlugin
 import org.pysh.janus.hookapi.HookRule
@@ -30,7 +29,6 @@ class WhitelistEngine : HookEnginePlugin {
     companion object {
         const val ENGINE_NAME = "whitelist"
         private const val TAG = "Janus-Whitelist"
-        private val WHITELIST_FLAG_PATH = JanusPaths.WHITELIST
     }
 
     override fun install(
@@ -167,23 +165,16 @@ class WhitelistEngine : HookEnginePlugin {
         }
     }
 
-    private fun getCustomWhitelist(config: ConfigSource): Set<String> {
-        // Read from file flag first (written by app side), fall back to RemotePreferences
-        return try {
-            val flagFile = java.io.File(WHITELIST_FLAG_PATH)
-            if (flagFile.exists()) {
-                val raw = flagFile.readText().trim()
-                if (raw.isEmpty()) emptySet()
-                else raw.split(",").filter { it.isNotBlank() }.toSet()
+    private fun getCustomWhitelist(config: ConfigSource): Set<String> =
+        try {
+            val raw = config.getString("whitelist", "") ?: ""
+            if (raw.isEmpty()) {
+                emptySet()
             } else {
-                // Fall back to RemotePreferences
-                val raw = config.getString("whitelist", "") ?: ""
-                if (raw.isEmpty()) emptySet()
-                else raw.split(",").filter { it.isNotBlank() }.toSet()
+                raw.split(",").filter { it.isNotBlank() }.toSet()
             }
         } catch (e: Throwable) {
             Log.e(TAG, "Failed to read whitelist: ${e.message}")
             emptySet()
         }
-    }
 }
