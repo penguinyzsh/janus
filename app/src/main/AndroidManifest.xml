@@ -71,7 +71,13 @@
             </intent-filter>
         </receiver>
 
-        <!-- Xposed module metadata (libxposed uses META-INF/xposed/ instead) -->
+        <!-- Xposed module metadata — LSPosed manager requires these manifest
+             entries to recognise the app as a module, even though libxposed 101
+             uses META-INF/xposed/module.prop at runtime. -->
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" android:value="@string/app_name" />
+        <meta-data android:name="xposedminversion" android:value="101" />
+        <meta-data android:name="xposedscope" android:resource="@array/xposed_scope" />
 
     </application>
 </manifest>
